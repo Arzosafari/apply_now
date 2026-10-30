@@ -237,7 +237,7 @@ export function ConsultationDetailPage() {
           <div className="admin-card p-5">
             <h3 className="text-[0.8rem] font-semibold text-navy">{a("Contact applicant")}</h3>
             <div className="mt-4 grid gap-2">
-              <a href={`mailto:${consultation.email}?subject=${encodeURIComponent(`FaraTech consultation ${consultation.reference}`)}`} className="flex items-center gap-2 rounded-lg border border-[#e8eef5] px-3 py-2.5 text-[0.7rem] text-[#526980] hover:border-[#c7d8e8] hover:text-navy">
+              <a href={`mailto:${consultation.email}?subject=${encodeURIComponent(`Apply Now consultation ${consultation.reference}`)}`} className="flex items-center gap-2 rounded-lg border border-[#e8eef5] px-3 py-2.5 text-[0.7rem] text-[#526980] hover:border-[#c7d8e8] hover:text-navy">
                 <Mail size={14} className="text-blue" />{a(" Email ")}</a>
               <a href={`tel:${consultation.phone}`} className="flex items-center gap-2 rounded-lg border border-[#e8eef5] px-3 py-2.5 text-[0.7rem] text-[#526980] hover:border-[#c7d8e8] hover:text-navy">
                 <Phone size={14} className="text-blue" />{a(" Call ")}</a>

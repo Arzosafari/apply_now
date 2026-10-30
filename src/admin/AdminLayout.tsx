@@ -107,6 +107,13 @@ export function AdminLayout() {
   }, [location.pathname]);
 
   useEffect(() => {
+    const desktop = window.matchMedia('(min-width: 1024px)');
+    const closeOnDesktop = (event: MediaQueryListEvent) => { if (event.matches) setOpen(false); };
+    desktop.addEventListener('change', closeOnDesktop);
+    return () => desktop.removeEventListener('change', closeOnDesktop);
+  }, []);
+
+  useEffect(() => {
     if (!open) return;
     const close = (event: KeyboardEvent) => event.key === 'Escape' && setOpen(false);
     document.body.style.overflow = 'hidden';
@@ -134,7 +141,7 @@ export function AdminLayout() {
   const sidebar = (
     <aside ref={sidebarRef} tabIndex={-1} id="admin-sidebar" className={cn('admin-sidebar', open && 'open')} role={open ? 'dialog' : undefined} aria-modal={open ? 'true' : undefined} aria-label={open ? a('Admin navigation') : undefined}>
       <div className="admin-sidebar-brand flex items-center justify-between">
-        <Link to="/admin" aria-label={a("FaraTech admin dashboard")}>
+        <Link to="/admin" aria-label={a("Apply Now admin dashboard")}>
           <Logo light />
         </Link>
         <button type="button" className="text-white/60 lg:hidden" onClick={() => setOpen(false)} aria-label={a("Close navigation")}>
@@ -214,7 +221,7 @@ export function AdminLayout() {
                 <Menu size={17} />
               </button>
               <div className="min-w-0">
-                <div className="hidden text-[0.59rem] font-semibold uppercase tracking-[0.13em] text-[#93a2b4] sm:block">{a(" FaraTech management ")}</div>
+                <div className="hidden text-[0.59rem] font-semibold uppercase tracking-[0.13em] text-[#93a2b4] sm:block">{a(" Apply Now management ")}</div>
                 <h1 className="admin-page-title truncate text-[1.12rem] sm:text-[1.3rem]">{a(pageTitle(location.pathname))}</h1>
               </div>
             </div>

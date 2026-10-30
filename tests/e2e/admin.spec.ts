@@ -39,7 +39,7 @@ test('admin routes, sample payment filters, downloads and locale switch', async 
   await expect(page.locator('tbody tr').first()).toContainText('successful');
   const download = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export CSV' }).click();
-  expect((await download).suggestedFilename()).toBe('faratech-demo-payments.csv');
+  expect((await download).suggestedFilename()).toBe('apply-now-demo-payments.csv');
 
   await page.getByRole('button', { name: 'FA', exact: true }).click();
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
@@ -207,7 +207,7 @@ test('request pagination, filters, and CSV export use local records', async ({ p
   await expect(page.locator('tbody tr')).toHaveCount(3);
   const download = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export CSV' }).click();
-  expect((await download).suggestedFilename()).toBe('faratech-demo-requests.csv');
+  expect((await download).suggestedFilename()).toBe('apply-now-demo-requests.csv');
   await page.getByRole('button', { name: 'Reset', exact: true }).click();
   await expect(page.locator('tbody tr')).toHaveCount(15);
 });
@@ -387,4 +387,73 @@ test('keyboard focus is contained and restored in admin dialogs and mobile navig
   }
   await page.keyboard.press('Escape');
   await expect(toggle).toBeFocused();
+});
+
+test('legacy sample branding is updated without losing saved data or custom logos', async ({ page }) => {
+  await page.goto('/admin/settings');
+  await page.getByRole('button', { name: 'Save settings' }).first().click();
+  await expect(page.getByText('Website settings saved.')).toBeVisible();
+  await page.evaluate(() => {
+    const key = 'faratech_frontend_demo_v1';
+    const stored = JSON.parse(localStorage.getItem(key)!);
+    stored.settings.brand.name = 'FaraTech';
+    stored.settings.brand.legalName = 'FaraTech Global Mobility';
+    stored.settings.brand.email = 'contact@faratech.example';
+    stored.settings.brand.logoUrl = '';
+    stored.settings.seo.title = 'FaraTech — Immigration & Study Abroad Consultancy';
+    stored.settings.hero.title = 'My preserved demo heading';
+    stored.settings.hero.description = 'Custom FaraTech copy must be preserved.';
+    stored.consultations[0].full_name = 'Retained sample record';
+    const service = stored.services.find((item: { slug: string }) => item.slug === 'student-visa');
+    service.timeline_en = service.timeline_en.replaceAll('Apply Now', 'FaraTech');
+    const article = stored.articles.find((item: { slug: string }) => item.slug === 'building-a-realistic-study-abroad-shortlist');
+    article.author = 'FaraTech Editorial';
+    const faq = stored.faqs.find((item: { question_en: string }) => item.question_en === 'What does Apply Now do?');
+    for (const field of ['question_en', 'question_fa', 'answer_en', 'answer_fa']) faq[field] = faq[field].replaceAll('Apply Now', 'FaraTech');
+    const legal = stored.legal.find((item: { slug: string }) => item.slug === 'privacy-policy');
+    legal.body_en = legal.body_en.replaceAll('Apply Now', 'FaraTech');
+    localStorage.setItem(key, JSON.stringify(stored));
+  });
+  await page.goto('/');
+  await expect(page.locator('h1')).toContainText('My preserved demo heading');
+  await expect(page.getByText('Custom FaraTech copy must be preserved.')).toBeVisible();
+  await expect(page.locator('.site-header img.brand-logo')).toHaveAttribute('src', '/images/apply-now-logo.png');
+  await expect(page).toHaveTitle(/Apply Now/);
+  await page.goto('/faq');
+  await expect(page.getByRole('button', { name: 'What does Apply Now do?' })).toBeVisible();
+  await page.goto('/blog/building-a-realistic-study-abroad-shortlist');
+  await expect(page.getByText('Apply Now Editorial')).toBeVisible();
+  await page.goto('/privacy-policy');
+  await expect(page.getByText(/Forms in this preview do not contact Apply Now/)).toBeVisible();
+  await page.goto('/admin/requests');
+  await page.getByPlaceholder(/Search reference, name, email or phone/).fill('Retained sample record');
+  await expect(page.locator('tbody')).toContainText('Retained sample record');
+
+  await page.goto('/admin/settings');
+  await page.evaluate(() => {
+    const key = 'faratech_frontend_demo_v1';
+    const stored = JSON.parse(localStorage.getItem(key)!);
+    stored.settings.brand.logoUrl = '/images/office.jpg';
+    localStorage.setItem(key, JSON.stringify(stored));
+  });
+  await page.reload();
+  await expect(page.getByLabel('Company name', { exact: true })).toHaveValue('Apply Now');
+  await expect(page.getByLabel('Logo', { exact: true })).toHaveValue('/images/office.jpg');
+  await page.getByLabel('Company name', { exact: true }).fill('Custom Company');
+  await page.getByRole('button', { name: 'Save settings' }).first().click();
+  await page.goto('/about');
+  await expect(page.locator('.site-header img.brand-logo')).toHaveAttribute('src', '/images/office.jpg');
+  await expect(page.locator('.site-header img.brand-logo')).toHaveAttribute('alt', 'Custom Company');
+  await expect(page).toHaveTitle(/Custom Company/);
+});
+
+test('admin mobile navigation closes when returning to desktop width', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 800 });
+  await page.goto('/admin/dashboard');
+  await page.getByRole('button', { name: 'Open navigation' }).click();
+  await expect(page.getByRole('dialog', { name: 'Admin navigation' })).toBeVisible();
+  await page.setViewportSize({ width: 1200, height: 800 });
+  await expect(page.getByRole('dialog', { name: 'Admin navigation' })).toHaveCount(0);
+  await expect(page.locator('body')).not.toHaveCSS('overflow', 'hidden');
+  await expect(page.getByRole('navigation', { name: 'Admin navigation' })).toBeVisible();
 });

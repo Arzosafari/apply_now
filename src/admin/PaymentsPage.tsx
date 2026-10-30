@@ -44,7 +44,7 @@ export function PaymentsPage() {
         action={
           <button type="button" className="btn btn-dark btn-sm" disabled={!query.data?.total} onClick={async () => {
             const records = await adminApi.payments({ page: 1, pageSize: 1000, status, search: deferredSearch });
-            downloadCsv('faratech-demo-payments.csv', records.items.map((item) => ({ transaction: item.reference, applicant: item.customer_email, package: item.package_name_en, amount: item.amount_minor / 100, currency: item.currency, status: item.status, date: item.created_at })));
+            downloadCsv('apply-now-demo-payments.csv', records.items.map((item) => ({ transaction: item.reference, applicant: item.customer_email, package: item.package_name_en, amount: item.amount_minor / 100, currency: item.currency, status: item.status, date: item.created_at })));
           }}>
             <Download size={13} />{a(" Export CSV ")}</button>
         }

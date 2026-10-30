@@ -10,6 +10,7 @@ import type {
 } from '@shared/types';
 import { CONSULTATION_STATUSES } from '@shared/types';
 import { ApiError } from '@/lib/apiError';
+import { DEFAULT_BRAND_LEGAL_NAME, DEFAULT_BRAND_LOGO } from '@/lib/brand';
 import * as seed from './mock-content';
 
 type LegalPage = { slug: string; title_en: string; title_fa: string; body_en: string; body_fa: string; updated_at: string };
@@ -35,7 +36,7 @@ type DemoStore = {
 const STORAGE_KEY = 'faratech_frontend_demo_v1';
 const SESSION_KEY = 'faratech_demo_session';
 const demoAdmin: Admin = {
-  id: 1, email: 'demo@faratech.example', name: 'Demo Administrator', role: 'owner',
+  id: 1, email: 'demo@applynow.example', name: 'Demo Administrator', role: 'owner',
   is_active: true, last_login_at: null, created_at: '2026-01-01T00:00:00.000Z',
 };
 let memoryStore: DemoStore | null = null;
@@ -51,8 +52,8 @@ const isoDaysAgo = (days: number) => {
 const legalTemplates: LegalPage[] = [
   {
     slug: 'privacy-policy', title_en: 'Privacy Policy', title_fa: 'سیاست حریم خصوصی', updated_at: '2026-01-01T00:00:00.000Z',
-    body_en: `## Preview notice\n\nThis is placeholder legal content for a frontend demonstration, not a final privacy policy. Forms in this preview do not contact FaraTech or send email. Demo entries and management changes are stored locally in this browser; do not enter real personal or sensitive information.\n\n## Information and purpose\n\nBefore launch, describe which information the business collects, why it is needed and the lawful basis for processing it.\n\n## Storage, sharing and retention\n\nIdentify actual service providers, security measures, retention periods and international transfers once the production system is designed. Browser demo data is not a secure production record.\n\n## Your rights and contact\n\nDescribe applicable access, correction and deletion rights and provide verified contact information. A qualified professional must review this policy before publication.`,
-    body_fa: `## اطلاعیه پیش‌نمایش\n\nاین متن حقوقی صرفاً نمونه برای نمایش رابط کاربری است و سیاست نهایی حریم خصوصی نیست. فرم‌های این پیش‌نمایش با FaraTech تماس نمی‌گیرند و ایمیلی ارسال نمی‌کنند. اطلاعات نمایشی و تغییرات مدیریت فقط در همین مرورگر ذخیره می‌شوند؛ اطلاعات واقعی یا حساس وارد نکنید.\n\n## اطلاعات و هدف\n\nپیش از انتشار، نوع اطلاعات جمع‌آوری‌شده، دلیل نیاز و مبنای قانونی پردازش را مشخص کنید.\n\n## نگهداری و اشتراک‌گذاری\n\nپس از طراحی سامانه عملیاتی، ارائه‌دهندگان واقعی، اقدامات امنیتی، دوره نگهداری و انتقال بین‌المللی را مشخص کنید. اطلاعات نمایشی مرورگر، سابقه امن عملیاتی نیست.\n\n## حقوق و تماس\n\nحقوق دسترسی، اصلاح و حذف و اطلاعات تماس تأییدشده را درج کنید. این متن باید پیش از انتشار توسط متخصص حقوقی بررسی شود.`,
+    body_en: `## Preview notice\n\nThis is placeholder legal content for a frontend demonstration, not a final privacy policy. Forms in this preview do not contact Apply Now or send email. Demo entries and management changes are stored locally in this browser; do not enter real personal or sensitive information.\n\n## Information and purpose\n\nBefore launch, describe which information the business collects, why it is needed and the lawful basis for processing it.\n\n## Storage, sharing and retention\n\nIdentify actual service providers, security measures, retention periods and international transfers once the production system is designed. Browser demo data is not a secure production record.\n\n## Your rights and contact\n\nDescribe applicable access, correction and deletion rights and provide verified contact information. A qualified professional must review this policy before publication.`,
+    body_fa: `## اطلاعیه پیش‌نمایش\n\nاین متن حقوقی صرفاً نمونه برای نمایش رابط کاربری است و سیاست نهایی حریم خصوصی نیست. فرم‌های این پیش‌نمایش با Apply Now تماس نمی‌گیرند و ایمیلی ارسال نمی‌کنند. اطلاعات نمایشی و تغییرات مدیریت فقط در همین مرورگر ذخیره می‌شوند؛ اطلاعات واقعی یا حساس وارد نکنید.\n\n## اطلاعات و هدف\n\nپیش از انتشار، نوع اطلاعات جمع‌آوری‌شده، دلیل نیاز و مبنای قانونی پردازش را مشخص کنید.\n\n## نگهداری و اشتراک‌گذاری\n\nپس از طراحی سامانه عملیاتی، ارائه‌دهندگان واقعی، اقدامات امنیتی، دوره نگهداری و انتقال بین‌المللی را مشخص کنید. اطلاعات نمایشی مرورگر، سابقه امن عملیاتی نیست.\n\n## حقوق و تماس\n\nحقوق دسترسی، اصلاح و حذف و اطلاعات تماس تأییدشده را درج کنید. این متن باید پیش از انتشار توسط متخصص حقوقی بررسی شود.`,
   },
   {
     slug: 'terms-and-conditions', title_en: 'Terms & Conditions', title_fa: 'شرایط و قوانین', updated_at: '2026-01-01T00:00:00.000Z',
@@ -132,6 +133,57 @@ function makeStore(): DemoStore {
   };
 }
 
+// Update only values that still match the old demonstration seed. Custom content,
+// uploaded logos and local records are intentionally left untouched.
+function legacyBrand(value: string) {
+  return value.replaceAll('Apply Now', 'FaraTech').replaceAll('applynow.example', 'faratech.example');
+}
+
+function migrateUntouchedSample(value: unknown, sample: unknown): unknown {
+  if (typeof value === 'string' && typeof sample === 'string') {
+    const previous = legacyBrand(sample);
+    return previous !== sample && value === previous ? sample : value;
+  }
+  if (Array.isArray(value) && Array.isArray(sample)) {
+    return value.map((item, index) => index < sample.length ? migrateUntouchedSample(item, sample[index]) : item);
+  }
+  if (value && sample && typeof value === 'object' && typeof sample === 'object') {
+    const current = value as Record<string, unknown>;
+    for (const [key, sampleValue] of Object.entries(sample as Record<string, unknown>)) {
+      if (key in current) current[key] = migrateUntouchedSample(current[key], sampleValue);
+    }
+  }
+  return value;
+}
+
+function updateLegacyBrand(store: DemoStore) {
+  const hadLegacyName = store.settings.brand.name === 'FaraTech';
+  migrateUntouchedSample(store.settings, seed.settings);
+  if (store.settings.brand.legalName === 'FaraTech Global Mobility') store.settings.brand.legalName = DEFAULT_BRAND_LEGAL_NAME;
+  if (hadLegacyName && !store.settings.brand.logoUrl) store.settings.brand.logoUrl = DEFAULT_BRAND_LOGO;
+
+  store.services?.forEach((item) => {
+    const sample = seed.services.find((entry) => entry.slug === item.slug);
+    if (sample) migrateUntouchedSample(item, sample);
+  });
+  store.articles?.forEach((item) => {
+    const sample = seed.articles.find((entry) => entry.slug === item.slug);
+    if (sample) migrateUntouchedSample(item, sample);
+  });
+  store.faqs?.forEach((item) => {
+    const sample = seed.faqs.find((entry) => item.question_en === entry.question_en || item.question_en === legacyBrand(entry.question_en));
+    if (sample) migrateUntouchedSample(item, sample);
+  });
+  store.testimonials?.forEach((item) => {
+    const sample = seed.testimonials.find((entry) => entry.name === item.name);
+    if (item.is_demo && sample) migrateUntouchedSample(item, sample);
+  });
+  store.legal?.forEach((item) => {
+    const sample = legalTemplates.find((entry) => entry.slug === item.slug);
+    if (sample) migrateUntouchedSample(item, sample);
+  });
+}
+
 function readStore(): DemoStore {
   if (memoryStore) return memoryStore;
   try {
@@ -139,7 +191,8 @@ function readStore(): DemoStore {
     if (saved) {
       const parsed = JSON.parse(saved) as DemoStore;
       if (parsed.services && parsed.settings && parsed.consultations && parsed.legal) {
-        // Update untouched sample answers and fill bilingual fields without overwriting local edits.
+        // Update untouched sample branding/answers and fill bilingual fields without overwriting local edits.
+        updateLegacyBrand(parsed);
         if (parsed.faqs) updateUntouchedSampleFaqs(parsed.faqs);
         parsed.settings.brand.tagline_fa ??= 'تحصیل · کار · زندگی · خارج از کشور';
         const expertNames: Record<string, string> = { 'sample-senior-advisor': 'مشاور ارشد نمونه', 'sample-education-advisor': 'مشاور تحصیلی نمونه', 'sample-visa-specialist': 'متخصص ویزای نمونه', 'sample-client-care-lead': 'مسئول تجربه متقاضیان نمونه' };

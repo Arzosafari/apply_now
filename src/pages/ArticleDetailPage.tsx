@@ -13,6 +13,7 @@ import { useParams } from 'react-router-dom';
 import { publicApi } from '@/lib/api';
 import { LocalLink, useLocale } from '@/lib/i18n';
 import { usePageMeta } from '@/lib/seo';
+import { initials } from '@/lib/utils';
 import { usePublicSite } from '@/components/PublicLayout';
 import { ArticleCard } from '@/components/Cards';
 import { Markdown } from '@/components/Markdown';
@@ -133,9 +134,9 @@ export function ArticleDetailPage() {
             </p>
             <div className="mt-7 flex items-center justify-between gap-4 border-t border-line pt-5">
               <div className="flex items-center gap-2.5">
-                <span className="grid h-9 w-9 place-items-center rounded-full bg-navy text-[0.66rem] font-bold text-white">FT</span>
+                <span className="grid h-9 w-9 place-items-center rounded-full bg-navy text-[0.66rem] font-bold text-white">{initials(site.settings.brand.name)}</span>
                 <div>
-                  <div className="text-[0.7rem] font-semibold text-navy">{locale === 'fa' && article.author === 'FaraTech Editorial' ? 'تحریریه FaraTech' : article.author}</div>
+                  <div className="text-[0.7rem] font-semibold text-navy">{locale === 'fa' && article.author === 'Apply Now Editorial' ? 'تحریریه Apply Now' : article.author}</div>
                   <div className="text-[0.6rem] text-muted">{t('blog.published')} · {formatDate(article.published_at || article.created_at)}</div>
                 </div>
               </div>

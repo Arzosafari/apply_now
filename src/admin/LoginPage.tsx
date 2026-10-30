@@ -13,7 +13,7 @@ export function AdminLoginPage() {
   const fa = locale === 'fa';
   const navigate = useNavigate();
   const location = useLocation();
-  const [email, setEmail] = useState('demo@faratech.example');
+  const [email, setEmail] = useState('demo@applynow.example');
   const [password, setPassword] = useState('demo');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -67,7 +67,7 @@ export function AdminLoginPage() {
                 ))}
               </div>
             </div>
-            <p className="text-[0.6rem] text-white/30">© {new Date().getFullYear()} FaraTech Global Mobility</p>
+            <p className="text-[0.6rem] text-white/30">© {new Date().getFullYear()} Apply Now Immigration Group</p>
           </div>
         </div>
 
@@ -97,7 +97,7 @@ export function AdminLoginPage() {
                   required
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
-                  placeholder="you@faratech.example"
+                  placeholder="you@applynow.example"
                 />
               </div>
               <div className="field mt-4">

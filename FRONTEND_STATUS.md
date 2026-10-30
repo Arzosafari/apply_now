@@ -69,8 +69,8 @@ The checklist above records the state **before** implementation. The following i
 
 - `npm run typecheck` — passed for both frontend and existing server TypeScript projects.
 - `npm run build` — passed (Vite production build).
-- `LD_LIBRARY_PATH=/tmp/faratech-browser-libs/lib PLAYWRIGHT_CHROMIUM_EXECUTABLE=/tmp/chromium npm run test:e2e` — **24 passed** in Chromium. Covers bilingual public/admin routes, forms, local request/message handling, six CRUD workflows, filters/pagination/CSV, image uploads, settings/legal persistence, local cross-tab updates, demo checkout, redirects, keyboard focus, dialogs and mobile navigation.
-- Additional headless route audit at 1440px: 18 public and 14 admin routes in each locale, with no captured page/console errors or document overflow; loaded public images had no broken sources. Responsive audit: 15 public and 12 admin routes in each locale at 320, 390, 768 and 1024px, with no captured console/page errors or document-level horizontal overflow. These ad hoc audits supplement, rather than replace, the committed Playwright tests.
+- `LD_LIBRARY_PATH=/tmp/faratech-browser-libs/lib PLAYWRIGHT_CHROMIUM_EXECUTABLE=/tmp/chromium npm run test:e2e` — **30 passed** in Chromium. Covers bilingual public/admin routes, forms, local request/message handling, six CRUD workflows, filters/pagination/CSV, image uploads, settings/legal persistence, legacy-brand migration, local cross-tab updates, demo checkout, redirects, keyboard focus, dialogs and full-height mobile navigation in both directions.
+- Additional headless route audit at 1440px: 18 public and 14 admin routes in each locale, with no captured page/console errors or document overflow; loaded public images had no broken sources. Responsive audit: 15 public and 12 admin routes in each locale at 320, 390, 768 and 1024px, with no captured console/page errors or document-level horizontal overflow. These ad hoc audits supplement, rather than replace, the automated Playwright tests.
 - `git diff --check` — passed. The initial normal `npm ci` could not build the existing native SQLite dependency in this sandbox; `npm ci --ignore-scripts` worked for the frontend, which does not need SQLite.
 
 ### Run and readiness
@@ -80,6 +80,20 @@ npm ci --ignore-scripts
 npm run dev
 ```
 
-Open `http://localhost:5173`; the admin demo is at `/admin/login` with the prefilled `demo@faratech.example` / `demo` values. For normal local Playwright use, install Chromium via `npx playwright install chromium` and run `npm run test:e2e`. See `README.md` for storage keys, environment details and limitations.
+Open `http://localhost:5173`; the admin demo is at `/admin/login` with the prefilled `demo@applynow.example` / `demo` values. For normal local Playwright use, install Chromium via `npx playwright install chromium` and run `npm run test:e2e`. See `README.md` for storage keys, environment details and limitations.
 
-**Readiness:** suitable for an interactive frontend demonstration and review, not for production use or real applicant information. At the initial handover, no commit or push had been made.
+**Readiness:** suitable for an interactive frontend demonstration and review, not for production use or real applicant information. The project branch has an open pull request; review its current commits to confirm which updates have been published.
+
+### Branding and mobile navigation update — 2026-10-30
+
+**Completed**
+
+- [x] Renamed the default website identity to **Apply Now** and used the supplied Apply Now Immigration Group artwork in the public header, footer, mobile menu, administrator login and navigation, and favicon. Site settings can still override the public logo and name.
+- [x] Updated default bilingual content, page metadata and sample contact addresses. Existing browser storage is retained; unchanged old-brand sample content is migrated while custom edits, uploaded logos and saved records are preserved for review.
+- [x] Fixed the public mobile menu so the overlay and drawer cover the viewport rather than only the sticky header. Its header remains accessible, content scrolls independently, and it supports English and Persian, keyboard focus, Escape and backdrop dismissal. Both public and admin mobile navigation close and restore scrolling when resized to desktop width.
+- [x] Fixed the settings logo-upload controls to fit narrow screens. Re-ran the full 30-test Chromium suite, typecheck, production build, desktop route audit and the 320/390/768/1024px responsive audit; all passed. The audits reported no captured page/console errors or document-level horizontal overflow.
+
+**Partially completed / remaining**
+
+- [ ] Review any previously customized branding, legal text and logo; custom values are intentionally not overwritten. Validate the result on physical mobile devices and additional browsers, including Safari and Firefox.
+- [ ] Address the demo and production limitations above before launching the website.

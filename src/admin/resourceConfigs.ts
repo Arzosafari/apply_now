@@ -403,7 +403,7 @@ const articleConfig: ResourceConfig = {
   defaultValues: {
     slug: '',
     category_id: null,
-    author: 'FaraTech Editorial',
+    author: 'Apply Now Editorial',
     image: null,
     title_en: '',
     title_fa: '',

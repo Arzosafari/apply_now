@@ -1,3 +1,5 @@
+import { DEFAULT_BRAND_LEGAL_NAME, DEFAULT_BRAND_LOGO, DEFAULT_BRAND_NAME } from '@/lib/brand';
+
 export const services = [
   {
     slug: 'study-abroad',
@@ -176,8 +178,8 @@ export const services = [
         a: 'دلایل رد را با شما بررسی می‌کنیم و مشخص می‌کنیم آیا مسیر قانونی برای درخواست مجدد یا اعتراض وجود دارد. هرگز نتیجه متفاوتی را تضمین نمی‌کنیم.',
       },
     ],
-    timeline_en: 'Processing times vary by destination and are never controlled by FaraTech.',
-    timeline_fa: 'زمان پردازش بسته به مقصد متفاوت است و تحت کنترل FaraTech نیست.',
+    timeline_en: 'Processing times vary by destination and are never controlled by Apply Now.',
+    timeline_fa: 'زمان پردازش بسته به مقصد متفاوت است و تحت کنترل Apply Now نیست.',
     featured: 1,
     sort_order: 2,
   },
@@ -249,7 +251,7 @@ export const services = [
     ],
     faqs_en: [
       {
-        q: 'Can I find a job through FaraTech?',
+        q: 'Can I find a job through Apply Now?',
         a: 'We do not sell jobs or guarantee employment. We can discuss legitimate employer-led routes and help you present your experience professionally.',
       },
       {
@@ -259,7 +261,7 @@ export const services = [
     ],
     faqs_fa: [
       {
-        q: 'آیا از طریق FaraTech کار پیدا می‌کنم؟',
+        q: 'آیا از طریق Apply Now کار پیدا می‌کنم؟',
         a: 'ما شغل نمی‌فروشیم و اشتغال را تضمین نمی‌کنیم. می‌توانیم درباره مسیرهای قانونی کارفرما محور صحبت کنیم و به ارائه حرفه‌ای تجربه شما کمک کنیم.',
       },
       {
@@ -887,7 +889,7 @@ export const services = [
     faqs_en: [
       {
         q: 'Do you provide certified translations?',
-        a: 'We coordinate with accredited translators. Certification is issued by the translator or authority permitted to do so, not by FaraTech.',
+        a: 'We coordinate with accredited translators. Certification is issued by the translator or authority permitted to do so, not by Apply Now.',
       },
       {
         q: 'Can you fix an error in my document?',
@@ -897,7 +899,7 @@ export const services = [
     faqs_fa: [
       {
         q: 'آیا ترجمه رسمی ارائه می‌دهید؟',
-        a: 'با مترجمان معتبر هماهنگ می‌کنیم. تأییدیه توسط مترجم یا مرجع مجاز صادر می‌شود، نه FaraTech.',
+        a: 'با مترجمان معتبر هماهنگ می‌کنیم. تأییدیه توسط مترجم یا مرجع مجاز صادر می‌شود، نه Apply Now.',
       },
       {
         q: 'آیا می‌توانید خطای مدرک من را اصلاح کنید؟',
@@ -1341,7 +1343,7 @@ export const articles = [
   {
     slug: 'building-a-realistic-study-abroad-shortlist',
     category: 'study-abroad',
-    author: 'FaraTech Editorial',
+    author: 'Apply Now Editorial',
     image: '/images/blog-1.jpg',
     title_en: 'How to Build a Realistic Study-Abroad Shortlist',
     title_fa: 'چگونه فهرستی واقع‌بینانه برای تحصیل در خارج بسازیم',
@@ -1401,7 +1403,7 @@ Applications, language tests, funding evidence and visa appointments rarely fit 
   {
     slug: 'student-visa-evidence-checklist',
     category: 'student-visa',
-    author: 'FaraTech Editorial',
+    author: 'Apply Now Editorial',
     image: '/images/visa-documents.jpg',
     title_en: 'The Student Visa Evidence Checklist That Actually Matters',
     title_fa: 'چک‌لیست شواهد ویزای دانشجویی که واقعاً مهم است',
@@ -1467,7 +1469,7 @@ Requirements differ by country and can change. Download the checklist from the o
   {
     slug: 'questions-before-paying-an-agent',
     category: 'immigration-news',
-    author: 'FaraTech Editorial',
+    author: 'Apply Now Editorial',
     image: '/images/blog-3.jpg',
     title_en: 'Seven Questions to Ask Before Paying an Immigration Adviser',
     title_fa: 'هفت پرسش پیش از پرداخت به مشاور مهاجرت',
@@ -1549,7 +1551,7 @@ The answer must be no. Walk away from any suggestion of fake documents, undisclo
   {
     slug: 'funding-your-studies-abroad',
     category: 'scholarships',
-    author: 'FaraTech Editorial',
+    author: 'Apply Now Editorial',
     image: '/images/article-2.jpg',
     title_en: 'Funding Your Studies: A Practical Planning Framework',
     title_fa: 'تأمین مالی تحصیل: چارچوبی کاربردی برای برنامه‌ریزی',
@@ -1599,7 +1601,7 @@ Scholarship deadlines often fall months before admission deadlines. Prepare tran
   {
     slug: 'working-abroad-what-employers-check',
     category: 'work-opportunities',
-    author: 'FaraTech Editorial',
+    author: 'Apply Now Editorial',
     image: '/images/consultation.jpg',
     title_en: 'What Employers Actually Check in an International Application',
     title_fa: 'کارفرمایان در درخواست بین‌المللی واقعاً چه چیزی را بررسی می‌کنند',
@@ -1655,7 +1657,7 @@ A willing employer is not the same as work authorisation. Check whether the role
   {
     slug: 'understanding-visa-refusals',
     category: 'visa-regulations',
-    author: 'FaraTech Editorial',
+    author: 'Apply Now Editorial',
     image: '/images/article-3.jpg',
     title_en: 'A Refusal Is Not the End: How to Read the Decision Carefully',
     title_fa: 'رد شدن پایان راه نیست: تصمیم را دقیق بخوانید',
@@ -1703,12 +1705,12 @@ Check whether a review or appeal deadline applies. Obtain the full decision and 
 export const faqs = [
   {
     category: 'general',
-    question_en: 'What does FaraTech do?',
-    question_fa: 'FaraTech چه کاری انجام می‌دهد؟',
+    question_en: 'What does Apply Now do?',
+    question_fa: 'Apply Now چه کاری انجام می‌دهد؟',
     answer_en:
-      'FaraTech provides immigration and international education guidance: profile assessment, programme and country research, document planning, application support and pre-departure preparation. We explain official requirements and help you organise your own truthful application.',
+      'Apply Now provides immigration and international education guidance: profile assessment, programme and country research, document planning, application support and pre-departure preparation. We explain official requirements and help you organise your own truthful application.',
     answer_fa:
-      'FaraTech راهنمایی مهاجرت و آموزش بین‌المللی ارائه می‌دهد: ارزیابی پروفایل، پژوهش برنامه و کشور، برنامه‌ریزی مدارک، پشتیبانی درخواست و آماده‌سازی پیش از سفر. ما الزامات رسمی را توضیح می‌دهیم و به سازمان‌دهی درخواست صادقانه خودتان کمک می‌کنیم.',
+      'Apply Now راهنمایی مهاجرت و آموزش بین‌المللی ارائه می‌دهد: ارزیابی پروفایل، پژوهش برنامه و کشور، برنامه‌ریزی مدارک، پشتیبانی درخواست و آماده‌سازی پیش از سفر. ما الزامات رسمی را توضیح می‌دهیم و به سازمان‌دهی درخواست صادقانه خودتان کمک می‌کنیم.',
     sort_order: 1,
   },
   {
@@ -1773,8 +1775,8 @@ export const faqs = [
   },
   {
     category: 'work-visa',
-    question_en: 'Can FaraTech find me a job?',
-    question_fa: 'آیا FaraTech برای من کار پیدا می‌کند؟',
+    question_en: 'Can Apply Now find me a job?',
+    question_fa: 'آیا Apply Now برای من کار پیدا می‌کند؟',
     answer_en:
       'We are not a recruitment agency and do not sell jobs. We can help you understand employer-led immigration routes and present your experience clearly, but employment decisions belong to employers.',
     answer_fa:
@@ -1806,9 +1808,9 @@ export const faqs = [
     question_en: 'How much does a consultation cost?',
     question_fa: 'هزینه مشاوره چقدر است؟',
     answer_en:
-      'Current package prices are displayed on the Pricing page and are managed by the FaraTech team. Government fees, translations, tests and third-party costs are separate unless explicitly stated.',
+      'Current package prices are displayed on the Pricing page and are managed by the Apply Now team. Government fees, translations, tests and third-party costs are separate unless explicitly stated.',
     answer_fa:
-      'قیمت‌های فعلی بسته‌ها در صفحه قیمت‌ها نمایش داده می‌شود و توسط تیم FaraTech مدیریت می‌شود. هزینه‌های دولتی، ترجمه، آزمون و شخص ثالث جدا هستند مگر صریحاً ذکر شود.',
+      'قیمت‌های فعلی بسته‌ها در صفحه قیمت‌ها نمایش داده می‌شود و توسط تیم Apply Now مدیریت می‌شود. هزینه‌های دولتی، ترجمه، آزمون و شخص ثالث جدا هستند مگر صریحاً ذکر شود.',
     sort_order: 11,
   },
   {
@@ -1836,9 +1838,9 @@ export const faqs = [
     question_en: 'Do you store my card details?',
     question_fa: 'آیا اطلاعات کارت من را ذخیره می‌کنید؟',
     answer_en:
-      'No. Card details are entered on the payment provider’s hosted checkout. FaraTech stores only the transaction reference, amount, status and related service record.',
+      'No. Card details are entered on the payment provider’s hosted checkout. Apply Now stores only the transaction reference, amount, status and related service record.',
     answer_fa:
-      'خیر. اطلاعات کارت در صفحه پرداخت میزبان ارائه‌دهنده وارد می‌شود. FaraTech فقط مرجع تراکنش، مبلغ، وضعیت و سابقه خدمت مرتبط را ذخیره می‌کند.',
+      'خیر. اطلاعات کارت در صفحه پرداخت میزبان ارائه‌دهنده وارد می‌شود. Apply Now فقط مرجع تراکنش، مبلغ، وضعیت و سابقه خدمت مرتبط را ذخیره می‌کند.',
     sort_order: 14,
   },
 ];
@@ -1878,9 +1880,9 @@ export const testimonials = [
     service_en: 'Family application',
     service_fa: 'درخواست خانوادگی',
     quote_en:
-      'Sample testimonial for layout preview. FaraTech has not published real client reviews here. Verified reviews will be added from the admin dashboard.',
+      'Sample testimonial for layout preview. Apply Now has not published real client reviews here. Verified reviews will be added from the admin dashboard.',
     quote_fa:
-      'نظر نمونه برای پیش‌نمایش چیدمان. FaraTech هیچ نظر واقعی مشتری در اینجا منتشر نکرده است. نظرات تأییدشده از پنل مدیریت اضافه می‌شوند.',
+      'نظر نمونه برای پیش‌نمایش چیدمان. Apply Now هیچ نظر واقعی مشتری در اینجا منتشر نکرده است. نظرات تأییدشده از پنل مدیریت اضافه می‌شوند.',
     photo: '/images/testimonial-3.jpg',
     rating: 4,
     is_demo: 1,
@@ -1890,15 +1892,15 @@ export const testimonials = [
 
 export const settings: Record<string, unknown> = {
   brand: {
-    name: 'FaraTech',
-    legalName: 'FaraTech Global Mobility',
+    name: DEFAULT_BRAND_NAME,
+    legalName: DEFAULT_BRAND_LEGAL_NAME,
     tagline: 'Study · Work · Live · Abroad',
-    logoUrl: '',
+    logoUrl: DEFAULT_BRAND_LOGO,
     description:
       'Independent immigration and international education guidance, built around clear information and realistic plans.',
     description_fa:
       'راهنمایی مستقل مهاجرت و آموزش بین‌المللی، بر پایه اطلاعات شفاف و برنامه‌های واقع‌بینانه.',
-    email: 'contact@faratech.example',
+    email: 'contact@applynow.example',
     phone: '+00 000 000 0000',
     whatsapp: '',
     address: 'Office address to be confirmed',
@@ -1937,8 +1939,8 @@ export const settings: Record<string, unknown> = {
     { value: '1:1', label_en: 'Advisor support', label_fa: 'پشتیبانی مشاور' },
   ],
   seo: {
-    title: 'FaraTech — Immigration & Study Abroad Consultancy',
-    title_fa: 'FaraTech — مشاوره مهاجرت و تحصیل در خارج',
+    title: 'Apply Now — Immigration & Study Abroad Consultancy',
+    title_fa: 'Apply Now — مشاوره مهاجرت و تحصیل در خارج',
     description:
       'Personalised immigration and international education guidance from first assessment to arrival. Explore destinations, services and book a consultation.',
     description_fa:
@@ -1968,7 +1970,7 @@ export const settings: Record<string, unknown> = {
     'قوانین مهاجرت، هزینه‌ها و زمان پردازش بدون اطلاع تغییر می‌کنند. اطلاعات این وب‌سایت راهنمایی عمومی است، نه مشاوره حقوقی یا تضمین نتیجه. پیش از درخواست یا پرداخت، الزامات را با مرجع رسمی مربوطه تأیید کنید.',
   contentVerification: {
     verified: false,
-    note: 'Preview content: profiles, testimonials, statistics and contact details are samples until verified by the FaraTech team.',
+    note: 'Preview content: profiles, testimonials, statistics and contact details are samples until verified by the Apply Now team.',
   },
 };
 
@@ -1991,7 +1993,7 @@ We process enquiry data on the basis of your request and consent. You may withdr
 
 ## Sharing
 
-We share information only with service providers necessary to operate the website or deliver an agreed service, or where required by law. Payment card details are processed by the payment provider and are not stored on FaraTech servers.
+We share information only with service providers necessary to operate the website or deliver an agreed service, or where required by law. Payment card details are processed by the payment provider and are not stored on Apply Now servers.
 
 ## Retention and security
 
@@ -2022,7 +2024,7 @@ We may update this policy as the service evolves. The revised version will show 
 
 ## اشتراک‌گذاری
 
-اطلاعات را فقط با ارائه‌دهندگان لازم برای اداره وب‌سایت یا ارائه خدمت توافق‌شده، یا در صورت الزام قانونی به اشتراک می‌گذاریم. اطلاعات کارت توسط ارائه‌دهنده پرداخت پردازش می‌شود و در سرورهای FaraTech ذخیره نمی‌شود.
+اطلاعات را فقط با ارائه‌دهندگان لازم برای اداره وب‌سایت یا ارائه خدمت توافق‌شده، یا در صورت الزام قانونی به اشتراک می‌گذاریم. اطلاعات کارت توسط ارائه‌دهنده پرداخت پردازش می‌شود و در سرورهای Apply Now ذخیره نمی‌شود.
 
 ## نگهداری و امنیت
 
@@ -2046,11 +2048,11 @@ We may update this policy as the service evolves. The revised version will show 
     title_fa: 'شرایط و قوانین',
     body_en: `## Scope of service
 
-FaraTech provides information, assessment and application-preparation guidance. We are not a government authority, law firm or immigration decision-maker. Unless a separate written agreement states otherwise, no outcome, approval or processing time is guaranteed.
+Apply Now provides information, assessment and application-preparation guidance. We are not a government authority, law firm or immigration decision-maker. Unless a separate written agreement states otherwise, no outcome, approval or processing time is guaranteed.
 
 ## Your responsibilities
 
-You agree to provide accurate, complete and lawful information and documents. You must review every application before submission and remain responsible for declarations, signatures, biometrics and attendance. FaraTech may decline or stop work where information appears false or instructions would require misleading an authority.
+You agree to provide accurate, complete and lawful information and documents. You must review every application before submission and remain responsible for declarations, signatures, biometrics and attendance. Apply Now may decline or stop work where information appears false or instructions would require misleading an authority.
 
 ## Fees and payment
 
@@ -2066,7 +2068,7 @@ Website content, guides and articles are general information, not legal, tax or 
 
 ## Limitation of liability
 
-To the extent permitted by law, FaraTech is not liable for decisions made by governments or institutions, delays outside its control, or losses caused by inaccurate information supplied by the client. Nothing in these terms excludes liability that cannot lawfully be excluded.
+To the extent permitted by law, Apply Now is not liable for decisions made by governments or institutions, delays outside its control, or losses caused by inaccurate information supplied by the client. Nothing in these terms excludes liability that cannot lawfully be excluded.
 
 ## Intellectual property
 
@@ -2077,11 +2079,11 @@ Website text, design, graphics and branding are protected. You may not republish
 The governing law and formal dispute process must be specified in the final service agreement. Contact details are published on the Contact page. This text is a starting template and must be reviewed by a qualified legal professional before launch.`,
     body_fa: `## دامنه خدمات
 
-FaraTech اطلاعات، ارزیابی و راهنمایی آماده‌سازی درخواست ارائه می‌دهد. ما مرجع دولتی، دفتر حقوقی یا تصمیم‌گیرنده مهاجرت نیستیم. مگر در توافق کتبی جداگانه ذکر شود، هیچ نتیجه، تأیید یا زمان پردازشی تضمین نمی‌شود.
+Apply Now اطلاعات، ارزیابی و راهنمایی آماده‌سازی درخواست ارائه می‌دهد. ما مرجع دولتی، دفتر حقوقی یا تصمیم‌گیرنده مهاجرت نیستیم. مگر در توافق کتبی جداگانه ذکر شود، هیچ نتیجه، تأیید یا زمان پردازشی تضمین نمی‌شود.
 
 ## مسئولیت‌های شما
 
-می‌پذیرید اطلاعات و مدارک دقیق، کامل و قانونی ارائه دهید. باید هر درخواست را پیش از ارسال بررسی کنید و مسئول اظهارات، امضا، اثر انگشت و حضور باشید. FaraTech می‌تواند در صورت نادرست به نظر رسیدن اطلاعات یا درخواست گمراه‌کردن مرجع، کار را رد یا متوقف کند.
+می‌پذیرید اطلاعات و مدارک دقیق، کامل و قانونی ارائه دهید. باید هر درخواست را پیش از ارسال بررسی کنید و مسئول اظهارات، امضا، اثر انگشت و حضور باشید. Apply Now می‌تواند در صورت نادرست به نظر رسیدن اطلاعات یا درخواست گمراه‌کردن مرجع، کار را رد یا متوقف کند.
 
 ## هزینه‌ها و پرداخت
 
@@ -2097,7 +2099,7 @@ FaraTech اطلاعات، ارزیابی و راهنمایی آماده‌ساز
 
 ## محدودیت مسئولیت
 
-تا حد مجاز قانون، FaraTech مسئول تصمیم دولت‌ها یا مؤسسات، تأخیر خارج از کنترل یا خسارت ناشی از اطلاعات نادرست مشتری نیست. هیچ‌چیز در این شرایط مسئولیتی را که قانوناً قابل حذف نیست حذف نمی‌کند.
+تا حد مجاز قانون، Apply Now مسئول تصمیم دولت‌ها یا مؤسسات، تأخیر خارج از کنترل یا خسارت ناشی از اطلاعات نادرست مشتری نیست. هیچ‌چیز در این شرایط مسئولیتی را که قانوناً قابل حذف نیست حذف نمی‌کند.
 
 ## مالکیت فکری
 

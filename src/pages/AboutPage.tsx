@@ -18,7 +18,7 @@ export function AboutPage() {
   const site = usePublicSite();
   const { t, locale } = useLocale();
   usePageMeta({
-    title: locale === 'fa' ? 'درباره FaraTech' : 'About FaraTech',
+    title: locale === 'fa' ? `درباره ${site.settings.brand.name}` : `About ${site.settings.brand.name}`,
     description: t('about.intro'),
     image: '/images/office.jpg',
   });

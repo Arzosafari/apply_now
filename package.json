@@ -1,9 +1,9 @@
 {
-  "name": "faratech-global-mobility",
+  "name": "apply-now-immigration",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "FaraTech — premium immigration and study-abroad consultancy website with a complete content management portal.",
+  "description": "Apply Now — premium immigration and study-abroad consultancy website with a complete content management portal.",
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 5173",
     "dev:api": "cross-env NODE_ENV=development tsx watch server/index.ts",

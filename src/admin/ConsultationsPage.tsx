@@ -57,7 +57,7 @@ export function ConsultationsPage() {
 
   const exportRows = async () => {
     const records = await adminApi.consultations({ page: 1, pageSize: 1000, status, serviceId, destinationId, from, to, search: deferredSearch });
-    downloadCsv('faratech-demo-requests.csv', records.items.map((item) => ({
+    downloadCsv('apply-now-demo-requests.csv', records.items.map((item) => ({
       reference: item.reference, applicant: item.full_name, email: item.email, phone: item.phone,
       service: item.service_title_en, destination: item.destination_name_en, status: item.status, submitted: item.created_at,
     })));

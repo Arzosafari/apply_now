@@ -55,7 +55,7 @@ export function ContactPage() {
   const [serverError, setServerError] = useState('');
 
   usePageMeta({
-    title: locale === 'fa' ? 'تماس با ما' : 'Contact FaraTech',
+    title: locale === 'fa' ? 'تماس با ما' : `Contact ${brand.name}`,
     description: t('contact.intro'),
     image: '/images/office.jpg',
   });

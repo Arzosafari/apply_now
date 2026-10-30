@@ -52,7 +52,7 @@ export function DashboardPage() {
   const { locale } = useLocale();
   const query = useQuery({ queryKey: ['admin-stats'], queryFn: adminApi.stats, retry: false });
   const site = useSiteData();
-  usePageMeta({ title: 'Admin dashboard', description: 'FaraTech operations dashboard.', noindex: true });
+  usePageMeta({ title: 'Admin dashboard', description: 'Apply Now operations dashboard.', noindex: true });
 
   if (query.isLoading) return <AdminSpinner label={a("Loading dashboard…")} />;
   if (query.isError || !query.data) {

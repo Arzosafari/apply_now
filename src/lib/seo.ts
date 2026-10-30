@@ -1,4 +1,6 @@
 import { useEffect } from 'react';
+import { DEFAULT_BRAND_NAME } from './brand';
+import { useSiteData } from './site';
 
 interface PageMeta {
   title: string;
@@ -32,8 +34,9 @@ function setLink(rel: string, href: string, hreflang?: string) {
 }
 
 export function usePageMeta({ title, description, image, type = 'website', noindex, jsonLd }: PageMeta) {
+  const { data: site } = useSiteData();
+  const brand = site?.settings.brand.name || DEFAULT_BRAND_NAME;
   useEffect(() => {
-    const brand = 'FaraTech';
     document.title = title.includes(brand) ? title : `${title} — ${brand}`;
     setMeta('meta[name="description"]', 'name', 'description', description);
     setMeta('meta[name="robots"]', 'name', 'robots', noindex ? 'noindex, nofollow' : 'index, follow');
@@ -70,7 +73,7 @@ export function usePageMeta({ title, description, image, type = 'website', noind
     } else if (script) {
       script.remove();
     }
-  }, [title, description, image, type, noindex, jsonLd]);
+  }, [title, description, image, type, noindex, jsonLd, brand]);
 }
 
 export function useScrollToTop(pathname: string) {

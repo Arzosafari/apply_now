@@ -1,3 +1,4 @@
+import { DEFAULT_BRAND_LEGAL_NAME, DEFAULT_BRAND_LOGO, DEFAULT_BRAND_NAME } from '@/lib/brand';
 import { useAdminTranslation } from './i18n';
 import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -40,14 +41,14 @@ function defaultsFrom(raw: Values): Values {
   const verification = (raw.contentVerification || {}) as Values;
   return {
     brand: {
-      name: 'FaraTech',
-      legalName: 'FaraTech Global Mobility',
+      name: DEFAULT_BRAND_NAME,
+      legalName: DEFAULT_BRAND_LEGAL_NAME,
       tagline: 'Study · Work · Live · Abroad',
       tagline_fa: 'تحصیل · کار · زندگی · خارج از کشور',
-      logoUrl: '',
+      logoUrl: DEFAULT_BRAND_LOGO,
       description: '',
       description_fa: '',
-      email: 'contact@faratech.example',
+      email: 'contact@applynow.example',
       phone: '+00 000 000 0000',
       whatsapp: '',
       address: 'Office address to be confirmed',
@@ -88,8 +89,8 @@ function defaultsFrom(raw: Values): Values {
           { value: '1:1', label_en: 'Advisor support', label_fa: 'پشتیبانی مشاور' },
         ],
     seo: {
-      title: 'FaraTech — Immigration & Study Abroad Consultancy',
-      title_fa: 'FaraTech — مشاوره مهاجرت و تحصیل در خارج',
+      title: 'Apply Now — Immigration & Study Abroad Consultancy',
+      title_fa: 'Apply Now — مشاوره مهاجرت و تحصیل در خارج',
       description: '',
       description_fa: '',
       ogImage: '/images/hero-city.jpg',
@@ -112,7 +113,7 @@ function defaultsFrom(raw: Values): Values {
     general: { defaultLanguage: 'en', ...general },
     contentVerification: {
       verified: false,
-      note: 'Preview content: profiles, testimonials, statistics and contact details are samples until verified by the FaraTech team.',
+      note: 'Preview content: profiles, testimonials, statistics and contact details are samples until verified by the Apply Now team.',
       ...verification,
     },
     legalNotice: raw.legalNotice || '',
@@ -146,8 +147,8 @@ function ImageSetting({ value, onChange, label }: { value: string; onChange: (va
         <div className="grid h-16 w-24 shrink-0 place-items-center overflow-hidden rounded-lg border border-dashed border-[#ccd9e6] bg-[#f8fbfe]">
           {value ? <img src={value} alt="" className="h-full w-full object-cover" /> : <ImagePlus size={20} className="text-[#9fb0c1]" />}
         </div>
-        <div className="flex-1">
-          <div className="flex gap-2">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap gap-2">
             <button type="button" className="btn btn-outline btn-sm" onClick={() => ref.current?.click()} disabled={uploading}>
               {uploading ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}{a(" Upload ")}</button>
             {value && <button type="button" className="btn btn-outline btn-sm text-red-600" onClick={() => onChange('')}>{a("Clear")}</button>}

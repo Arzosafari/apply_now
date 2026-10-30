@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   ChevronDown,
   Globe2,
@@ -42,6 +43,13 @@ export function Header({ settings, services, destinations }: HeaderProps) {
   }, [location.pathname]);
 
   useEffect(() => {
+    const desktop = window.matchMedia('(min-width: 1081px)');
+    const closeOnDesktop = (event: MediaQueryListEvent) => { if (event.matches) setOpen(false); };
+    desktop.addEventListener('change', closeOnDesktop);
+    return () => desktop.removeEventListener('change', closeOnDesktop);
+  }, []);
+
+  useEffect(() => {
     if (!open) return;
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setOpen(false);
@@ -71,12 +79,8 @@ export function Header({ settings, services, destinations }: HeaderProps) {
   return (
     <header className={cn('site-header', scrolled && 'is-scrolled')}>
       <div className="shell header-inner">
-        <LocalLink to="/" aria-label={`${settings.brand.name} home`}>
-          {settings.brand.logoUrl ? (
-            <img src={settings.brand.logoUrl} alt={settings.brand.name} className="h-10 w-auto max-w-[175px] object-contain" />
-          ) : (
-            <Logo name={settings.brand.name} />
-          )}
+        <LocalLink to="/" aria-label={locale === 'fa' ? `خانه ${settings.brand.name}` : `${settings.brand.name} home`}>
+          <Logo name={settings.brand.name} src={settings.brand.logoUrl} />
         </LocalLink>
 
         <nav className="desktop-nav" aria-label={locale === 'fa' ? 'منوی اصلی' : 'Primary'}>
@@ -168,12 +172,13 @@ export function Header({ settings, services, destinations }: HeaderProps) {
           onClick={() => setOpen(true)}
           aria-label={t('nav.menu')}
           aria-expanded={open}
+          aria-controls="public-mobile-menu"
         >
           <Menu size={20} />
         </button>
       </div>
 
-      {open && (
+      {open && createPortal(
         <div className="mobile-nav">
           <button
             type="button"
@@ -182,78 +187,77 @@ export function Header({ settings, services, destinations }: HeaderProps) {
             tabIndex={-1}
             onClick={() => setOpen(false)}
           />
-          <div ref={menuRef} tabIndex={-1} className="mobile-nav-panel" role="dialog" aria-modal="true" aria-label={t('nav.menu')}>
-            <div className="flex items-center justify-between">
-              <LocalLink to="/" onClick={() => setOpen(false)}>
-                {settings.brand.logoUrl ? (
-                  <img src={settings.brand.logoUrl} alt={settings.brand.name} className="h-10 w-auto max-w-[170px] object-contain" />
-                ) : (
-                  <Logo name={settings.brand.name} />
-                )}
+          <div ref={menuRef} id="public-mobile-menu" tabIndex={-1} className="mobile-nav-panel" role="dialog" aria-modal="true" aria-label={t('nav.menu')}>
+            <div className="mobile-nav-header">
+              <LocalLink to="/" onClick={() => setOpen(false)} aria-label={locale === 'fa' ? `خانه ${settings.brand.name}` : `${settings.brand.name} home`}>
+                <Logo name={settings.brand.name} src={settings.brand.logoUrl} />
               </LocalLink>
               <button type="button" className="icon-btn" onClick={() => setOpen(false)} aria-label={t('nav.close')}>
                 <X size={18} />
               </button>
             </div>
 
-            <div className="mt-7 flex items-center justify-between rounded-xl bg-sky-50 p-3">
-              <span className="text-[11px] font-semibold text-navy">{t('nav.language')}</span>
-              <div className="lang-switch">
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (locale !== 'en') switchLocale();
-                    setOpen(false);
-                  }}
-                  aria-pressed={locale === 'en'}
-                >
-                  EN
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (locale !== 'fa') switchLocale();
-                    setOpen(false);
-                  }}
-                  aria-pressed={locale === 'fa'}
-                >
-                  FA
-                </button>
+            <div className="mobile-nav-body">
+              <div className="mt-6 flex items-center justify-between rounded-xl bg-sky-50 p-3">
+                <span className="text-[11px] font-semibold text-navy">{t('nav.language')}</span>
+                <div className="lang-switch">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (locale !== 'en') switchLocale();
+                      setOpen(false);
+                    }}
+                    aria-pressed={locale === 'en'}
+                  >
+                    EN
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (locale !== 'fa') switchLocale();
+                      setOpen(false);
+                    }}
+                    aria-pressed={locale === 'fa'}
+                  >
+                    FA
+                  </button>
+                </div>
               </div>
-            </div>
 
-            <nav className="mt-5" aria-label={locale === 'fa' ? 'منوی اصلی موبایل' : 'Mobile primary'}>
-              {nav.map((item) => (
-                <LocalLink
-                  key={item.to}
-                  to={item.to}
-                  onClick={() => setOpen(false)}
-                  className={cn(
-                    'flex items-center justify-between border-b border-line py-3.5 text-[0.88rem] font-medium text-[#3f536a]',
-                    isActive(item.to) && 'text-navy font-bold',
-                  )}
-                >
-                  {item.label}
-                  {isActive(item.to) && <span className="h-1.5 w-1.5 rounded-full bg-orange" />}
+              <nav className="mt-5" aria-label={locale === 'fa' ? 'منوی اصلی موبایل' : 'Mobile primary'}>
+                {nav.map((item) => (
+                  <LocalLink
+                    key={item.to}
+                    to={item.to}
+                    onClick={() => setOpen(false)}
+                    className={cn(
+                      'flex items-center justify-between border-b border-line py-3.5 text-[0.95rem] font-medium text-[#3f536a]',
+                      isActive(item.to) && 'text-navy font-bold',
+                    )}
+                  >
+                    {item.label}
+                    {isActive(item.to) && <span className="h-1.5 w-1.5 rounded-full bg-orange" />}
+                  </LocalLink>
+                ))}
+              </nav>
+
+              <div className="mt-5 grid grid-cols-2 gap-2">
+                <LocalLink to="/consultation" onClick={() => setOpen(false)} className="btn btn-primary col-span-2">
+                  {t('cta.getStarted')}
                 </LocalLink>
-              ))}
-            </nav>
-
-            <div className="mt-5 grid grid-cols-2 gap-2">
-              <LocalLink to="/consultation" onClick={() => setOpen(false)} className="btn btn-primary col-span-2">
-                {t('cta.getStarted')}
-              </LocalLink>
-              <a href={`tel:${settings.brand.phone}`} className="btn btn-outline btn-sm">
-                <Phone size={14} />
-                {t('contact.phone')}
-              </a>
-              <LocalLink to="/contact" onClick={() => setOpen(false)} className="btn btn-outline btn-sm">
-                {t('nav.contact')}
-              </LocalLink>
+                <a href={`tel:${settings.brand.phone}`} className="btn btn-outline btn-sm">
+                  <Phone size={14} />
+                  {t('contact.phone')}
+                </a>
+                <LocalLink to="/contact" onClick={() => setOpen(false)} className="btn btn-outline btn-sm">
+                  {t('nav.contact')}
+                </LocalLink>
+              </div>
+              <p className="mt-5 text-[10px] leading-5 text-muted">{locale === 'fa' ? settings.brand.hours_fa : settings.brand.hours}</p>
             </div>
-            <p className="mt-5 text-[10px] leading-5 text-muted">{settings.brand.hours}</p>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </header>
   );

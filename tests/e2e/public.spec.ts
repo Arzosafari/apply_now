@@ -233,3 +233,85 @@ test('mobile menu keeps keyboard focus inside and returns it to the toggle', asy
     await expect(toggle).toBeFocused();
   }
 });
+
+test('Apply Now branding and the supplied logo appear across public and admin pages', async ({ page }) => {
+  for (const path of ['/', '/about', '/blog', '/faq', '/services/student-visa', '/privacy-policy', '/fa', '/fa/about', '/fa/faq']) {
+    await page.goto(path);
+    await expect(page.locator('h1').first()).toBeVisible();
+    await expect(page).toHaveTitle(/Apply Now/);
+    await expect(page.locator('.site-header img.brand-logo')).toHaveAttribute('src', '/images/apply-now-logo.png');
+    await expect(page.locator('.site-header img.brand-logo')).toHaveAttribute('alt', 'Apply Now');
+    await expect(page.locator('footer img.brand-logo')).toHaveAttribute('src', '/images/apply-now-logo.png');
+    expect(await page.locator('body').innerText(), path).not.toContain('FaraTech');
+  }
+  await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', '/apply-now-favicon.png');
+  await page.goto('/admin/login');
+  await expect(page.locator('img.brand-logo').first()).toHaveAttribute('src', '/images/apply-now-logo.png');
+  await expect(page.locator('#admin-email')).toHaveValue('demo@applynow.example');
+  await page.getByRole('button', { name: 'Enter demo workspace' }).click();
+  await expect(page.locator('.admin-sidebar img.brand-logo')).toHaveAttribute('src', '/images/apply-now-logo.png');
+  await expect(page.locator('.admin-sidebar img.brand-logo')).toHaveAttribute('alt', 'Apply Now');
+});
+
+test('mobile menu fills the viewport, scrolls, and stays usable in both directions', async ({ page }) => {
+  test.setTimeout(120_000);
+  for (const { width, height } of [{ width: 320, height: 568 }, { width: 390, height: 844 }, { width: 768, height: 1024 }]) {
+    await page.setViewportSize({ width, height });
+    for (const language of ['en', 'fa'] as const) {
+      await page.goto(language === 'fa' ? '/fa' : '/');
+      await expect(page.locator('h1').first()).toBeVisible();
+      await page.evaluate(() => window.scrollTo(0, 400));
+      await page.getByRole('button', { name: language === 'fa' ? 'منو' : 'Menu', exact: true }).click();
+      const dialog = page.getByRole('dialog', { name: language === 'fa' ? 'منو' : 'Menu' });
+      await expect(dialog).toBeVisible();
+      await expect(dialog.getByText(language === 'fa' ? 'یکشنبه تا پنجشنبه، ۹:۰۰ تا ۱۸:۰۰' : 'Sunday–Thursday, 9:00–18:00', { exact: true })).toHaveCount(1);
+      const expectedX = language === 'fa' ? 0 : width - Math.min(width, 420);
+      await expect.poll(async () => (await dialog.boundingBox())?.x).toBeCloseTo(expectedX, 0);
+      const bounds = await dialog.boundingBox();
+      expect(bounds).not.toBeNull();
+      expect(bounds!.y).toBeCloseTo(0, 0);
+      expect(bounds!.height).toBeCloseTo(height, 0);
+      expect(bounds!.width).toBeCloseTo(Math.min(width, 420), 0);
+      expect(bounds!.x).toBeCloseTo(language === 'fa' ? 0 : width - bounds!.width, 0);
+      const close = dialog.getByRole('button', { name: language === 'fa' ? 'بستن منو' : 'Close menu' });
+      const contact = dialog.getByRole('navigation').getByRole('link', { name: language === 'fa' ? 'تماس با ما' : 'Contact Us', exact: true });
+      await contact.scrollIntoViewIfNeeded();
+      await expect(close).toBeVisible();
+      const closeBounds = await close.boundingBox();
+      expect(closeBounds && closeBounds.y >= 0 && closeBounds.y + closeBounds.height < height).toBeTruthy();
+      await contact.click();
+      await expect(page).toHaveURL(language === 'fa' ? /\/fa\/contact$/ : /\/contact$/);
+      await expect(dialog).toHaveCount(0);
+      await expectNoOverflow(page);
+    }
+  }
+});
+
+test('switching from mobile to desktop closes the menu and restores scrolling', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 800 });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Menu', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: 'Menu' })).toBeVisible();
+  await page.setViewportSize({ width: 1200, height: 800 });
+  await expect(page.getByRole('dialog', { name: 'Menu' })).toHaveCount(0);
+  await expect(page.locator('body')).not.toHaveCSS('overflow', 'hidden');
+  await expect(page.getByRole('navigation', { name: 'Primary', exact: true })).toBeVisible();
+});
+
+test('tablet menu animates from the correct side and closes on the backdrop', async ({ page }) => {
+  await page.setViewportSize({ width: 768, height: 800 });
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  for (const [path, label, animation, backdropX] of [
+    ['/', 'Menu', 'drawer-in', 10],
+    ['/fa', 'منو', 'drawer-in-rtl', 758],
+  ] as const) {
+    await page.goto(path);
+    const toggle = page.getByRole('button', { name: label, exact: true });
+    await toggle.click();
+    const panel = page.getByRole('dialog', { name: label });
+    await expect(panel).toHaveCSS('animation-name', animation);
+    await page.mouse.click(backdropX, 400);
+    await expect(panel).toHaveCount(0);
+    await expect(toggle).toBeFocused();
+  }
+});
