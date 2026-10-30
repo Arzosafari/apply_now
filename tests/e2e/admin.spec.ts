@@ -457,3 +457,44 @@ test('admin mobile navigation closes when returning to desktop width', async ({ 
   await expect(page.locator('body')).not.toHaveCSS('overflow', 'hidden');
   await expect(page.getByRole('navigation', { name: 'Admin navigation' })).toBeVisible();
 });
+
+test('homepage consultants follow admin publication and display order', async ({ page }) => {
+  await page.goto('/admin/experts');
+  await page.getByRole('button', { name: 'New expert', exact: true }).click();
+  const drawer = page.getByRole('dialog');
+  await drawer.locator('#field-slug').fill('homepage-test-consultant');
+  await drawer.locator('#field-name').fill('Homepage Test Consultant');
+  await drawer.locator('#field-sort_order').fill('0');
+  await drawer.getByRole('tab', { name: 'English', exact: true }).click();
+  await drawer.locator('#field-role_en').fill('Test Consultant');
+  await drawer.getByRole('tab', { name: 'Persian', exact: true }).click();
+  await drawer.locator('#field-role_fa').fill('مشاور آزمایشی');
+  await drawer.getByRole('button', { name: 'Save changes' }).click();
+  await expect(drawer).toHaveCount(0);
+
+  await page.goto('/');
+  const section = page.getByRole('region', { name: 'Meet our consultants' });
+  await expect(section.locator('.expert-card')).toHaveCount(4);
+  await expect(section.locator('.expert-card').first()).toContainText('Homepage Test Consultant');
+  await expect(section.locator('.expert-card').first()).toHaveAttribute('href', '/experts/homepage-test-consultant');
+
+  await page.goto('/admin/experts');
+  const row = page.locator('tbody tr').filter({ hasText: 'Homepage Test Consultant' });
+  await row.getByRole('button', { name: 'Edit Expert' }).click();
+  await page.getByRole('dialog').locator('#field-published').uncheck();
+  await page.getByRole('dialog').getByRole('button', { name: 'Save changes' }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await page.goto('/');
+  await expect(page.getByRole('region', { name: 'Meet our consultants' })).not.toContainText('Homepage Test Consultant');
+  await expect(page.getByRole('region', { name: 'Meet our consultants' }).locator('.expert-card')).toHaveCount(4);
+
+  // An empty published list should not leave an empty section on the homepage.
+  await page.evaluate(() => {
+    const key = 'faratech_frontend_demo_v1';
+    const stored = JSON.parse(localStorage.getItem(key)!);
+    stored.experts.forEach((expert: { published: boolean }) => { expert.published = false; });
+    localStorage.setItem(key, JSON.stringify(stored));
+  });
+  await page.reload();
+  await expect(page.getByRole('region', { name: 'Meet our consultants' })).toHaveCount(0);
+});

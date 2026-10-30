@@ -315,3 +315,114 @@ test('tablet menu animates from the correct side and closes on the backdrop', as
     await expect(toggle).toBeFocused();
   }
 });
+
+test('homepage shows consultant profiles and localized links in both languages', async ({ page }) => {
+  for (const [path, title, name, sample, viewAll] of [
+    ['/', 'Meet our consultants', 'Sample Senior Advisor', 'Sample', 'View all consultants'],
+    ['/fa', 'با مشاوران ما آشنا شوید', 'مشاور ارشد نمونه', 'نمونه', 'مشاهده همه مشاوران'],
+  ] as const) {
+    await page.goto(path);
+    const section = page.getByRole('region', { name: title });
+    await expect(section.getByRole('heading', { name: title })).toBeVisible();
+    const cards = section.locator('.expert-card');
+    await expect(cards).toHaveCount(4);
+    await expect(cards.first().getByRole('heading', { name })).toBeVisible();
+    await expect(section.getByText(sample, { exact: true })).toHaveCount(4);
+    await expect(cards.first()).toHaveAttribute('href', path === '/' ? '/experts/sample-senior-advisor' : '/fa/experts/sample-senior-advisor');
+    await expect(section.getByRole('link', { name: viewAll })).toHaveAttribute('href', path === '/' ? '/experts' : '/fa/experts');
+    await cards.first().click();
+    await expect(page.locator('h1').first()).toHaveText(name);
+    await page.goto(path);
+    await page.getByRole('region', { name: title }).getByRole('link', { name: viewAll }).click();
+    await expect(page).toHaveURL(path === '/' ? /\/experts$/ : /\/fa\/experts$/);
+  }
+});
+
+test('conversation image swaps sides and the smaller logo fits across viewports', async ({ page }) => {
+  test.setTimeout(120_000);
+  for (const width of [320, 390, 639, 640, 768, 1024, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const locale of ['en', 'fa'] as const) {
+      await page.goto(locale === 'fa' ? '/fa' : '/');
+      const heading = page.getByRole('heading', { name: locale === 'fa' ? 'پرسش‌هایی را بیاورید که از پرسیدنشان می‌ترسیدید.' : 'Bring the questions you have been afraid to ask.', exact: true });
+      await expect(heading).toBeVisible();
+      const section = heading.locator('xpath=ancestor::section');
+      const copy = await section.locator('.home-advice-copy').boundingBox();
+      const image = await section.locator('.home-advice-image').boundingBox();
+      expect(copy).not.toBeNull();
+      expect(image).not.toBeNull();
+      if (width >= 1024) {
+        if (locale === 'fa') expect(image!.x + image!.width).toBeLessThanOrEqual(copy!.x + 1);
+        else expect(copy!.x + copy!.width).toBeLessThanOrEqual(image!.x + 1);
+      } else {
+        expect(copy!.y + copy!.height).toBeLessThanOrEqual(image!.y + 1);
+      }
+      const logo = page.locator('.site-header img.brand-logo');
+      await expect(logo).toHaveCSS('height', width < 640 ? '40px' : '44px');
+      const logoBounds = await logo.boundingBox();
+      expect(logoBounds && logoBounds.x >= 0 && logoBounds.x + logoBounds.width <= width).toBeTruthy();
+      expect(logoBounds!.width / logoBounds!.height).toBeCloseTo(540 / 320, 2);
+      await expectNoOverflow(page);
+    }
+  }
+});
+
+test('responsive logo fits the mobile menu, footer and admin layouts', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 800 });
+  for (const [path, menu, close] of [['/', 'Menu', 'Close menu'], ['/fa', 'منو', 'بستن منو']] as const) {
+    await page.goto(path);
+    const headerLogo = page.locator('.site-header img.brand-logo');
+    await expect(headerLogo).toHaveCSS('height', '40px');
+    await page.getByRole('button', { name: menu, exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: menu });
+    const menuLogo = dialog.locator('img.brand-logo');
+    await expect(menuLogo).toBeVisible();
+    await expect(menuLogo).toHaveCSS('height', '40px');
+    const menuBox = await dialog.boundingBox();
+    const logoBox = await menuLogo.boundingBox();
+    expect(menuBox && logoBox && logoBox.x >= menuBox.x && logoBox.x + logoBox.width <= menuBox.x + menuBox.width).toBeTruthy();
+    await dialog.getByRole('button', { name: close }).click();
+    const footerLogo = page.locator('footer .brand-lockup-light img.brand-logo');
+    await expect(footerLogo).toHaveCSS('height', '40px');
+    await expect(footerLogo).toHaveCSS('object-fit', 'contain');
+    await expectNoOverflow(page);
+  }
+
+  await page.goto('/admin/login');
+  await expect(page.locator('img.brand-logo:visible')).toHaveCSS('height', '40px');
+  await page.getByRole('button', { name: 'Enter demo workspace' }).click();
+  await page.getByRole('button', { name: 'Open navigation' }).click();
+  const adminLogo = page.locator('.admin-sidebar img.brand-logo');
+  await expect(adminLogo).toBeVisible();
+  await expect(adminLogo).toHaveCSS('height', '40px');
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await expect(adminLogo).toHaveCSS('height', '44px');
+  await expectNoOverflow(page);
+});
+
+test('wide configured logos remain contained on mobile and desktop', async ({ page }) => {
+  const wideLogo = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="100"><rect width="1200" height="100" fill="#09264a"/></svg>')}`;
+  await page.setViewportSize({ width: 320, height: 800 });
+  await page.goto('/admin/login');
+  await page.getByRole('button', { name: 'Enter demo workspace' }).click();
+  await expect(page).toHaveURL(/\/admin$/);
+  await page.goto('/admin/settings');
+  await page.getByLabel('Logo', { exact: true }).fill(wideLogo);
+  await page.getByRole('button', { name: 'Save settings' }).first().click();
+  await expect(page.getByText('Website settings saved.')).toBeVisible();
+  await page.goto('/');
+  const logo = page.locator('.site-header img.brand-logo');
+  await expect(logo).toHaveAttribute('src', wideLogo);
+  await expect(logo).toHaveJSProperty('naturalWidth', 1200);
+  await expect(logo).toHaveCSS('height', '40px');
+  await expect(logo).toHaveCSS('object-fit', 'contain');
+  expect((await logo.boundingBox())!.width).toBeLessThanOrEqual(112);
+  await page.getByRole('button', { name: 'Menu', exact: true }).click();
+  const menuLogo = page.getByRole('dialog', { name: 'Menu' }).locator('img.brand-logo');
+  expect((await menuLogo.boundingBox())!.width).toBeLessThanOrEqual(112);
+  await page.getByRole('button', { name: 'Close menu' }).click();
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await expect(logo).toHaveCSS('height', '44px');
+  expect((await logo.boundingBox())!.width).toBeLessThanOrEqual(120);
+  await expectNoOverflow(page);
+});

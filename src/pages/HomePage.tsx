@@ -15,7 +15,7 @@ import {
 import { LocalLink, useLocale } from '@/lib/i18n';
 import { usePageMeta } from '@/lib/seo';
 import { usePublicSite } from '@/components/PublicLayout';
-import { ArticleCard, DestinationCard, ServiceCard, TestimonialCard } from '@/components/Cards';
+import { ArticleCard, DestinationCard, ExpertCard, ServiceCard, TestimonialCard } from '@/components/Cards';
 import { CtaBand } from '@/components/CtaBand';
 import { FaqAccordion } from '@/components/FaqAccordion';
 import { Reveal } from '@/components/Reveal';
@@ -36,9 +36,10 @@ const processIcons = [MessageSquareText, Route, FileCheck2, BadgeCheck];
 
 export function HomePage() {
   const site = usePublicSite();
-  const { settings, services, destinations, testimonials, articles, faqs } = site;
+  const { settings, services, destinations, experts, testimonials, articles, faqs } = site;
   const { t, locale } = useLocale();
   const hero = settings.hero;
+  const featuredExperts = experts.slice(0, 4);
 
   usePageMeta({
     title: locale === 'fa' ? settings.seo.title_fa : settings.seo.title,
@@ -282,8 +283,24 @@ export function HomePage() {
 
       <section className="bg-sky-100/60">
         <div className="shell">
-          <div className="grid overflow-hidden rounded-[20px] bg-white shadow-card lg:grid-cols-[0.9fr_1.1fr]">
-            <div className="relative min-h-[280px] overflow-hidden">
+          <div className="grid overflow-hidden rounded-[20px] bg-white shadow-card lg:grid-cols-[1.1fr_0.9fr]">
+            <div className="home-advice-copy p-7 md:p-10">
+              <div className="eyebrow">{t('home.adviceEyebrow')}</div>
+              <h2 className="mt-4 font-display text-[clamp(1.5rem,2.6vw,2.05rem)] font-bold leading-[1.2] text-navy">
+                {t('home.adviceTitle')}
+              </h2>
+              <p className="mt-4 text-[0.88rem] leading-8 text-muted">{t('home.adviceBody')}</p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <LocalLink to="/consultation" className="btn btn-primary btn-sm">
+                  {t('cta.free')}
+                  <ArrowRight size={14} className="rtl:rotate-180" />
+                </LocalLink>
+                <LocalLink to="/about" className="btn btn-outline btn-sm">
+                  {t('nav.about')}
+                </LocalLink>
+              </div>
+            </div>
+            <div className="home-advice-image relative min-h-[280px] overflow-hidden">
               <img
                 className="absolute inset-0 h-full w-full object-cover"
                 src="/images/team.jpg"
@@ -307,25 +324,38 @@ export function HomePage() {
                 </div>
               </div>
             </div>
-            <div className="p-7 md:p-10">
-              <div className="eyebrow">{t('home.adviceEyebrow')}</div>
-              <h2 className="mt-4 font-display text-[clamp(1.5rem,2.6vw,2.05rem)] font-bold leading-[1.2] text-navy">
-                {t('home.adviceTitle')}
-              </h2>
-              <p className="mt-4 text-[0.88rem] leading-8 text-muted">{t('home.adviceBody')}</p>
-              <div className="mt-6 flex flex-wrap gap-3">
-                <LocalLink to="/consultation" className="btn btn-primary btn-sm">
-                  {t('cta.free')}
-                  <ArrowRight size={14} className="rtl:rotate-180" />
-                </LocalLink>
-                <LocalLink to="/about" className="btn btn-outline btn-sm">
-                  {t('nav.about')}
-                </LocalLink>
-              </div>
-            </div>
           </div>
         </div>
       </section>
+
+      {featuredExperts.length > 0 && (
+        <section className="section bg-sky-50" aria-label={t('home.expertsTitle')}>
+          <div className="shell">
+            <Reveal>
+              <SectionHead
+                eyebrow={t('home.expertsEyebrow')}
+                title={t('home.expertsTitle')}
+                intro={t('home.expertsIntro')}
+                action={
+                  <LocalLink to="/experts" className="link-arrow">
+                    {t('home.expertsViewAll')} <ArrowRight size={14} className="rtl:rotate-180" />
+                  </LocalLink>
+                }
+              />
+            </Reveal>
+            <div className="home-experts-grid grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {featuredExperts.map((expert, index) => (
+                <Reveal key={expert.id} delay={index * 55}>
+                  <ExpertCard expert={expert} />
+                </Reveal>
+              ))}
+            </div>
+            {featuredExperts.some((expert) => expert.is_demo) && (
+              <p className="mt-6 text-[0.72rem] leading-6 text-muted">{t('home.expertsDemoNote')}</p>
+            )}
+          </div>
+        </section>
+      )}
 
       <section className="section">
         <div className="shell">

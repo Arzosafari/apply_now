@@ -108,6 +108,14 @@ const dictionary = {
     en: 'We will look at your profile honestly, explain the trade-offs and give you a practical next-step list — whether or not you decide to work with us.',
     fa: 'پروفایل شما را صادقانه بررسی می‌کنیم، بده‌بستان‌ها را توضیح می‌دهیم و فهرست گام‌های عملی می‌دهیم — چه با ما ادامه دهید چه نه.',
   },
+  'home.expertsEyebrow': { en: 'The people behind the guidance', fa: 'افراد پشت راهنمایی' },
+  'home.expertsTitle': { en: 'Meet our consultants', fa: 'با مشاوران ما آشنا شوید' },
+  'home.expertsIntro': { en: 'Explore our consultants’ profiles and areas of expertise.', fa: 'با پروفایل و حوزه‌های تخصصی مشاوران ما آشنا شوید.' },
+  'home.expertsViewAll': { en: 'View all consultants', fa: 'مشاهده همه مشاوران' },
+  'home.expertsDemoNote': {
+    en: 'Profiles marked Sample are illustrative and must be replaced with verified team information before launch.',
+    fa: 'پروفایل‌های نشان‌دار نمونه هستند و پیش از انتشار باید با اطلاعات تأییدشده تیم جایگزین شوند.',
+  },
   'home.processEyebrow': { en: 'A clear path', fa: 'مسیری روشن' },
   'home.processTitle': { en: 'How your journey works', fa: 'سفر شما چگونه پیش می‌رود' },
   'home.processIntro': {

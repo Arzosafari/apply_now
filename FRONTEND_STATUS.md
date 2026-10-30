@@ -82,7 +82,7 @@ npm run dev
 
 Open `http://localhost:5173`; the admin demo is at `/admin/login` with the prefilled `demo@applynow.example` / `demo` values. For normal local Playwright use, install Chromium via `npx playwright install chromium` and run `npm run test:e2e`. See `README.md` for storage keys, environment details and limitations.
 
-**Readiness:** suitable for an interactive frontend demonstration and review, not for production use or real applicant information. The project branch has an open pull request; review its current commits to confirm which updates have been published.
+**Readiness:** suitable for an interactive frontend demonstration and review, not for production use or real applicant information.
 
 ### Branding and mobile navigation update — 2026-10-30
 
@@ -97,3 +97,71 @@ Open `http://localhost:5173`; the admin demo is at `/admin/login` with the prefi
 
 - [ ] Review any previously customized branding, legal text and logo; custom values are intentionally not overwritten. Validate the result on physical mobile devices and additional browsers, including Safari and Firefox.
 - [ ] Address the demo and production limitations above before launching the website.
+
+### Homepage consultants, image position and logo — inspection
+
+**Completed**
+
+- [x] The site already provides published, ordered consultant data and reusable bilingual expert cards, including sample-profile labels and links to individual profiles.
+- [x] The requested first-conversation section and shared logo component already exist in both language layouts.
+
+**Partially completed**
+
+- [ ] Consultant profiles are available on the experts page but are not yet shown on the homepage.
+- [ ] The first-conversation image currently appears before the text; its sides need to be swapped, including in the Persian RTL layout.
+- [ ] The shared logo needs a modest size reduction while remaining legible on mobile and on dark backgrounds.
+
+**Not yet implemented for this update**
+
+- [ ] Homepage consultant cards and links, the revised image order, and responsive/RTL regression checks.
+
+
+### Homepage consultants, image position and logo — completion
+
+**Completed**
+
+- [x] Added a bilingual homepage consultant section using up to four published profiles in admin display order. Each card links to its profile, and the section links to all consultants. An empty published list does not leave an empty section.
+- [x] Kept sample-profile badges and a clear notice; real consultant information can be managed in the existing local demo admin.
+- [x] Moved the first-conversation image to the opposite side of the text in English and Persian. The text appears first when the layout stacks on smaller screens.
+- [x] Reduced the shared logo height from 58px to 50px and checked the header at desktop and mobile sizes.
+- [x] Verified admin publication and ordering, localized profile links, the empty state, image position and overflow at 320, 390, 768, 1024 and 1440px. Visually inspected the English and Persian desktop/mobile layouts.
+- [x] `npm run typecheck`, `npm run build`, `git diff --check` and the full Chromium Playwright suite passed; **33 tests passed**.
+
+**Partially completed / requires review**
+
+- [ ] The existing consultant names and photographs are illustrative samples, not verified staff. Replace them in Admin → Experts with real, approved profiles before launch.
+- [ ] Test on physical devices and other browsers, including Safari and Firefox; the present QA used headless Chromium.
+
+**Not implemented (outside this update)**
+
+- [ ] Production authentication, a shared backend and database, real form submission and payment processing remain outside this browser-local demo.
+
+### Responsive logo refinement — inspection
+
+**Completed**
+
+- [x] The supplied Apply Now image is already shared by the public header, mobile menu, footer and admin layouts, with configurable public logos supported.
+
+**Partially completed**
+
+- [ ] The current 50px logo still appears larger than requested. It needs a smaller, responsive size while keeping its original proportions and enough clearance in the header and menu.
+
+**Not yet implemented for this update**
+
+- [ ] Refined desktop/mobile dimensions and regression checks for the header, menu, footer and administrator views.
+
+### Responsive logo refinement — completion
+
+**Completed**
+
+- [x] Reduced the shared logo to 44px high on larger screens and 40px on screens below 640px, with sensible width limits and preserved image proportions. Compact variants remain smaller.
+- [x] Checked the public header, mobile drawer, footer and admin views in English and Persian; wide custom logos remain contained without horizontal overflow.
+- [x] Checked 320, 390, 639, 640, 768, 1024 and 1440px layouts. Typecheck, production build, `git diff --check` and all **35 Chromium Playwright tests** passed.
+
+**Partially completed / remaining**
+
+- [ ] Check final logo rendering on physical devices and additional browsers before launch. The existing frontend-demo limitations remain unchanged.
+
+**Not implemented**
+
+- [ ] Production backend, real authentication and live form/payment processing remain outside this frontend-only update.
