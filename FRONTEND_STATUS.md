@@ -165,3 +165,34 @@ Open `http://localhost:5173`; the admin demo is at `/admin/login` with the prefi
 **Not implemented**
 
 - [ ] Production backend, real authentication and live form/payment processing remain outside this frontend-only update.
+
+### Home “Clarity” image alignment — inspection
+
+**Completed**
+
+- [x] The homepage already includes the bilingual “Clarity is the foundation of a good immigration plan” section, consultation image, six features and the existing image caption card.
+
+**Partially completed**
+
+- [ ] On larger screens, the image currently extends above the section title and below the adjacent content. On smaller screens, its tall portrait crop takes up excessive vertical space.
+
+**Not yet implemented for this update**
+
+- [ ] Resize and align the image from the title through the end of the related content, while retaining a compact responsive layout and RTL support.
+
+### Home “Clarity” image alignment — completion
+
+**Completed**
+
+- [x] On desktop and laptop widths, aligned the image top with the “Clarity” heading and its bottom with the end of the adjacent feature content in both English and Persian.
+- [x] Replaced the tall mobile/tablet crop with a more compact 4:3 image and kept the existing caption card inside the image boundaries.
+- [x] Visually inspected both language layouts and checked image alignment, sizing and horizontal overflow at 320, 390, 768, 1023, 1024, 1280 and 1440px.
+- [x] Typecheck, production build, `git diff --check` and the full **36-test Chromium Playwright suite** passed.
+
+**Partially completed / remaining**
+
+- [ ] Verify the layout on physical devices and additional browsers before production launch.
+
+**Not implemented**
+
+- [ ] The production backend, authentication and real submissions/payments remain outside the frontend demo.

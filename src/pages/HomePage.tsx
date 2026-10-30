@@ -231,19 +231,19 @@ export function HomePage() {
       </section>
 
       <section className="section">
-        <div className="shell grid items-center gap-12 lg:grid-cols-[0.9fr_1.1fr]">
-          <Reveal className="relative">
-            <div className="overflow-hidden rounded-[20px]">
+        <div className="shell grid lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:grid-rows-[auto_auto_1fr] lg:gap-x-12">
+          <Reveal className="home-why-image relative mb-12 lg:col-start-1 lg:row-start-2 lg:row-end-4 lg:mb-0">
+            <div className="home-why-image-frame relative aspect-[4/3] overflow-hidden rounded-[20px] lg:absolute lg:inset-0 lg:aspect-auto">
               <img
-                className="aspect-[4/4.5] w-full object-cover"
+                className="absolute inset-0 h-full w-full object-cover"
                 src="/images/consultation.jpg"
                 alt={locale === 'fa' ? 'جلسه مشاوره حرفه‌ای' : 'A professional immigration consultation'}
                 loading="lazy"
-                width="800"
-                height="900"
+                width="1800"
+                height="1350"
               />
             </div>
-            <div className="absolute -bottom-5 start-5 end-5 rounded-xl border border-line bg-white/95 p-4 shadow-card backdrop-blur md:end-auto md:w-72">
+            <div className="home-why-image-note absolute bottom-4 start-4 end-4 rounded-xl border border-line bg-white/95 p-4 shadow-card backdrop-blur md:end-auto md:w-72">
               <div className="flex items-center gap-3">
                 <span className="grid h-10 w-10 place-items-center rounded-lg bg-orange text-[#2c210f]">
                   <ShieldCheck size={19} />
@@ -260,10 +260,10 @@ export function HomePage() {
             </div>
           </Reveal>
 
-          <Reveal delay={80}>
-            <div className="eyebrow">{t('home.whyEyebrow')}</div>
-            <h2 className="section-title mt-4">{t('home.whyTitle')}</h2>
-            <p className="lede mt-4">{t('home.whyBody')}</p>
+          <div className="eyebrow mb-4 justify-self-start lg:col-start-2 lg:row-start-1">{t('home.whyEyebrow')}</div>
+          <h2 className="section-title min-w-0 lg:col-start-2 lg:row-start-2">{t('home.whyTitle')}</h2>
+          <Reveal className="home-why-details mt-4 min-w-0 lg:col-start-2 lg:row-start-3" delay={80}>
+            <p className="lede">{t('home.whyBody')}</p>
             <div className="mt-8 grid gap-x-8 gap-y-7 sm:grid-cols-2">
               {whyItems.map((item) => (
                 <div key={item.title} className="flex gap-3.5">

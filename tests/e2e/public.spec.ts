@@ -426,3 +426,42 @@ test('wide configured logos remain contained on mobile and desktop', async ({ pa
   expect((await logo.boundingBox())!.width).toBeLessThanOrEqual(120);
   await expectNoOverflow(page);
 });
+
+test('homepage clarity image aligns with its title and content, and stays compact on smaller screens', async ({ page }) => {
+  test.setTimeout(120_000);
+  for (const width of [320, 390, 768, 1023, 1024, 1280, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const locale of ['en', 'fa'] as const) {
+      await page.goto(locale === 'fa' ? '/fa' : '/');
+      const heading = page.getByRole('heading', {
+        name: locale === 'fa' ? 'شفافیت، پایه یک برنامه مهاجرتی خوب است.' : 'Clarity is the foundation of a good immigration plan.',
+        exact: true,
+      });
+      await expect(heading).toBeVisible();
+      await page.evaluate(() => document.fonts.ready);
+      const section = heading.locator('xpath=ancestor::section');
+      const image = section.locator('.home-why-image-frame img');
+      const details = section.locator('.home-why-details');
+      const note = section.locator('.home-why-image-note');
+      const [titleBox, imageBox, detailsBox, noteBox] = await Promise.all([
+        heading.boundingBox(), image.boundingBox(), details.boundingBox(), note.boundingBox(),
+      ]);
+      expect(titleBox && imageBox && detailsBox && noteBox).toBeTruthy();
+      if (width >= 1024) {
+        expect(Math.abs(imageBox!.y - titleBox!.y)).toBeLessThanOrEqual(1);
+        expect(Math.abs(imageBox!.y + imageBox!.height - detailsBox!.y - detailsBox!.height)).toBeLessThanOrEqual(1);
+        if (locale === 'en') expect(imageBox!.x + imageBox!.width).toBeLessThanOrEqual(titleBox!.x);
+        else expect(titleBox!.x + titleBox!.width).toBeLessThanOrEqual(imageBox!.x);
+        if (width >= 1280) expect(imageBox!.height).toBeLessThan(imageBox!.width * 1.125);
+      } else {
+        expect(imageBox!.height / imageBox!.width).toBeCloseTo(3 / 4, 2);
+        expect(imageBox!.y + imageBox!.height).toBeLessThan(titleBox!.y);
+      }
+      expect(noteBox!.x).toBeGreaterThanOrEqual(imageBox!.x);
+      expect(noteBox!.x + noteBox!.width).toBeLessThanOrEqual(imageBox!.x + imageBox!.width + 1);
+      expect(noteBox!.y).toBeGreaterThanOrEqual(imageBox!.y);
+      expect(noteBox!.y + noteBox!.height).toBeLessThanOrEqual(imageBox!.y + imageBox!.height + 1);
+      await expectNoOverflow(page);
+    }
+  }
+});
