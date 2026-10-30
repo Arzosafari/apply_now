@@ -1,0 +1,226 @@
+[
+  {
+    "name": "home-desktop",
+    "status": 200,
+    "errors": [],
+    "overflow": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "title": "FaraTech — Immigration & Study Abroad Consultancy",
+      "h1": "Your Global JourneyStarts Here",
+      "links": 82,
+      "images": 21
+    }
+  },
+  {
+    "name": "home-mobile",
+    "status": 200,
+    "errors": [],
+    "overflow": {
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "title": "FaraTech — Immigration & Study Abroad Consultancy",
+      "h1": "Your Global JourneyStarts Here",
+      "links": 82,
+      "images": 24
+    }
+  },
+  {
+    "name": "services",
+    "status": 200,
+    "errors": [],
+    "overflow": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "title": "Immigration & Study Abroad Services — FaraTech",
+      "h1": "Services built around your next step",
+      "links": 66,
+      "images": 7
+    }
+  },
+  {
+    "name": "service-detail",
+    "status": 200,
+    "errors": [],
+    "overflow": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "title": "Study Abroad — Services — FaraTech",
+      "h1": "Study Abroad",
+      "links": 63,
+      "images": 7
+    }
+  },
+  {
+    "name": "destinations",
+    "status": 200,
+    "errors": [],
+    "overflow": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "title": "Immigration Destinations — FaraTech",
+      "h1": "Countries, compared clearly",
+      "links": 61,
+      "images": 12
+    }
+  },
+  {
+    "name": "destination-detail",
+    "status": 200,
+    "errors": [],
+    "overflow": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "title": "Canada — Immigration destination — FaraTech",
+      "h1": "Canada",
+      "links": 64,
+      "images": 11
+    }
+  },
+  {
+    "name": "pricing",
+    "status": 200,
+    "errors": [],
+    "overflow": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "title": "Pricing & Service Packages — FaraTech",
+      "h1": "Choose the support that fits",
+      "links": 61,
+      "images": 7
+    }
+  },
+  {
+    "name": "experts",
+    "status": 200,
+    "errors": [],
+    "overflow": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "title": "Our Experts — FaraTech",
+      "h1": "Experienced, accountable advisers",
+      "links": 59,
+      "images": 6
+    }
+  },
+  {
+    "name": "about",
+    "status": 200,
+    "errors": [],
+    "overflow": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "title": "About FaraTech",
+      "h1": "Guidance for a life beyond borders",
+      "links": 62,
+      "images": 11
+    }
+  },
+  {
+    "name": "blog",
+    "status": 200,
+    "errors": [],
+    "overflow": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "title": "Blog & Articles — FaraTech",
+      "h1": "The FaraTech journal",
+      "links": 61,
+      "images": 6
+    }
+  },
+  {
+    "name": "article",
+    "status": 200,
+    "errors": [],
+    "overflow": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "title": "The Student Visa Evidence Checklist That Actually Matters — FaraTech",
+      "h1": "The Student Visa Evidence Checklist That Actually Matters",
+      "links": 61,
+      "images": 6
+    }
+  },
+  {
+    "name": "consultation",
+    "status": 200,
+    "errors": [],
+    "overflow": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "title": "Free Consultation Request — FaraTech",
+      "h1": "Tell us where you want to go",
+      "links": 56,
+      "images": 6
+    }
+  },
+  {
+    "name": "contact",
+    "status": 200,
+    "errors": [],
+    "overflow": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "title": "Contact FaraTech",
+      "h1": "Let’s talk about your next step",
+      "links": 57,
+      "images": 6
+    }
+  },
+  {
+    "name": "faq",
+    "status": 200,
+    "errors": [],
+    "overflow": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "title": "Frequently Asked Questions — FaraTech",
+      "h1": "Answers before you begin",
+      "links": 56,
+      "images": 6
+    }
+  },
+  {
+    "name": "home-fa",
+    "status": 200,
+    "errors": [],
+    "overflow": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "title": "FaraTech — مشاوره مهاجرت و تحصیل در خارج",
+      "h1": "Your Global JourneyStarts Here",
+      "links": 82,
+      "images": 21
+    }
+  },
+  {
+    "name": "consultation-mobile",
+    "status": 200,
+    "errors": [],
+    "overflow": {
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "title": "Free Consultation Request — FaraTech",
+      "h1": "Tell us where you want to go",
+      "links": 56,
+      "images": 6
+    }
+  },
+  {
+    "name": "admin-login",
+    "status": 200,
+    "errors": [
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    ],
+    "overflow": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "title": "Admin sign in — FaraTech",
+      "h1": "The work behind every clear answer.",
+      "links": 1,
+      "images": 0
+    }
+  }
+]
