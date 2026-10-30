@@ -16,6 +16,7 @@ import { LocalLink, useLocale } from '@/lib/i18n';
 import { usePageMeta } from '@/lib/seo';
 import { usePublicSite } from '@/components/PublicLayout';
 import { ArticleCard, DestinationCard, ExpertCard, ServiceCard, TestimonialCard } from '@/components/Cards';
+import { CardCarousel } from '@/components/CardCarousel';
 import { CtaBand } from '@/components/CtaBand';
 import { FaqAccordion } from '@/components/FaqAccordion';
 import { Reveal } from '@/components/Reveal';
@@ -345,13 +346,9 @@ export function HomePage() {
                 }
               />
             </Reveal>
-            <div className="home-experts-grid grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {featuredExperts.map((expert, index) => (
-                <Reveal key={expert.id} delay={index * 55}>
-                  <ExpertCard expert={expert} />
-                </Reveal>
-              ))}
-            </div>
+            <CardCarousel label={t('home.expertsTitle')} variant="experts">
+              {featuredExperts.map((expert) => <ExpertCard key={expert.id} expert={expert} />)}
+            </CardCarousel>
             {featuredExperts.some((expert) => expert.is_demo) && (
               <p className="mt-6 text-[0.72rem] leading-6 text-muted">{t('home.expertsDemoNote')}</p>
             )}
@@ -395,24 +392,22 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="section bg-sky-50">
-        <div className="shell">
-          <Reveal>
-            <SectionHead
-              eyebrow={t('home.storiesEyebrow')}
-              title={t('home.storiesTitle')}
-              intro={t('home.storiesNote')}
-            />
-          </Reveal>
-          <div className="grid gap-5 md:grid-cols-3">
-            {testimonials.slice(0, 3).map((testimonial, index) => (
-              <Reveal key={testimonial.id} delay={index * 60}>
-                <TestimonialCard testimonial={testimonial} />
-              </Reveal>
-            ))}
+      {testimonials.length > 0 && (
+        <section className="section bg-sky-50" aria-label={t('home.storiesTitle')}>
+          <div className="shell">
+            <Reveal>
+              <SectionHead
+                eyebrow={t('home.storiesEyebrow')}
+                title={t('home.storiesTitle')}
+                intro={testimonials.some((testimonial) => testimonial.is_demo) ? t('home.storiesNote') : undefined}
+              />
+            </Reveal>
+            <CardCarousel label={t('home.storiesTitle')} variant="testimonials">
+              {testimonials.map((testimonial) => <TestimonialCard key={testimonial.id} testimonial={testimonial} />)}
+            </CardCarousel>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <section className="section">
         <div className="shell">

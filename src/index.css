@@ -715,6 +715,8 @@ img {
 }
 
 .mobile-consultation,
+.mobile-consultation-compact,
+.mobile-header-actions,
 .mobile-toggle {
   display: none;
 }
@@ -772,9 +774,29 @@ img {
     white-space: nowrap;
   }
 
+  .mobile-header-actions {
+    display: flex;
+    align-items: center;
+    justify-self: end;
+    gap: 4px;
+  }
+
+  .mobile-language {
+    flex-direction: column;
+    flex-shrink: 0;
+    gap: 1px;
+    line-height: 1;
+  }
+
+  .mobile-language span {
+    font-size: 0.5rem;
+    font-weight: 750;
+    letter-spacing: 0.02em;
+  }
+
   .mobile-toggle {
     display: inline-flex;
-    justify-self: end;
+    flex-shrink: 0;
   }
 
   .mobile-nav {
@@ -833,10 +855,18 @@ img {
   }
 }
 
-@media (max-width: 360px) {
+@media (max-width: 379px) {
   .mobile-consultation {
-    padding-inline: 7px;
+    padding-inline: 10px;
     font-size: 0.75rem;
+  }
+
+  .mobile-consultation-full {
+    display: none;
+  }
+
+  .mobile-consultation-compact {
+    display: inline;
   }
 }
 
@@ -1195,6 +1225,111 @@ img {
 .section-head p {
   margin-top: 12px;
   max-width: 640px;
+}
+
+.card-carousel {
+  min-width: 0;
+}
+
+.card-carousel-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 86%;
+  gap: 20px;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  padding-block: 3px 12px;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.card-carousel-track::-webkit-scrollbar {
+  display: none;
+}
+
+.card-carousel-slide {
+  min-width: 0;
+  scroll-snap-align: start;
+}
+
+.card-carousel-slide > .expert-card {
+  height: 100%;
+}
+
+.card-carousel-track.is-dragging {
+  cursor: grabbing;
+  scroll-snap-type: none;
+  user-select: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card-carousel-track { cursor: grab; }
+}
+
+@media (max-width: 599px) {
+  .card-carousel[data-slide-count='1'] .card-carousel-track {
+    grid-auto-columns: 100%;
+  }
+}
+
+@media (min-width: 600px) {
+  .card-carousel-track {
+    grid-auto-columns: calc((100% - 20px) / 2.12);
+  }
+}
+
+@media (min-width: 1024px) {
+  .card-carousel-experts .card-carousel-track {
+    grid-auto-columns: calc((100% - 60px) / 3.1);
+  }
+
+  .card-carousel-testimonials .card-carousel-track {
+    grid-auto-columns: calc((100% - 40px) / 2.35);
+  }
+}
+
+.card-carousel-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  margin-top: 12px;
+}
+
+.card-carousel-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #60758c;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.card-carousel-controls,
+.card-carousel-indicators {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.card-carousel-arrow:disabled {
+  cursor: not-allowed;
+  opacity: 0.38;
+}
+
+.card-carousel-indicators span {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #cad7e5;
+  transition: width 0.2s ease, background 0.2s ease;
+}
+
+.card-carousel-indicators span.is-active {
+  width: 20px;
+  background: var(--orange);
 }
 
 .page-hero {
@@ -2020,6 +2155,47 @@ img {
   background: white;
   padding: 30px;
   box-shadow: 0 25px 60px -45px rgba(9, 38, 74, 0.35);
+}
+
+.consultation-benefits {
+  padding: 20px;
+  border: 1px solid #d6e8f9;
+  border-radius: 14px;
+  background: #f4f9ff;
+}
+
+.consultation-benefits-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--light-blue);
+  color: var(--blue);
+}
+
+.consultation-benefits-list {
+  display: grid;
+  gap: 10px 18px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #d6e8f9;
+}
+
+.consultation-benefits-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: #405b76;
+  font-size: 0.72rem;
+  line-height: 1.6;
+}
+
+@media (min-width: 640px) {
+  .consultation-benefits-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 .contact-info-card {

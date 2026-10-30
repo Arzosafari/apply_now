@@ -1,4 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
+import { preferEnglishForExistingChecks } from './locale-fixture';
+
+test.beforeEach(async ({ page }) => { await preferEnglishForExistingChecks(page); });
 
 const publicRoutes: [string, string, string][] = [
   ['/', 'Your Global Journey', 'سفر جهانی شما'],
@@ -29,28 +32,88 @@ async function expectCenteredMobileBooking(page: Page, locale: 'en' | 'fa') {
   const brand = header.locator('.header-brand');
   const logo = brand.locator('img');
   const booking = header.locator('.mobile-consultation');
+  const language = header.locator('.mobile-language');
   const menu = header.locator('.mobile-toggle');
   await expect(booking).toBeVisible();
   await expect(booking).toHaveAccessibleName(locale === 'fa' ? 'رزرو مشاوره' : 'Book a consultation');
   await expect(booking).toHaveAttribute('href', locale === 'fa' ? '/fa/consultation' : '/consultation');
+  await expect(language).toBeVisible();
+  await expect(language).toHaveAccessibleName(locale === 'fa' ? 'تغییر زبان به انگلیسی' : 'Switch to Persian');
   await expect(menu).toBeVisible();
-  const [headerBox, brandBox, logoBox, bookingBox, menuBox] = await Promise.all([
-    header.boundingBox(), brand.boundingBox(), logo.boundingBox(), booking.boundingBox(), menu.boundingBox(),
+  const [headerBox, brandBox, logoBox, bookingBox, languageBox, menuBox] = await Promise.all([
+    header.boundingBox(), brand.boundingBox(), logo.boundingBox(), booking.boundingBox(), language.boundingBox(), menu.boundingBox(),
   ]);
-  expect(headerBox && brandBox && logoBox && bookingBox && menuBox).toBeTruthy();
+  expect(headerBox && brandBox && logoBox && bookingBox && languageBox && menuBox).toBeTruthy();
   expect(Math.abs(bookingBox!.x + bookingBox!.width / 2 - (headerBox!.x + headerBox!.width / 2))).toBeLessThanOrEqual(1);
   expect(bookingBox!.height).toBeGreaterThanOrEqual(44);
   expect(logoBox!.x).toBeGreaterThanOrEqual(brandBox!.x - 1);
   expect(logoBox!.x + logoBox!.width).toBeLessThanOrEqual(brandBox!.x + brandBox!.width + 1);
   if (locale === 'en') {
     expect(brandBox!.x + brandBox!.width).toBeLessThanOrEqual(bookingBox!.x);
-    expect(bookingBox!.x + bookingBox!.width).toBeLessThanOrEqual(menuBox!.x);
+    expect(bookingBox!.x + bookingBox!.width).toBeLessThanOrEqual(languageBox!.x);
+    expect(languageBox!.x + languageBox!.width).toBeLessThanOrEqual(menuBox!.x);
   } else {
-    expect(menuBox!.x + menuBox!.width).toBeLessThanOrEqual(bookingBox!.x);
+    expect(menuBox!.x + menuBox!.width).toBeLessThanOrEqual(languageBox!.x);
+    expect(languageBox!.x + languageBox!.width).toBeLessThanOrEqual(bookingBox!.x);
     expect(bookingBox!.x + bookingBox!.width).toBeLessThanOrEqual(brandBox!.x);
   }
   await expectNoOverflow(page);
 }
+
+test('new visitors start in Persian and their explicit language choice is remembered', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/fa');
+  await page.evaluate(() => {
+    localStorage.removeItem('faratech_lang');
+    localStorage.removeItem('faratech_frontend_demo_v1');
+  });
+  await page.goto('/?campaign=preview#intro');
+  await expect(page).toHaveURL(/\/fa\?campaign=preview#intro$/);
+  await expect(page.locator('html')).toHaveAttribute('lang', 'fa');
+  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+  await expect(page.locator('h1')).toContainText('سفر جهانی شما');
+
+  await page.getByRole('button', { name: 'تغییر زبان به انگلیسی' }).click();
+  await expect(page).toHaveURL(/\/\?campaign=preview#intro$/);
+  await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
+  expect(await page.evaluate(() => localStorage.getItem('faratech_lang'))).toBe('en');
+  await page.reload();
+  await expect(page.locator('h1')).toContainText('Your Global Journey');
+
+  await page.getByRole('button', { name: 'Switch to Persian' }).click();
+  await expect(page).toHaveURL(/\/fa\?campaign=preview#intro$/);
+  expect(await page.evaluate(() => localStorage.getItem('faratech_lang'))).toBe('fa');
+  await page.goto('/?returning=1#top');
+  await expect(page).toHaveURL(/\/fa\?returning=1#top$/);
+  // An unprefixed deep link still deliberately opens its English version.
+  await page.goto('/services?source=link#top');
+  await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
+  await expect(page.locator('h1')).toContainText('Services built');
+});
+
+test('a fresh admin visitor sees Persian and can choose English', async ({ page }) => {
+  await page.goto('/fa');
+  await page.evaluate(() => localStorage.removeItem('faratech_lang'));
+  await page.goto('/admin/login');
+  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+  await expect(page.getByRole('heading', { name: 'خوش آمدید' })).toBeVisible();
+  await page.getByRole('button', { name: 'EN', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible();
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
+});
+
+test('language switch remains usable when preference storage is blocked', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/fa');
+  await page.evaluate(() => {
+    localStorage.removeItem('faratech_lang');
+    Object.defineProperty(Storage.prototype, 'setItem', { configurable: true, value() { throw new Error('storage blocked'); } });
+  });
+  await page.getByRole('button', { name: 'تغییر زبان به انگلیسی' }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
+});
 
 test('public routes render in English and Persian without runtime errors', async ({ page }) => {
   test.setTimeout(120_000);
@@ -344,6 +407,109 @@ test('tablet menu animates from the correct side and closes on the backdrop', as
   }
 });
 
+test('consultation page explains the benefits without hiding the demo disclosure', async ({ page }) => {
+  for (const width of [320, 744, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const [path, title, disclaimer] of [
+      ['/consultation', 'Why start with a consultation?', 'Demo form only.'],
+      ['/fa/consultation', 'چرا مشاوره بگیریم؟', 'این فرم نمایشی است'],
+    ] as const) {
+      await page.goto(path);
+      const benefits = page.getByRole('region', { name: title });
+      await expect(benefits.getByRole('heading', { name: title })).toBeVisible();
+      await expect(benefits.getByRole('listitem')).toHaveCount(3);
+      await expect(page.getByText(disclaimer, { exact: false }).first()).toBeVisible();
+      await expect(page.locator('#fullName')).toBeVisible();
+      if (path.startsWith('/fa')) await expect(benefits).toContainText('نمی‌تواند ویزا یا نتیجه را تضمین کند');
+      else await expect(benefits).toContainText('No adviser can guarantee a visa or outcome');
+      await expectNoOverflow(page);
+    }
+  }
+});
+
+test('consultant and testimonial carousels support arrows, keyboard and mouse dragging', async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const locale of ['en', 'fa'] as const) {
+    for (const variant of ['experts', 'testimonials'] as const) {
+      await page.goto(locale === 'fa' ? '/fa' : '/');
+      const carousel = page.locator(`.card-carousel-${variant}`);
+      const track = carousel.locator('.card-carousel-track');
+      const previous = carousel.getByRole('button', { name: locale === 'fa' ? 'اسلاید قبلی' : 'Previous slide' });
+      const next = carousel.getByRole('button', { name: locale === 'fa' ? 'اسلاید بعدی' : 'Next slide' });
+      await expect(carousel.locator('.card-carousel-slide')).toHaveCount(variant === 'experts' ? 4 : 3);
+      await track.scrollIntoViewIfNeeded();
+      await expect(previous).toBeDisabled();
+      await next.click();
+      await expect.poll(() => track.evaluate((element) => Math.abs(element.scrollLeft))).toBeGreaterThan(20);
+      await expect(previous).toBeEnabled();
+      await previous.click();
+      await expect.poll(() => track.evaluate((element) => Math.abs(element.scrollLeft))).toBeLessThan(2);
+
+      await track.focus();
+      await page.keyboard.press(locale === 'fa' ? 'ArrowLeft' : 'ArrowRight');
+      await expect.poll(() => track.evaluate((element) => Math.abs(element.scrollLeft))).toBeGreaterThan(20);
+      await page.keyboard.press('End');
+      await expect(next).toBeDisabled();
+      await page.keyboard.press('Home');
+      await expect.poll(() => track.evaluate((element) => Math.abs(element.scrollLeft))).toBeLessThan(2);
+      await expect(previous).toBeDisabled();
+      if (variant === 'experts') {
+        await page.keyboard.press('Tab');
+        await expect(carousel.locator('.expert-card').first()).toBeFocused();
+        await page.keyboard.press('Tab');
+        await expect(carousel.locator('.expert-card').nth(1)).toBeFocused();
+        await track.focus();
+        await page.keyboard.press('Home');
+        await expect.poll(() => track.evaluate((element) => Math.abs(element.scrollLeft))).toBeLessThan(2);
+      }
+
+      await track.scrollIntoViewIfNeeded();
+      const box = await track.boundingBox();
+      expect(box).not.toBeNull();
+      const y = box!.y + Math.min(150, box!.height / 2);
+      const from = locale === 'fa' ? box!.x + box!.width * 0.25 : box!.x + box!.width * 0.75;
+      const to = locale === 'fa' ? box!.x + box!.width * 0.8 : box!.x + box!.width * 0.2;
+      const originalUrl = page.url();
+      await page.mouse.move(from, y);
+      await page.mouse.down();
+      await page.mouse.move(to, y, { steps: 12 });
+      await page.mouse.up();
+      await expect.poll(() => track.evaluate((element) => Math.abs(element.scrollLeft))).toBeGreaterThan(20);
+      expect(page.url()).toBe(originalUrl); // Dragging a linked consultant must not open the profile.
+      await expectNoOverflow(page);
+      if (variant === 'experts') {
+        await carousel.locator('.expert-card').nth(1).click();
+        await expect(page).toHaveURL(locale === 'fa' ? /\/fa\/experts\/sample-education-advisor$/ : /\/experts\/sample-education-advisor$/);
+      } else {
+        await expect(carousel.locator('.testimonial-card').first()).toContainText(locale === 'fa' ? 'نمونه' : 'Sample');
+      }
+    }
+  }
+});
+
+test('carousel arrows stay usable on tablet and desktop in both languages', async ({ page }) => {
+  test.setTimeout(120_000);
+  for (const width of [744, 1133, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const locale of ['en', 'fa'] as const) {
+      await page.goto(locale === 'fa' ? '/fa' : '/');
+      for (const variant of ['experts', 'testimonials'] as const) {
+        const carousel = page.locator(`.card-carousel-${variant}`);
+        const track = carousel.locator('.card-carousel-track');
+        const next = carousel.getByRole('button', { name: locale === 'fa' ? 'اسلاید بعدی' : 'Next slide' });
+        const previous = carousel.getByRole('button', { name: locale === 'fa' ? 'اسلاید قبلی' : 'Previous slide' });
+        await expect(next).toBeVisible();
+        await next.click();
+        await expect.poll(() => track.evaluate((element) => Math.abs(element.scrollLeft))).toBeGreaterThan(20);
+        await previous.click();
+        await expect.poll(() => track.evaluate((element) => Math.abs(element.scrollLeft))).toBeLessThan(2);
+        await expectNoOverflow(page);
+      }
+    }
+  }
+});
+
 test('homepage shows consultant profiles and localized links in both languages', async ({ page }) => {
   for (const [path, title, name, sample, viewAll] of [
     ['/', 'Meet our consultants', 'Sample Senior Advisor', 'Sample', 'View all consultants'],
@@ -366,6 +532,25 @@ test('homepage shows consultant profiles and localized links in both languages',
   }
 });
 
+test('mobile and iPad navbar language icon switches the current page in both directions', async ({ page }) => {
+  test.setTimeout(120_000);
+  for (const width of [320, 360, 375, 380, 390, 744, 1133]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/services?source=nav#top');
+    await expectCenteredMobileBooking(page, 'en');
+    await page.getByRole('button', { name: 'Switch to Persian', exact: true }).click();
+    await expect(page).toHaveURL(/\/fa\/services\?source=nav#top$/);
+    await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+    await expectCenteredMobileBooking(page, 'fa');
+    expect(await page.evaluate(() => localStorage.getItem('faratech_lang'))).toBe('fa');
+    await page.getByRole('button', { name: 'تغییر زبان به انگلیسی', exact: true }).click();
+    await expect(page).toHaveURL(/\/services\?source=nav#top$/);
+    await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
+    expect(await page.evaluate(() => localStorage.getItem('faratech_lang'))).toBe('en');
+    await expectCenteredMobileBooking(page, 'en');
+  }
+});
+
 test('mobile and tablet headers center a working localized booking link without collisions', async ({ page }) => {
   test.setTimeout(120_000);
   for (const width of [320, 360, 390, 599, 600, 744, 768, 1024, 1133, 1199]) {
@@ -385,6 +570,7 @@ test('mobile and tablet headers center a working localized booking link without 
   await page.setViewportSize({ width: 1200, height: 900 });
   await page.goto('/');
   await expect(page.locator('.site-header .mobile-consultation')).toBeHidden();
+  await expect(page.locator('.site-header .mobile-language')).toBeHidden();
   await expect(page.locator('.site-header .mobile-toggle')).toBeHidden();
   await expect(page.getByRole('navigation', { name: 'Primary', exact: true })).toBeVisible();
 });
@@ -423,6 +609,41 @@ test('advice portrait is fully visible with its caption below on mobile and iPad
 
 test.describe('touch-screen iPad layouts', () => {
   test.use({ hasTouch: true, isMobile: true });
+
+  test('touch swipes move both carousels forwards and backwards in LTR and RTL', async ({ page }) => {
+    test.setTimeout(120_000);
+    const client = await page.context().newCDPSession(page);
+    for (const width of [390, 744]) {
+      await page.setViewportSize({ width, height: width === 744 ? 1133 : 844 });
+      for (const locale of ['en', 'fa'] as const) {
+        for (const variant of ['experts', 'testimonials'] as const) {
+          await page.goto(locale === 'fa' ? '/fa' : '/');
+          const track = page.locator(`.card-carousel-${variant} .card-carousel-track`);
+          await track.scrollIntoViewIfNeeded();
+          const box = await track.boundingBox();
+          expect(box).not.toBeNull();
+          const y = box!.y + Math.min(150, box!.height / 2);
+          const start = locale === 'fa' ? box!.x + box!.width * 0.25 : box!.x + box!.width * 0.75;
+          const end = locale === 'fa' ? box!.x + box!.width * 0.8 : box!.x + box!.width * 0.2;
+          const swipe = async (from: number, to: number) => {
+            await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: from, y }] });
+            for (let i = 1; i <= 12; i++) {
+              await client.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: from + (to - from) * i / 12, y }] });
+              await page.waitForTimeout(12);
+            }
+            await client.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+          };
+          await swipe(start, end);
+          await expect.poll(() => track.evaluate((element) => Math.abs(element.scrollLeft))).toBeGreaterThan(20);
+          await page.waitForTimeout(400); // Let touch momentum and snap settle before reversing direction.
+          const moved = await track.evaluate((element) => Math.abs(element.scrollLeft));
+          await swipe(end, start);
+          await expect.poll(() => track.evaluate((element) => Math.abs(element.scrollLeft))).toBeLessThan(moved - 10);
+          await expectNoOverflow(page);
+        }
+      }
+    }
+  });
 
   test('rotation keeps the mobile menu until a true desktop layout is reached', async ({ page }) => {
     await page.setViewportSize({ width: 744, height: 1133 });

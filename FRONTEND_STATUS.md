@@ -226,3 +226,37 @@ Open `http://localhost:5173`; the admin demo is at `/admin/login` with the prefi
 
 ### Not Implemented / remaining work
 - No further changes are required for this specific responsive request. The existing demo limitations (no production backend, real authentication, form delivery, or payment processing) remain as documented above.
+
+## Inspection checklist — Persian default, mobile language switch, swipeable cards and consultation benefits
+
+### Completed
+- The existing site already has bilingual public routes, a remembered language switcher, configurable default-language settings, consultant profiles, clearly marked demonstration testimonials, and a consultation form with demo disclosures.
+- The previously completed responsive booking link and iPad advice-image treatment are present in the working tree. Existing changes were inspected and will be preserved.
+
+### Partially Completed
+- The new-visitor language setting currently defaults to English, and the mobile/tablet language switch is only inside the menu drawer.
+- Homepage consultants and testimonial cards are presented as static grids rather than touch-draggable slides.
+- The consultation page explains how the local demo works, but does not yet explain why a consultation can help.
+
+### Not Implemented / exact remaining work
+- Make Persian the default for new public-site visitors without overriding explicit language choices or configurable admin settings.
+- Add an accessible language-switch control directly to the mobile/tablet navbar while preserving the centered consultation button and narrow-screen logo/menu clearance.
+- Add usable, bilingual, RTL-aware swipeable consultant and testimonial sliders, with non-swipe controls and preserved profile links/sample disclosures.
+- Add concise, bilingual consultation-benefit content while keeping existing demo and privacy disclosures truthful.
+- Test routes, language persistence, dragging/buttons/keyboard, menu and booking links, responsive layouts, overflow, form behavior, build and typecheck; update this report with results and remaining limitations.
+
+## Completion — Persian default, mobile language switch, swipeable cards and consultation benefits
+
+### Completed
+- New public-home visitors now start in Persian (`/fa`), and a fresh admin login also starts in Persian. Saved EN/FA choices and explicitly configured default-language settings take precedence; existing settings are not overwritten. Explicit English deep links remain English, and query strings and fragments survive language switching.
+- Added an accessible globe/language control directly to the mobile and iPad navbar. The consultation button remains centered, the menu stays reachable, and compact English text prevents overlap at narrow widths, including with wide configured logos.
+- Replaced the homepage consultant and testimonial grids with RTL-aware, touch-swipeable carousels. Mouse drag, arrow buttons, keyboard navigation, reduced-motion preferences, links, published order and sample labels are supported. All published testimonials are shown; empty sections are hidden.
+- Added bilingual consultation-benefit copy before the form, including a no-guarantee clarification, while retaining the prominent browser-only demo and privacy disclosures.
+- Visually inspected Persian/English headers, sliders and consultation content at phone, iPad and desktop widths. Verified native simulated touch swipes in both directions, mouse dragging without accidental profile navigation, keyboard/arrow controls, language persistence, responsive geometry, published/draft/empty content and existing forms.
+- `npm run typecheck`, `npm run build`, `git diff --check` and the full **49-test Chromium Playwright suite** passed. The carousel interaction tests were rerun after the final styling adjustment and passed.
+
+### Partially Completed
+- Device checks used Chromium emulation, not a physical iPad or Safari/WebKit; real-device and additional-browser review remains advisable.
+
+### Not Implemented / remaining work
+- No further functionality is required for this request. The existing frontend-demo limitations remain: no real authentication, form delivery, shared backend or payment processing, and sample profiles/testimonials require verification before launch.

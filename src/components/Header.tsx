@@ -167,20 +167,33 @@ export function Header({ settings, services, destinations }: HeaderProps) {
           </LocalLink>
         </div>
 
-        <LocalLink to="/consultation" className="btn btn-primary mobile-consultation">
-          {t('cta.book')}
+        <LocalLink to="/consultation" className="btn btn-primary mobile-consultation" aria-label={t('cta.book')}>
+          <span className="mobile-consultation-full">{t('cta.book')}</span>
+          <span className="mobile-consultation-compact" aria-hidden="true">{t('cta.bookCompact')}</span>
         </LocalLink>
 
-        <button
-          type="button"
-          className="mobile-toggle icon-btn"
-          onClick={() => setOpen(true)}
-          aria-label={t('nav.menu')}
-          aria-expanded={open}
-          aria-controls="public-mobile-menu"
-        >
-          <Menu size={20} />
-        </button>
+        <div className="mobile-header-actions">
+          <button
+            type="button"
+            className="mobile-language icon-btn"
+            onClick={switchLocale}
+            aria-label={t(locale === 'fa' ? 'nav.switchToEnglish' : 'nav.switchToPersian')}
+            title={t(locale === 'fa' ? 'nav.switchToEnglish' : 'nav.switchToPersian')}
+          >
+            <Globe2 size={16} aria-hidden="true" />
+            <span aria-hidden="true">{locale === 'fa' ? 'EN' : 'FA'}</span>
+          </button>
+          <button
+            type="button"
+            className="mobile-toggle icon-btn"
+            onClick={() => setOpen(true)}
+            aria-label={t('nav.menu')}
+            aria-expanded={open}
+            aria-controls="public-mobile-menu"
+          >
+            <Menu size={20} />
+          </button>
+        </div>
       </div>
 
       {open && createPortal(

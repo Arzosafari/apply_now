@@ -110,7 +110,7 @@ function defaultsFrom(raw: Values): Values {
       button_fa: 'دریافت مشاوره رایگان',
       ...cta,
     },
-    general: { defaultLanguage: 'en', ...general },
+    general: { defaultLanguage: 'fa', ...general },
     contentVerification: {
       verified: false,
       note: 'Preview content: profiles, testimonials, statistics and contact details are samples until verified by the Apply Now team.',
@@ -417,7 +417,7 @@ export function SettingsPage() {
                 <select
                   className="admin-select mt-3 max-w-xs"
                   aria-label={a('Language default')}
-                  value={String(values.general?.defaultLanguage || 'en')}
+                  value={String(values.general?.defaultLanguage || 'fa')}
                   onChange={(event) => setSection('general', 'defaultLanguage', event.target.value)}
                 >
                   <option value="en">{a("English (LTR)")}</option>

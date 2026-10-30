@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { preferEnglishForExistingChecks } from './locale-fixture';
 
 async function login(page: Page) {
   await page.goto('/admin/login');
@@ -7,7 +8,10 @@ async function login(page: Page) {
   await expect(page).toHaveURL(/\/admin$/);
 }
 
-test.beforeEach(async ({ page }) => { await login(page); });
+test.beforeEach(async ({ page }) => {
+  await preferEnglishForExistingChecks(page);
+  await login(page);
+});
 
 test('admin routes, sample payment filters, downloads and locale switch', async ({ page }) => {
   const errors: string[] = [];
@@ -250,6 +254,8 @@ test('language default, logout and guarded routes behave as a local demo', async
   await page.getByLabel('Language default').selectOption('fa');
   await page.getByRole('button', { name: 'Save settings' }).first().click();
   await expect(page.getByText('Website settings saved.')).toBeVisible();
+  // Check the configured default as a new visitor, rather than the test's explicit English choice.
+  await page.evaluate(() => localStorage.removeItem('faratech_lang'));
   await page.goto('/');
   await expect(page).toHaveURL(/\/fa$/);
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
@@ -265,6 +271,25 @@ test('language default, logout and guarded routes behave as a local demo', async
   await expect(page).toHaveURL(/\/admin\/login/);
   await page.getByRole('button', { name: 'Enter demo workspace' }).click();
   await expect(page).toHaveURL(/\/admin\/requests/);
+});
+
+test('configured English default is respected while explicit visitor preferences take priority', async ({ page }) => {
+  await page.goto('/admin/settings');
+  await page.getByRole('button', { name: 'Language & verification' }).click();
+  const setting = page.getByLabel('Language default');
+  await expect(setting).toHaveValue('fa');
+  await setting.selectOption('en');
+  await page.getByRole('button', { name: 'Save settings' }).first().click();
+  await expect(page.getByText('Website settings saved.')).toBeVisible();
+  await page.evaluate(() => localStorage.removeItem('faratech_lang'));
+  await page.goto('/');
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
+  await page.getByRole('button', { name: 'FA', exact: true }).click();
+  await expect(page).toHaveURL(/\/fa$/);
+  await page.goto('/');
+  await expect(page).toHaveURL(/\/fa$/);
+  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
 });
 
 test('resource drawer and confirmations fit narrow LTR and RTL screens', async ({ page }) => {
@@ -456,6 +481,51 @@ test('admin mobile navigation closes when returning to desktop width', async ({ 
   await expect(page.getByRole('dialog', { name: 'Admin navigation' })).toHaveCount(0);
   await expect(page.locator('body')).not.toHaveCSS('overflow', 'hidden');
   await expect(page.getByRole('navigation', { name: 'Admin navigation' })).toBeVisible();
+});
+
+test('testimonial carousel shows all published comments and hides drafts', async ({ page }) => {
+  await page.goto('/admin/settings');
+  await page.getByRole('button', { name: 'Save settings' }).first().click();
+  await expect(page.getByText('Website settings saved.')).toBeVisible();
+  await page.evaluate(() => {
+    const key = 'faratech_frontend_demo_v1';
+    const stored = JSON.parse(localStorage.getItem(key)!);
+    const sample = stored.testimonials[0];
+    stored.testimonials.push({ ...sample, id: 500, name: 'Fourth sample', name_fa: 'نمونه چهارم', published: true, sort_order: 500 });
+    stored.testimonials.push({ ...sample, id: 501, name: 'Unpublished sample', name_fa: 'نمونه منتشرنشده', published: false, sort_order: 501 });
+    localStorage.setItem(key, JSON.stringify(stored));
+  });
+  await page.goto('/');
+  let carousel = page.locator('.card-carousel-testimonials');
+  await expect(carousel.locator('.testimonial-card')).toHaveCount(4);
+  await expect(carousel).toContainText('Fourth sample');
+  await expect(carousel).not.toContainText('Unpublished sample');
+  await page.goto('/fa');
+  carousel = page.locator('.card-carousel-testimonials');
+  await expect(carousel.locator('.testimonial-card')).toHaveCount(4);
+  await expect(carousel).toContainText('نمونه چهارم');
+
+  await page.evaluate(() => {
+    const key = 'faratech_frontend_demo_v1';
+    const stored = JSON.parse(localStorage.getItem(key)!);
+    stored.testimonials.forEach((item: { published: boolean }, index: number) => { item.published = index === 0; });
+    localStorage.setItem(key, JSON.stringify(stored));
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.reload();
+  await expect(carousel.locator('.testimonial-card')).toHaveCount(1);
+  await expect(carousel.locator('.card-carousel-controls')).toHaveCount(0);
+  const track = carousel.locator('.card-carousel-track');
+  expect(await track.evaluate((element) => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
+
+  await page.evaluate(() => {
+    const key = 'faratech_frontend_demo_v1';
+    const stored = JSON.parse(localStorage.getItem(key)!);
+    stored.testimonials.forEach((item: { published: boolean }) => { item.published = false; });
+    localStorage.setItem(key, JSON.stringify(stored));
+  });
+  await page.reload();
+  await expect(page.locator('.card-carousel-testimonials')).toHaveCount(0);
 });
 
 test('homepage consultants follow admin publication and display order', async ({ page }) => {

@@ -1962,7 +1962,7 @@ export const settings: Record<string, unknown> = {
     button_fa: 'دریافت مشاوره رایگان',
   },
   general: {
-    defaultLanguage: 'en',
+    defaultLanguage: 'fa',
   },
   legalNotice:
     'Immigration rules, fees and processing times change without notice. Information on this website is general guidance, not legal advice or a guarantee of outcome. Always verify requirements with the relevant official authority before applying or making payments.',

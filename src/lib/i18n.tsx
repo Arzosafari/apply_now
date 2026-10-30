@@ -16,9 +16,12 @@ const dictionary = {
   'nav.menu': { en: 'Menu', fa: 'منو' },
   'nav.close': { en: 'Close menu', fa: 'بستن منو' },
   'nav.language': { en: 'Language', fa: 'زبان' },
+  'nav.switchToEnglish': { en: 'Switch to English', fa: 'تغییر زبان به انگلیسی' },
+  'nav.switchToPersian': { en: 'Switch to Persian', fa: 'تغییر زبان به فارسی' },
   'nav.viewAll': { en: 'View all', fa: 'مشاهده همه' },
   'cta.free': { en: 'Free Consultation', fa: 'مشاوره رایگان' },
   'cta.book': { en: 'Book a consultation', fa: 'رزرو مشاوره' },
+  'cta.bookCompact': { en: 'Book consult', fa: 'رزرو مشاوره' },
   'cta.getStarted': { en: 'Get Free Consultation', fa: 'دریافت مشاوره رایگان' },
   'cta.explore': { en: 'Explore Our Services', fa: 'مشاهده خدمات' },
   'cta.exploreDestinations': { en: 'Explore destinations', fa: 'مشاهده مقاصد' },
@@ -133,9 +136,16 @@ const dictionary = {
   'home.storiesEyebrow': { en: 'Client experience', fa: 'تجربه متقاضیان' },
   'home.storiesTitle': { en: 'Stories from the journey', fa: 'روایت‌هایی از مسیر' },
   'home.storiesNote': {
-    en: 'These are marked demonstration testimonials. Real, consented client stories will replace them.',
-    fa: 'این نظرات به‌عنوان نمونه مشخص شده‌اند. روایت‌های واقعی و با رضایت متقاضیان جایگزین آن‌ها می‌شود.',
+    en: 'Testimonials marked Sample are illustrative. Replace them with real, consented client stories before launch.',
+    fa: 'نظرات نشان‌دار نمونه هستند و پیش از انتشار باید با روایت‌های واقعی و با رضایت متقاضیان جایگزین شوند.',
   },
+  'carousel.role': { en: 'carousel', fa: 'چرخ‌نما' },
+  'carousel.slide': { en: 'slide', fa: 'اسلاید' },
+  'carousel.hint': { en: 'Swipe or drag to explore', fa: 'برای دیدن بیشتر، ورق بزنید' },
+  'carousel.trackLabel': { en: 'Cards; use the arrow keys to browse', fa: 'کارت‌ها؛ برای مرور از کلیدهای جهت‌نما استفاده کنید' },
+  'carousel.previous': { en: 'Previous slide', fa: 'اسلاید قبلی' },
+  'carousel.next': { en: 'Next slide', fa: 'اسلاید بعدی' },
+  'carousel.status': { en: 'View {current} of {total}', fa: 'نمای {current} از {total}' },
   'home.insightsEyebrow': { en: 'Insights', fa: 'بینش‌ها' },
   'home.insightsTitle': { en: 'Latest news & articles', fa: 'آخرین اخبار و مقالات' },
   'home.insightsIntro': { en: 'Practical guides, without the noise.', fa: 'راهنماهای کاربردی، بدون حاشیه.' },
@@ -332,6 +342,15 @@ const dictionary = {
   'consultation.successBody': { en: 'Demo complete. This request is stored only in this browser and was not sent to an adviser.', fa: 'نمایش کامل شد. این درخواست فقط در همین مرورگر ذخیره شده و برای مشاور ارسال نشده است.' },
   'consultation.reference': { en: 'Your reference', fa: 'شماره پیگیری شما' },
   'consultation.another': { en: 'Submit another request', fa: 'ارسال درخواست دیگر' },
+  'consultation.benefitsEyebrow': { en: 'A clearer first step', fa: 'گام اول روشن‌تر' },
+  'consultation.benefitsTitle': { en: 'Why start with a consultation?', fa: 'چرا مشاوره بگیریم؟' },
+  'consultation.benefitsBody': {
+    en: 'A conversation can help you compare possible pathways, understand requirements and plan your next steps. No adviser can guarantee a visa or outcome.',
+    fa: 'یک گفت‌وگو می‌تواند به شما کمک کند مسیرهای ممکن را مقایسه کنید، با الزامات آشنا شوید و گام‌های بعدی را روشن‌تر ببینید. هیچ مشاوری نمی‌تواند ویزا یا نتیجه را تضمین کند.',
+  },
+  'consultation.benefit1': { en: 'Discuss your goals, budget and timeline.', fa: 'درباره اهداف، بودجه و زمان‌بندی خود گفت‌وگو کنید.' },
+  'consultation.benefit2': { en: 'Identify documents and gaps to check.', fa: 'مدارک و موارد نیازمند بررسی را شناسایی کنید.' },
+  'consultation.benefit3': { en: 'Plan next steps using official sources.', fa: 'گام‌های بعدی را با کمک منابع رسمی برنامه‌ریزی کنید.' },
   'consultation.whyTitle': { en: 'How this demo works', fa: 'این نمایش چگونه کار می‌کند' },
   'consultation.why1': { en: 'Enter sample details, not real personal information.', fa: 'اطلاعات نمونه وارد کنید، نه اطلاعات شخصی واقعی.' },
   'consultation.why2': { en: 'The form validates fields in your browser.', fa: 'فرم فیلدها را در مرورگر شما اعتبارسنجی می‌کند.' },
@@ -508,11 +527,15 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [adminLocale, setAdminLocale] = useState<Locale>(() => {
-    try { return localStorage.getItem('faratech_lang') === 'fa' ? 'fa' : 'en'; } catch { return 'en'; }
+    try { return localStorage.getItem('faratech_lang') === 'en' ? 'en' : 'fa'; } catch { return 'fa'; }
   });
   const inAdmin = location.pathname === '/admin' || location.pathname.startsWith('/admin/');
   const locale: Locale = inAdmin ? adminLocale : location.pathname === '/fa' || location.pathname.startsWith('/fa/') ? 'fa' : 'en';
   const isRtl = locale === 'fa';
+
+  useEffect(() => {
+    if (!inAdmin) setAdminLocale(locale);
+  }, [inAdmin, locale]);
 
   useEffect(() => {
     document.documentElement.lang = locale;
