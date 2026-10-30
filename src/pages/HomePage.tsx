@@ -283,7 +283,7 @@ export function HomePage() {
 
       <section className="bg-sky-100/60">
         <div className="shell">
-          <div className="grid overflow-hidden rounded-[20px] bg-white shadow-card lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="home-advice-card grid overflow-hidden rounded-[20px] bg-white shadow-card">
             <div className="home-advice-copy p-7 md:p-10">
               <div className="eyebrow">{t('home.adviceEyebrow')}</div>
               <h2 className="mt-4 font-display text-[clamp(1.5rem,2.6vw,2.05rem)] font-bold leading-[1.2] text-navy">
@@ -301,25 +301,27 @@ export function HomePage() {
               </div>
             </div>
             <div className="home-advice-image relative min-h-[280px] overflow-hidden">
-              <img
-                className="absolute inset-0 h-full w-full object-cover"
-                src="/images/team.jpg"
-                alt={locale === 'fa' ? 'تیم مشاوره در حال بررسی پرونده' : 'Advisers reviewing a client case'}
-                loading="lazy"
-                width="900"
-                height="600"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-navy/70 via-navy/10 to-transparent" />
-              <div className="absolute bottom-5 start-5 end-5 flex items-center gap-3 rounded-xl border border-white/20 bg-navy/60 p-3 text-white backdrop-blur">
-                <span className="grid h-9 w-9 place-items-center rounded-lg bg-orange text-navy">
-                  <UserRound size={17} />
-                </span>
-                <div>
-                  <div className="text-[0.75rem] font-semibold">
-                    {locale === 'fa' ? 'یک مشاور مشخص برای پرونده شما' : 'One named adviser for your case'}
-                  </div>
-                  <div className="mt-0.5 text-[0.63rem] text-white/55">
-                    {locale === 'fa' ? 'بدون انتقال مکرر میان افراد' : 'No repeated hand-offs'}
+              <div className="home-advice-photo">
+                <img
+                  className="absolute inset-0 h-full w-full object-cover"
+                  src="/images/team.jpg"
+                  alt={locale === 'fa' ? 'تیم مشاوره در حال بررسی پرونده' : 'Advisers reviewing a client case'}
+                  loading="lazy"
+                  width="1800"
+                  height="2699"
+                />
+                <div className="home-advice-shade absolute inset-0 bg-gradient-to-t from-navy/70 via-navy/10 to-transparent" />
+                <div className="home-advice-note absolute bottom-5 start-5 end-5 flex items-center gap-3 rounded-xl border border-white/20 bg-navy/60 p-3 text-white backdrop-blur">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-orange text-navy">
+                    <UserRound size={17} />
+                  </span>
+                  <div>
+                    <div className="text-[0.75rem] font-semibold">
+                      {locale === 'fa' ? 'یک مشاور مشخص برای پرونده شما' : 'One named adviser for your case'}
+                    </div>
+                    <div className="mt-0.5 text-[0.63rem] text-white/55">
+                      {locale === 'fa' ? 'بدون انتقال مکرر میان افراد' : 'No repeated hand-offs'}
+                    </div>
                   </div>
                 </div>
               </div>

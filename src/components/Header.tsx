@@ -43,10 +43,11 @@ export function Header({ settings, services, destinations }: HeaderProps) {
   }, [location.pathname]);
 
   useEffect(() => {
-    const desktop = window.matchMedia('(min-width: 1081px)');
-    const closeOnDesktop = (event: MediaQueryListEvent) => { if (event.matches) setOpen(false); };
-    desktop.addEventListener('change', closeOnDesktop);
-    return () => desktop.removeEventListener('change', closeOnDesktop);
+    // Keep this in sync with the mobile header media query in index.css.
+    const mobileHeader = window.matchMedia('(max-width: 1199px), (max-width: 1366px) and (hover: none) and (pointer: coarse)');
+    const closeOnDesktop = (event: MediaQueryListEvent) => { if (!event.matches) setOpen(false); };
+    mobileHeader.addEventListener('change', closeOnDesktop);
+    return () => mobileHeader.removeEventListener('change', closeOnDesktop);
   }, []);
 
   useEffect(() => {
@@ -79,7 +80,7 @@ export function Header({ settings, services, destinations }: HeaderProps) {
   return (
     <header className={cn('site-header', scrolled && 'is-scrolled')}>
       <div className="shell header-inner">
-        <LocalLink to="/" aria-label={locale === 'fa' ? `خانه ${settings.brand.name}` : `${settings.brand.name} home`}>
+        <LocalLink className="header-brand" to="/" aria-label={locale === 'fa' ? `خانه ${settings.brand.name}` : `${settings.brand.name} home`}>
           <Logo name={settings.brand.name} src={settings.brand.logoUrl} />
         </LocalLink>
 
@@ -165,6 +166,10 @@ export function Header({ settings, services, destinations }: HeaderProps) {
             <Plane size={14} strokeWidth={2} aria-hidden="true" />
           </LocalLink>
         </div>
+
+        <LocalLink to="/consultation" className="btn btn-primary mobile-consultation">
+          {t('cta.book')}
+        </LocalLink>
 
         <button
           type="button"

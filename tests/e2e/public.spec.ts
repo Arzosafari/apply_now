@@ -24,6 +24,34 @@ async function expectNoOverflow(page: Page) {
   expect(widths.scroll, 'document should not scroll horizontally').toBeLessThanOrEqual(widths.client + 1);
 }
 
+async function expectCenteredMobileBooking(page: Page, locale: 'en' | 'fa') {
+  const header = page.locator('.site-header .header-inner');
+  const brand = header.locator('.header-brand');
+  const logo = brand.locator('img');
+  const booking = header.locator('.mobile-consultation');
+  const menu = header.locator('.mobile-toggle');
+  await expect(booking).toBeVisible();
+  await expect(booking).toHaveAccessibleName(locale === 'fa' ? 'رزرو مشاوره' : 'Book a consultation');
+  await expect(booking).toHaveAttribute('href', locale === 'fa' ? '/fa/consultation' : '/consultation');
+  await expect(menu).toBeVisible();
+  const [headerBox, brandBox, logoBox, bookingBox, menuBox] = await Promise.all([
+    header.boundingBox(), brand.boundingBox(), logo.boundingBox(), booking.boundingBox(), menu.boundingBox(),
+  ]);
+  expect(headerBox && brandBox && logoBox && bookingBox && menuBox).toBeTruthy();
+  expect(Math.abs(bookingBox!.x + bookingBox!.width / 2 - (headerBox!.x + headerBox!.width / 2))).toBeLessThanOrEqual(1);
+  expect(bookingBox!.height).toBeGreaterThanOrEqual(44);
+  expect(logoBox!.x).toBeGreaterThanOrEqual(brandBox!.x - 1);
+  expect(logoBox!.x + logoBox!.width).toBeLessThanOrEqual(brandBox!.x + brandBox!.width + 1);
+  if (locale === 'en') {
+    expect(brandBox!.x + brandBox!.width).toBeLessThanOrEqual(bookingBox!.x);
+    expect(bookingBox!.x + bookingBox!.width).toBeLessThanOrEqual(menuBox!.x);
+  } else {
+    expect(menuBox!.x + menuBox!.width).toBeLessThanOrEqual(bookingBox!.x);
+    expect(bookingBox!.x + bookingBox!.width).toBeLessThanOrEqual(brandBox!.x);
+  }
+  await expectNoOverflow(page);
+}
+
 test('public routes render in English and Persian without runtime errors', async ({ page }) => {
   test.setTimeout(120_000);
   const errors: string[] = [];
@@ -338,6 +366,94 @@ test('homepage shows consultant profiles and localized links in both languages',
   }
 });
 
+test('mobile and tablet headers center a working localized booking link without collisions', async ({ page }) => {
+  test.setTimeout(120_000);
+  for (const width of [320, 360, 390, 599, 600, 744, 768, 1024, 1133, 1199]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const locale of ['en', 'fa'] as const) {
+      await page.goto(locale === 'fa' ? '/fa' : '/');
+      await page.evaluate(() => document.fonts.ready);
+      await expectCenteredMobileBooking(page, locale);
+      if ([320, 744, 1133].includes(width)) {
+        await page.locator('.site-header .mobile-consultation').click();
+        await expect(page).toHaveURL(locale === 'fa' ? /\/fa\/consultation$/ : /\/consultation$/);
+        await expect(page.locator('h1')).toBeVisible();
+      }
+    }
+  }
+
+  await page.setViewportSize({ width: 1200, height: 900 });
+  await page.goto('/');
+  await expect(page.locator('.site-header .mobile-consultation')).toBeHidden();
+  await expect(page.locator('.site-header .mobile-toggle')).toBeHidden();
+  await expect(page.getByRole('navigation', { name: 'Primary', exact: true })).toBeVisible();
+});
+
+test('advice portrait is fully visible with its caption below on mobile and iPad sizes', async ({ page }) => {
+  test.setTimeout(120_000);
+  for (const width of [320, 390, 599, 600, 744, 768, 1024, 1133, 1199]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const locale of ['en', 'fa'] as const) {
+      await page.goto(locale === 'fa' ? '/fa' : '/');
+      const image = page.locator('.home-advice-photo img');
+      const note = page.locator('.home-advice-note');
+      const frame = page.locator('.home-advice-image');
+      await image.scrollIntoViewIfNeeded();
+      await expect(image).toHaveJSProperty('naturalWidth', 1800);
+      await expect(image).toHaveJSProperty('naturalHeight', 2699);
+      await expect(image).toHaveAttribute('width', '1800');
+      await expect(image).toHaveAttribute('height', '2699');
+      await expect(image).toHaveCSS('position', 'static');
+      await expect(image).toHaveCSS('object-fit', 'contain');
+      await expect(page.locator('.home-advice-shade')).toBeHidden();
+      await expect(note).toBeVisible();
+      const [imageBox, noteBox, frameBox] = await Promise.all([image.boundingBox(), note.boundingBox(), frame.boundingBox()]);
+      expect(imageBox && noteBox && frameBox).toBeTruthy();
+      expect(imageBox!.height / imageBox!.width).toBeCloseTo(2699 / 1800, 2);
+      expect(noteBox!.y).toBeGreaterThanOrEqual(imageBox!.y + imageBox!.height - 1);
+      expect(imageBox!.x).toBeGreaterThanOrEqual(frameBox!.x - 1);
+      expect(imageBox!.x + imageBox!.width).toBeLessThanOrEqual(frameBox!.x + frameBox!.width + 1);
+      expect(imageBox!.y).toBeGreaterThanOrEqual(frameBox!.y - 1);
+      expect(noteBox!.y + noteBox!.height).toBeLessThanOrEqual(frameBox!.y + frameBox!.height + 1);
+      if (width >= 600) expect(imageBox!.width).toBeLessThanOrEqual(321);
+      await expectNoOverflow(page);
+    }
+  }
+});
+
+test.describe('touch-screen iPad layouts', () => {
+  test.use({ hasTouch: true, isMobile: true });
+
+  test('rotation keeps the mobile menu until a true desktop layout is reached', async ({ page }) => {
+    await page.setViewportSize({ width: 744, height: 1133 });
+    await page.goto('/');
+    expect(await page.evaluate(() => matchMedia('(pointer: coarse)').matches)).toBe(true);
+    await expectCenteredMobileBooking(page, 'en');
+    await page.getByRole('button', { name: 'Menu', exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: 'Menu' });
+    await expect(dialog).toBeVisible();
+
+    await page.setViewportSize({ width: 1133, height: 744 });
+    await expect(dialog).toBeVisible();
+    await page.setViewportSize({ width: 1366, height: 1024 });
+    await expect(dialog).toBeVisible();
+    await page.getByRole('button', { name: 'Close menu' }).click();
+    await expectCenteredMobileBooking(page, 'en');
+    const image = page.locator('.home-advice-photo img');
+    await expect(image).toHaveCSS('position', 'static');
+    await expect(image).toHaveCSS('object-fit', 'contain');
+    const imageBox = await image.boundingBox();
+    expect(imageBox!.height / imageBox!.width).toBeCloseTo(2699 / 1800, 2);
+
+    await page.getByRole('button', { name: 'Menu', exact: true }).click();
+    await page.setViewportSize({ width: 1367, height: 1024 });
+    await expect(dialog).toHaveCount(0);
+    await expect(page.locator('body')).not.toHaveCSS('overflow', 'hidden');
+    await expect(page.locator('.site-header .mobile-consultation')).toBeHidden();
+    await expect(page.getByRole('navigation', { name: 'Primary', exact: true })).toBeVisible();
+  });
+});
+
 test('conversation image swaps sides and the smaller logo fits across viewports', async ({ page }) => {
   test.setTimeout(120_000);
   for (const width of [320, 390, 639, 640, 768, 1024, 1440]) {
@@ -351,7 +467,7 @@ test('conversation image swaps sides and the smaller logo fits across viewports'
       const image = await section.locator('.home-advice-image').boundingBox();
       expect(copy).not.toBeNull();
       expect(image).not.toBeNull();
-      if (width >= 1024) {
+      if (width >= 600) {
         if (locale === 'fa') expect(image!.x + image!.width).toBeLessThanOrEqual(copy!.x + 1);
         else expect(copy!.x + copy!.width).toBeLessThanOrEqual(image!.x + 1);
       } else {
@@ -417,10 +533,17 @@ test('wide configured logos remain contained on mobile and desktop', async ({ pa
   await expect(logo).toHaveCSS('height', '40px');
   await expect(logo).toHaveCSS('object-fit', 'contain');
   expect((await logo.boundingBox())!.width).toBeLessThanOrEqual(112);
+  await expectCenteredMobileBooking(page, 'en');
   await page.getByRole('button', { name: 'Menu', exact: true }).click();
   const menuLogo = page.getByRole('dialog', { name: 'Menu' }).locator('img.brand-logo');
   expect((await menuLogo.boundingBox())!.width).toBeLessThanOrEqual(112);
   await page.getByRole('button', { name: 'Close menu' }).click();
+  await page.goto('/fa');
+  await expect(logo).toHaveAttribute('src', wideLogo);
+  await expectCenteredMobileBooking(page, 'fa');
+  await page.getByRole('button', { name: 'منو', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: 'منو' }).locator('img.brand-logo')).toBeVisible();
+  await page.getByRole('button', { name: 'بستن منو' }).click();
   await page.setViewportSize({ width: 1440, height: 900 });
   await expect(logo).toHaveCSS('height', '44px');
   expect((await logo.boundingBox())!.width).toBeLessThanOrEqual(120);

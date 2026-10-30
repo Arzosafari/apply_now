@@ -714,6 +714,7 @@ img {
   box-shadow: 0 2px 7px rgba(9, 38, 74, 0.1);
 }
 
+.mobile-consultation,
 .mobile-toggle {
   display: none;
 }
@@ -733,14 +734,47 @@ img {
   }
 }
 
-@media (max-width: 1080px) {
+/* Includes modern iPad mini landscape and larger touch-screen iPads. */
+@media (max-width: 1199px), (max-width: 1366px) and (hover: none) and (pointer: coarse) {
   .desktop-nav,
   .desktop-actions {
     display: none;
   }
 
+  /* Equal outer tracks keep the booking link centered in both LTR and RTL. */
+  .header-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .header-brand {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .header-brand .brand-lockup {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: min(100%, 120px);
+  }
+
+  .header-brand .brand-logo {
+    max-width: 100%;
+  }
+
+  .mobile-consultation {
+    display: inline-flex;
+    min-height: 44px;
+    padding: 9px 14px;
+    font-size: 0.8125rem;
+    white-space: nowrap;
+  }
+
   .mobile-toggle {
     display: inline-flex;
+    justify-self: end;
   }
 
   .mobile-nav {
@@ -790,6 +824,68 @@ img {
 
   .locale-fa .mobile-nav-panel {
     animation-name: drawer-in-rtl;
+  }
+}
+
+@media (max-width: 639px) {
+  .header-brand .brand-lockup {
+    max-width: min(100%, 112px);
+  }
+}
+
+@media (max-width: 360px) {
+  .mobile-consultation {
+    padding-inline: 7px;
+    font-size: 0.75rem;
+  }
+}
+
+/* Show the portrait at its natural aspect ratio on mobile and tablet. */
+@media (max-width: 1199px), (max-width: 1366px) and (hover: none) and (pointer: coarse) {
+  .home-advice-image {
+    display: flex;
+    align-items: center;
+    min-height: 0;
+    background: var(--deep-navy);
+  }
+
+  .home-advice-photo {
+    width: 100%;
+  }
+
+  .home-advice-photo img {
+    position: static;
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+  }
+
+  .home-advice-shade {
+    display: none;
+  }
+
+  .home-advice-note {
+    position: static;
+    border: 0;
+    border-radius: 0;
+    background: var(--navy);
+    backdrop-filter: none;
+  }
+}
+
+@media (min-width: 600px) {
+  .home-advice-card {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  }
+}
+
+@media (min-width: 600px) and (max-width: 1199px), (min-width: 600px) and (max-width: 1366px) and (hover: none) and (pointer: coarse) {
+  .home-advice-card {
+    grid-template-columns: minmax(0, 1fr) minmax(0, min(40%, 320px));
+  }
+
+  .home-advice-copy {
+    align-self: center;
   }
 }
 

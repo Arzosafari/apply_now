@@ -196,3 +196,33 @@ Open `http://localhost:5173`; the admin demo is at `/admin/login` with the prefi
 **Not implemented**
 
 - [ ] The production backend, authentication and real submissions/payments remain outside the frontend demo.
+
+## Inspection checklist — iPad advice image and responsive header consultation link
+
+### Completed
+- Confirmed the existing site, localized routes, responsive header/drawer, branding, and advice section are already implemented; the working branch was clean before this request.
+- Confirmed `/images/team.jpg` is a 1800 × 2699 portrait, while the tablet advice frame uses a wide `object-cover` crop that hides much of the photo.
+- Confirmed the consultation route and translated labels already exist, but the public navbar currently hides its consultation button at mobile/tablet widths.
+
+### Partially Completed
+- The advice card and responsive header need layout changes and verification at mobile and iPad mini sizes, including Persian RTL and custom logos.
+
+### Not Implemented / exact remaining work
+- Show the full advice photograph on iPad mini without excessively enlarging the section, and keep the image and caption usable on narrow screens.
+- Add a genuinely centered, localized consultation link to the mobile/tablet navbar without overlapping the logo or menu button.
+- Add regression coverage and check screenshots, navigation, menu interactions, overflow, typecheck, build, and the existing browser suite. The demo limitations documented above remain unchanged.
+
+## Completion — iPad advice image and centered responsive consultation link
+
+### Completed
+- The advice photograph now keeps its correct 1800 × 2699 portrait ratio on mobile/tablet; its adviser caption sits below rather than covering the image. From 600px through tablet sizes, a capped-width portrait column keeps the section compact, with the correct EN/FA ordering. Desktop retains its previous crop and presentation.
+- Added a 44px-high “Book a consultation” / “رزرو مشاوره” link centered between the logo and menu on mobile and iPad layouts. The links route to `/consultation` and `/fa/consultation`, respectively, and accommodate very wide configured logos without overlapping.
+- Extended the responsive header and image treatment to cover modern iPad mini landscape widths as well as larger coarse-pointer touch tablets; menu resize behavior uses the same media query.
+- Visually reviewed Chromium screenshots at 320 and 390px, older iPad mini portrait/landscape (768 × 1024 and 1024 × 768), newer mini portrait/landscape (744 × 1133 and 1133 × 744), and a simulated 1366px touch tablet, including Persian RTL.
+- Added image-aspect/caption, centered-link geometry/routing, EN/FA, custom-logo, touch rotation, menu and overflow regression coverage. All 39 Chromium end-to-end tests passed; `npm run typecheck`, `npm run build`, and `git diff --check` passed.
+
+### Partially Completed
+- Layouts were verified using Chromium device/touch emulation, not on a physical iPad or in Safari/WebKit; a real-device cross-browser check remains advisable.
+
+### Not Implemented / remaining work
+- No further changes are required for this specific responsive request. The existing demo limitations (no production backend, real authentication, form delivery, or payment processing) remain as documented above.
