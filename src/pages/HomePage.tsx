@@ -67,7 +67,7 @@ export function HomePage() {
   return (
     <>
       <section className="hero">
-        <img className="hero-image" src={hero.image} alt="" width="1900" height="1100" fetchPriority="high" />
+        <img className="hero-image" src={hero.image || '/images/hero-city.jpg'} alt="" width="1900" height="1100" fetchPriority="high" />
         <div className="hero-wash" />
         <svg className="plane-track" viewBox="0 0 620 330" fill="none" aria-hidden="true">
           <path

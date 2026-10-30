@@ -50,7 +50,7 @@ export function DestinationCard({ destination }: { destination: Destination }) {
         />
         <div className="absolute start-4 top-4 z-[1] flex items-center gap-2 rounded-full bg-white/90 py-1.5 pe-3 ps-1.5 text-[0.63rem] font-semibold text-navy backdrop-blur">
           <span className="flag-badge">
-            <img src={destination.flag || ''} alt="" width="30" height="20" />
+            {destination.flag ? <img src={destination.flag} alt="" width="30" height="20" /> : <span aria-hidden="true">{destination.country_code}</span>}
           </span>
           {destination.country_code}
         </div>
@@ -105,21 +105,22 @@ export function ArticleCard({ article, compact = false }: { article: Article; co
 
 export function ExpertCard({ expert }: { expert: Expert }) {
   const { locale, t } = useLocale();
+  const name = locale === 'fa' ? expert.name_fa || expert.name : expert.name;
   const role = locale === 'fa' ? expert.role_fa : expert.role_en;
   const expertise = locale === 'fa' ? expert.expertise_fa : expert.expertise_en;
   return (
     <LocalLink to={`/experts/${expert.slug}`} className="expert-card card card-hover group block">
       <div className="expert-photo">
         {expert.photo ? (
-          <img src={expert.photo} alt={expert.name} loading="lazy" width="500" height="580" />
+          <img src={expert.photo} alt={name} loading="lazy" width="500" height="580" />
         ) : (
-          <div className="grid h-full place-items-center text-3xl font-bold text-blue">{initials(expert.name)}</div>
+          <div className="grid h-full place-items-center text-3xl font-bold text-blue">{initials(name)}</div>
         )}
         <span className="expert-badge">{role}</span>
       </div>
       <div className="p-5">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="text-[1rem] leading-tight">{expert.name}</h3>
+          <h3 className="text-[1rem] leading-tight">{name}</h3>
           {expert.is_demo && <span className="tag tag-orange">{t('common.demo')}</span>}
         </div>
         <p className="mt-2 flex items-start gap-1.5 text-[0.73rem] leading-6 text-muted">
@@ -158,9 +159,9 @@ export function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
           <span className="avatar avatar-fallback">{initials(testimonial.name)}</span>
         )}
         <div>
-          <div className="text-[0.78rem] font-semibold text-navy">{testimonial.name}</div>
+          <div className="text-[0.78rem] font-semibold text-navy">{locale === 'fa' ? testimonial.name_fa || testimonial.name : testimonial.name}</div>
           <div className="mt-0.5 text-[0.65rem] text-muted">
-            {service} · {testimonial.country}
+            {service} · {locale === 'fa' ? testimonial.country_fa || testimonial.country : testimonial.country}
           </div>
         </div>
       </div>

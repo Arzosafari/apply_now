@@ -256,11 +256,11 @@ export function DestinationDetailPage() {
           <aside className="detail-sidebar">
             <div className="card overflow-hidden">
               <div className="relative h-36">
-                <img className="h-full w-full object-cover" src={destination.image || ''} alt="" loading="lazy" />
+                <img className="h-full w-full object-cover" src={destination.image || '/images/hero-city.jpg'} alt="" loading="lazy" />
                 <div className="absolute inset-0 bg-gradient-to-t from-navy/75 to-transparent" />
                 <div className="absolute bottom-3 start-4 flex items-center gap-2 text-white">
                   <span className="flag-badge">
-                    <img src={destination.flag || ''} alt="" width="30" height="20" />
+                    {destination.flag ? <img src={destination.flag} alt="" width="30" height="20" /> : <span className="text-navy" aria-hidden="true">{destination.country_code}</span>}
                   </span>
                   <span className="font-display text-sm font-semibold">{name}</span>
                 </div>

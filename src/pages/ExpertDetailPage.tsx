@@ -18,11 +18,12 @@ export function ExpertDetailPage() {
     enabled: Boolean(slug),
   });
   const expert = query.data?.expert;
+  const name = expert ? (locale === 'fa' ? expert.name_fa || expert.name : expert.name) : '';
   const role = expert ? (locale === 'fa' ? expert.role_fa : expert.role_en) : '';
   const bio = expert ? (locale === 'fa' ? expert.bio_fa : expert.bio_en) : '';
 
   usePageMeta({
-    title: expert ? `${expert.name} — ${role}` : t('common.loading'),
+    title: expert ? `${name} — ${role}` : t('common.loading'),
     description: expert ? (locale === 'fa' ? expert.expertise_fa : expert.expertise_en) : '',
     image: expert?.photo,
     type: 'profile',
@@ -42,16 +43,16 @@ export function ExpertDetailPage() {
     <>
       <PageHero
         eyebrow={role}
-        title={expert.name}
+        title={name}
         intro={locale === 'fa' ? expert.expertise_fa : expert.expertise_en}
         image="/images/team.jpg"
-        breadcrumbs={[{ label: t('nav.experts'), to: '/experts' }, { label: expert.name }]}
+        breadcrumbs={[{ label: t('nav.experts'), to: '/experts' }, { label: name }]}
       />
       <section className="section">
         <div className="shell grid gap-10 md:grid-cols-[0.7fr_1.3fr]">
           <div>
             <div className="overflow-hidden rounded-[18px] border border-line bg-white">
-              <img className="aspect-[4/4.6] w-full object-cover object-top" src={expert.photo || ''} alt={expert.name} width="600" height="700" />
+              {expert.photo ? <img className="aspect-[4/4.6] w-full object-cover object-top" src={expert.photo} alt={name} width="600" height="700" /> : <div className="grid aspect-[4/4.6] place-items-center bg-sky-50 text-5xl font-bold text-blue" aria-hidden="true">{name.slice(0, 1)}</div>}
             </div>
             {expert.is_demo && (
               <p className="notice mt-4 text-center text-[0.68rem]">{t('experts.demo')}</p>
@@ -62,7 +63,7 @@ export function ExpertDetailPage() {
               <span className="tag">{role}</span>
               {expert.is_demo && <span className="tag tag-orange">{t('common.demo')}</span>}
             </div>
-            <h1 className="mt-5 font-display text-3xl font-bold text-navy">{expert.name}</h1>
+            <h2 className="mt-5 font-display text-3xl font-bold text-navy">{name}</h2>
             <p className="mt-2 text-[0.88rem] text-muted">{locale === 'fa' ? expert.expertise_fa : expert.expertise_en}</p>
             <div className="prose-body mt-7 whitespace-pre-line">{bio}</div>
 

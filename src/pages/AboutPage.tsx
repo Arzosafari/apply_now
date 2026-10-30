@@ -18,7 +18,7 @@ export function AboutPage() {
   const site = usePublicSite();
   const { t, locale } = useLocale();
   usePageMeta({
-    title: locale === 'fa' ? 'درباره FaraTech' : 'About FaraTech',
+    title: locale === 'fa' ? `درباره ${site.settings.brand.name}` : `About ${site.settings.brand.name}`,
     description: t('about.intro'),
     image: '/images/office.jpg',
   });
@@ -128,7 +128,7 @@ export function AboutPage() {
             <img
               className="aspect-[16/10] w-full object-cover"
               src="/images/office.jpg"
-              alt={locale === 'fa' ? 'دفتر مشاوره' : 'The FaraTech office environment'}
+              alt={locale === 'fa' ? 'تصویر نمونه محیط کار' : 'Illustrative office environment'}
               loading="lazy"
               width="1100"
               height="700"

@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import {
   CheckCircle2,
@@ -43,6 +44,7 @@ interface ContactForm {
 const empty: ContactForm = { name: '', email: '', phone: '', subject: '', message: '', website: '' };
 
 export function ContactPage() {
+  const queryClient = useQueryClient();
   const site = usePublicSite();
   const { t, locale } = useLocale();
   const brand = site.settings.brand;
@@ -53,7 +55,7 @@ export function ContactPage() {
   const [serverError, setServerError] = useState('');
 
   usePageMeta({
-    title: locale === 'fa' ? 'تماس با ما' : 'Contact FaraTech',
+    title: locale === 'fa' ? 'تماس با ما' : `Contact ${brand.name}`,
     description: t('contact.intro'),
     image: '/images/office.jpg',
   });
@@ -68,6 +70,7 @@ export function ContactPage() {
     const next: Partial<Record<keyof ContactForm, string>> = {};
     if (form.name.trim().length < 2) next.name = t('form.required');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(form.email.trim())) next.email = t('form.invalidEmail');
+    if (form.phone.trim() && form.phone.replace(/[^\p{N}]/gu, '').length < 5) next.phone = t('form.invalidPhone');
     if (!form.subject.trim()) next.subject = t('form.required');
     if (form.message.trim().length < 10) next.message = locale === 'fa' ? 'پیام باید حداقل ۱۰ کاراکتر باشد.' : 'Please write at least 10 characters.';
     setErrors(next);
@@ -83,6 +86,8 @@ export function ContactPage() {
         message: form.message.trim(),
         website: form.website,
       });
+      void queryClient.invalidateQueries({ queryKey: ['admin-messages'] });
+      void queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
       setSuccess(true);
       setForm(empty);
     } catch (error) {
@@ -144,6 +149,7 @@ export function ContactPage() {
                   </div>
                 </a>
               )}
+              {!brand.whatsapp && <div className="contact-info-card"><span className="contact-info-icon"><MessageCircle size={17} /></span><div><div className="text-[0.61rem] font-bold uppercase tracking-[0.1em] text-muted">{t('contact.whatsapp')}</div><div className="mt-1 text-[0.82rem] text-navy">{t('common.notConfigured')}</div></div></div>}
               <div className="contact-info-card">
                 <span className="contact-info-icon"><MapPin size={17} /></span>
                 <div>
@@ -176,6 +182,8 @@ export function ContactPage() {
               </div>
             )}
 
+            {social.length === 0 && <p className="mt-6 text-[0.72rem] text-muted">{t('contact.follow')}: {t('common.notConfigured')}</p>}
+
             <LocalLink to="/consultation" className="btn btn-dark mt-7">
               {t('cta.book')}
             </LocalLink>
@@ -204,6 +212,7 @@ export function ContactPage() {
 
           <div>
             <div className="form-card">
+              <div className="notice mb-6" role="note">{locale === 'fa' ? 'این فرم نمایشی است؛ اطلاعات واقعی وارد نکنید. پیام فقط در این مرورگر ذخیره می‌شود و ارسال نخواهد شد.' : 'Demo form only. Do not enter real information. Your message stays in this browser and is not sent.'}</div>
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h2 className="font-display text-xl font-bold text-navy">{t('contact.formTitle')}</h2>
@@ -260,7 +269,9 @@ export function ContactPage() {
                       autoComplete="tel"
                       value={form.phone}
                       onChange={(event) => setField('phone', event.target.value)}
+                      aria-invalid={Boolean(errors.phone)}
                     />
+                    {errors.phone && <p className="field-error">{errors.phone}</p>}
                   </div>
                   <div className="field">
                     <label className="label" htmlFor="contact-subject">{t('contact.subject')} <span className="required">*</span></label>
@@ -286,14 +297,14 @@ export function ContactPage() {
                     />
                     {errors.message && <p className="field-error">{errors.message}</p>}
                   </div>
-                  <div className="absolute -left-[9999px] top-auto h-px w-px overflow-hidden" aria-hidden="true">
+                  <div className="sr-only" aria-hidden="true">
                     <label htmlFor="contact-website">Website</label>
                     <input id="contact-website" tabIndex={-1} autoComplete="off" value={form.website} onChange={(event) => setField('website', event.target.value)} />
                   </div>
                   {serverError && <div className="notice sm:col-span-2 border-red-200 bg-red-50 text-red-800">{serverError}</div>}
                   <div className="flex flex-col gap-3 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between">
                     <p className="text-[0.62rem] leading-5 text-muted">
-                      {locale === 'fa' ? 'با ارسال این فرم، سیاست حریم خصوصی را می‌پذیرید.' : 'By sending this form you accept our privacy policy.'}
+                      {locale === 'fa' ? 'با ثبت نمایشی فرم، ' : 'By saving this demo form, you acknowledge the ' }<LocalLink to="/privacy-policy" className="text-blue underline">{locale === 'fa' ? 'سیاست حریم خصوصی' : 'privacy policy'}</LocalLink>{locale === 'fa' ? ' را می‌پذیرید.' : '.'}
                     </p>
                     <button type="submit" className="btn btn-primary" disabled={sending}>
                       {sending ? <Loader2 size={15} className="animate-spin" /> : <Send size={14} />}

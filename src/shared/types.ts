@@ -124,6 +124,7 @@ export interface Expert {
   id: number;
   slug: string;
   name: string;
+  name_fa?: string;
   role_en: string;
   role_fa: string;
   expertise_en: string;
@@ -200,7 +201,9 @@ export interface Faq {
 export interface Testimonial {
   id: number;
   name: string;
+  name_fa?: string;
   country: string;
+  country_fa?: string;
   service_en: string;
   service_fa: string;
   quote_en: string;
@@ -306,6 +309,7 @@ export interface SiteSettings {
     name: string;
     legalName: string;
     tagline: string;
+    tagline_fa?: string;
     logoUrl?: string;
     description: string;
     description_fa: string;

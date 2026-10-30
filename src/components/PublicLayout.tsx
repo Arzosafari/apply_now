@@ -24,7 +24,7 @@ function FullPageLoader() {
         <Logo />
         <div className="flex items-center gap-2 text-xs text-muted">
           <span className="h-2 w-2 animate-pulse rounded-full bg-orange" />
-          <span>Loading FaraTech…</span>
+          <span>Loading Apply Now…</span>
         </div>
       </div>
     </div>

@@ -1,3 +1,4 @@
+import { useAdminTranslation } from './i18n';
 import { createContext, useContext, useMemo, useState } from 'react';
 import { AlertCircle, CheckCircle2, X } from 'lucide-react';
 
@@ -14,6 +15,7 @@ interface ToastContextValue {
 const ToastContext = createContext<ToastContextValue | null>(null);
 
 export function AdminToastProvider({ children }: { children: React.ReactNode }) {
+  const a = useAdminTranslation();
   const [toasts, setToasts] = useState<ToastItem[]>([]);
 
   const notify = (message: string, type: ToastType = 'success') => {
@@ -32,12 +34,12 @@ export function AdminToastProvider({ children }: { children: React.ReactNode }) 
         {toasts.map((toast) => (
           <div key={toast.id} className={`toast ${toast.type === 'error' ? 'toast-error' : ''}`}>
             {toast.type === 'error' ? <AlertCircle size={17} className="shrink-0" /> : <CheckCircle2 size={17} className="shrink-0" />}
-            <span className="flex-1">{toast.message}</span>
+            <span className="flex-1">{a(toast.message)}</span>
             <button
               type="button"
               onClick={() => setToasts((current) => current.filter((item) => item.id !== toast.id))}
               className="opacity-50 hover:opacity-100"
-              aria-label="Dismiss"
+              aria-label={a("Dismiss")}
             >
               <X size={13} />
             </button>

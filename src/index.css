@@ -544,37 +544,28 @@ img {
 .brand-lockup {
   display: inline-flex;
   align-items: center;
-  gap: 11px;
   flex: none;
+  width: fit-content;
+  max-width: 100%;
+  line-height: 0;
 }
 
-.brand-mark {
-  width: 39px;
-  height: 39px;
-  flex: none;
+.brand-logo {
+  display: block;
+  width: auto;
+  height: 58px;
+  max-width: 150px;
+  object-fit: contain;
 }
 
-.brand-name {
-  color: var(--navy);
-  font-family: 'Manrope Variable', Manrope, sans-serif;
-  font-size: 1.32rem;
-  font-weight: 800;
-  letter-spacing: -0.045em;
-  line-height: 1;
+.brand-lockup-light {
+  border-radius: 9px;
+  background: white;
+  padding: 5px 8px;
 }
 
-.brand-name span {
-  color: var(--orange);
-}
-
-.brand-caption {
-  color: #8092a6;
-  font-size: 0.48rem;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  line-height: 1;
-  margin-top: 5px;
-  text-transform: uppercase;
+.brand-lockup-compact .brand-logo {
+  height: 44px;
 }
 
 .nav-list {
@@ -749,7 +740,9 @@ img {
     display: block;
     position: fixed;
     inset: 0;
-    z-index: 80;
+    height: 100vh;
+    height: 100dvh;
+    z-index: 100;
     background: rgba(6, 27, 53, 0.45);
     backdrop-filter: blur(4px);
   }
@@ -758,12 +751,34 @@ img {
     position: absolute;
     inset-block: 0;
     inset-inline-end: 0;
-    width: min(92vw, 390px);
+    display: flex;
+    flex-direction: column;
+    width: min(100%, 420px);
+    max-width: 100%;
     background: white;
     box-shadow: -20px 0 50px rgba(6, 27, 53, 0.18);
-    padding: 20px;
-    overflow-y: auto;
+    overflow: hidden;
     animation: drawer-in 0.22s ease both;
+  }
+
+  .mobile-nav-header {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: max(12px, env(safe-area-inset-top)) 20px 12px;
+    border-bottom: 1px solid var(--line);
+    background: white;
+  }
+
+  .mobile-nav-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 20px max(24px, env(safe-area-inset-bottom));
   }
 
   .locale-fa .mobile-nav-panel {
@@ -1062,7 +1077,12 @@ img {
 }
 
 .section-head-copy {
+  min-width: 0;
   max-width: 700px;
+}
+
+@media (max-width: 480px) {
+  .section-head { flex-wrap: wrap; gap: 16px; }
 }
 
 .section-head h2 {
@@ -2166,6 +2186,15 @@ img {
   backdrop-filter: blur(12px);
 }
 
+.admin-demo-notice {
+  padding: 7px 28px;
+  background: #fff8ed;
+  border-bottom: 1px solid #f4dfc6;
+  color: #805c3c;
+  font-size: .68rem;
+  font-weight: 600;
+}
+
 .admin-content {
   padding: 26px 28px 48px;
   max-width: 1460px;
@@ -2409,7 +2438,7 @@ img {
   animation-direction: reverse;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1023px) {
   .admin-shell {
     grid-template-columns: 1fr;
   }
@@ -2420,7 +2449,8 @@ img {
     inset-inline-start: 0;
     width: 260px;
     transform: translateX(-105%);
-    transition: transform 0.22s ease;
+    visibility: hidden;
+    transition: transform 0.22s ease, visibility 0s linear 0.22s;
   }
 
   .locale-fa .admin-sidebar {
@@ -2429,6 +2459,8 @@ img {
 
   .admin-sidebar.open {
     transform: translateX(0);
+    visibility: visible;
+    transition-delay: 0s;
   }
 
   .admin-mobile-toggle {
@@ -2438,6 +2470,8 @@ img {
   .admin-topbar {
     padding-inline: 16px;
   }
+
+  .admin-demo-notice { padding-inline: 16px; }
 
   .admin-content {
     padding: 20px 16px 40px;
@@ -2502,11 +2536,9 @@ img {
    Utilities and motion
    -------------------------------------------------------------------------- */
 .reveal {
-  opacity: 0;
-  transform: translateY(16px);
-  transition:
-    opacity 0.6s cubic-bezier(0.2, 0.65, 0.25, 1),
-    transform 0.6s cubic-bezier(0.2, 0.65, 0.25, 1);
+  /* Content stays visible even if observers, scripting, or screenshots fail. */
+  opacity: 1;
+  transform: none;
 }
 
 .reveal.is-visible {

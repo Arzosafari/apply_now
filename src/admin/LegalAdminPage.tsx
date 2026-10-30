@@ -1,9 +1,11 @@
+import { useAdminTranslation } from './i18n';
 import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ExternalLink, Loader2, Save, ShieldAlert } from 'lucide-react';
 import { adminApi } from '@/lib/api';
 import { errorMessage } from '@/lib/errors';
 import { usePageMeta } from '@/lib/seo';
+import { useLocale } from '@/lib/i18n';
 import { AdminPageHeader } from './AdminLayout';
 import { AdminError, AdminSpinner } from './components';
 import { useToast } from './Toast';
@@ -18,6 +20,8 @@ interface LegalRecord {
 }
 
 export function LegalAdminPage() {
+  const a = useAdminTranslation();
+  const { locale } = useLocale();
   const queryClient = useQueryClient();
   const { notify } = useToast();
   const [slug, setSlug] = useState('privacy-policy');
@@ -47,12 +51,12 @@ export function LegalAdminPage() {
     onSuccess: () => {
       notify('Legal page saved.');
       setError('');
-      void queryClient.invalidateQueries({ queryKey: ['site'] });
+      void queryClient.invalidateQueries();
     },
-    onError: (caught) => setError(errorMessage(caught, 'en')),
+    onError: (caught) => setError(errorMessage(caught, locale)),
   });
 
-  if (query.isLoading) return <AdminSpinner label="Loading legal pages…" />;
+  if (query.isLoading) return <AdminSpinner label={a("Loading legal pages…")} />;
   if (query.isError || !form) return <AdminError message="Legal pages could not be loaded." retry={() => void query.refetch()} />;
 
   const selected = (query.data?.legal as LegalRecord[]).find((item) => item.slug === slug);
@@ -66,21 +70,19 @@ export function LegalAdminPage() {
   return (
     <>
       <AdminPageHeader
-        title="Legal pages"
-        description="Edit the privacy policy and terms shown on the public website."
+        title={a("Legal pages")}
+        description={a("Edit the privacy policy and terms shown on the public website.")}
         action={
           <button type="button" className="btn btn-primary btn-sm" disabled={mutation.isPending} onClick={() => mutation.mutate(form)}>
             {mutation.isPending ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
-            {mutation.isPending ? 'Saving…' : 'Save page'}
+            {mutation.isPending ? a("Saving…") : a("Save page")}
           </button>
         }
       />
 
       <div className="notice mb-4 flex items-start gap-2.5">
         <ShieldAlert size={15} className="mt-0.5 shrink-0" />
-        <span className="text-[0.7rem] leading-6">
-          These are editable templates, not reviewed legal advice. Have a qualified professional review the final text before launch. Do not publish claims that the policy has been legally approved.
-        </span>
+        <span className="text-[0.7rem] leading-6">{a(" These are editable templates, not reviewed legal advice. Have a qualified professional review the final text before launch. Do not publish claims that the policy has been legally approved. ")}</span>
       </div>
       {error && <div className="notice mb-4 border-red-200 bg-red-50 text-[0.72rem] text-red-800">{error}</div>}
 
@@ -98,20 +100,18 @@ export function LegalAdminPage() {
                 slug === item.slug ? 'bg-navy text-white' : 'text-[#63778d] hover:bg-[#f4f8fc]'
               }`}
             >
-              {item.label}
+              {a(item.label)}
             </button>
           ))}
           <a
-            href={`/${slug}`}
+            href={`${locale === 'fa' ? '/fa' : ''}/${slug}`}
             target="_blank"
             rel="noreferrer"
             className="mt-2 flex items-center gap-1.5 border-t border-[#eef2f7] px-3 py-3 text-[0.65rem] font-medium text-blue hover:text-orange-600"
-          >
-            View public page <ExternalLink size={11} />
+          >{a(" View public page ")}<ExternalLink size={11} />
           </a>
           {selected && (
-            <p className="px-3 pb-2 text-[0.58rem] leading-5 text-[#9aa9b9]">
-              Updated {new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium' }).format(new Date(selected.updated_at))}
+            <p className="px-3 pb-2 text-[0.58rem] leading-5 text-[#9aa9b9]">{a(" Updated ")}{new Intl.DateTimeFormat(locale === 'fa' ? 'fa-IR' : 'en-GB', { dateStyle: 'medium' }).format(new Date(selected.updated_at))}
             </p>
           )}
         </div>
@@ -120,11 +120,11 @@ export function LegalAdminPage() {
           <div className="admin-card p-5">
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="field">
-                <span className="label">Title (English)</span>
+                <span className="label">{a("Title (English)")}</span>
                 <input className="admin-input" value={form.title_en} onChange={(event) => setForm({ ...form, title_en: event.target.value })} />
               </label>
               <label className="field">
-                <span className="label">Title (Persian)</span>
+                <span className="label">{a("Title (Persian)")}</span>
                 <input className="admin-input" dir="rtl" value={form.title_fa} onChange={(event) => setForm({ ...form, title_fa: event.target.value })} />
               </label>
             </div>
@@ -132,20 +132,22 @@ export function LegalAdminPage() {
 
           <div className="grid gap-4 xl:grid-cols-2">
             <div className="admin-card p-5">
-              <h3 className="text-[0.8rem] font-semibold text-navy">English content</h3>
-              <p className="mt-1 text-[0.62rem] text-[#93a2b4]">Markdown is supported.</p>
+              <h3 className="text-[0.8rem] font-semibold text-navy">{a("English content")}</h3>
+              <p className="mt-1 text-[0.62rem] text-[#93a2b4]">{a("Markdown is supported.")}</p>
               <textarea
                 className="admin-input mt-3 min-h-[560px] font-mono !text-[0.7rem] leading-6"
+                aria-label={a('English content')}
                 value={form.body_en}
                 onChange={(event) => setForm({ ...form, body_en: event.target.value })}
               />
             </div>
             <div className="admin-card p-5">
-              <h3 className="text-[0.8rem] font-semibold text-navy">Persian content</h3>
-              <p className="mt-1 text-[0.62rem] text-[#93a2b4]">Markdown is supported.</p>
+              <h3 className="text-[0.8rem] font-semibold text-navy">{a("Persian content")}</h3>
+              <p className="mt-1 text-[0.62rem] text-[#93a2b4]">{a("Markdown is supported.")}</p>
               <textarea
                 className="admin-input mt-3 min-h-[560px] font-mono !text-[0.7rem] leading-6"
                 dir="rtl"
+                aria-label={a('Persian content')}
                 value={form.body_fa}
                 onChange={(event) => setForm({ ...form, body_fa: event.target.value })}
               />

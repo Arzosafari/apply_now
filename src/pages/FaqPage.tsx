@@ -84,6 +84,7 @@ export function FaqPage() {
                     category === 'all' ? 'bg-navy text-white' : 'text-[#526980] hover:bg-white'
                   }`}
                   onClick={() => setCategory('all')}
+                  aria-pressed={category === 'all'}
                 >
                   {t('common.all')}
                   <span className="text-[0.65rem] opacity-60">{site.faqs.length}</span>
@@ -98,6 +99,7 @@ export function FaqPage() {
                         category === item ? 'bg-navy text-white' : 'text-[#526980] hover:bg-white'
                       }`}
                       onClick={() => setCategory(item)}
+                      aria-pressed={category === item}
                     >
                       {t(`faq.${item}` as TranslationKey)}
                       <span className="text-[0.65rem] opacity-60">{count}</span>
