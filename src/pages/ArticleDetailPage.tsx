@@ -23,6 +23,7 @@ export function ArticleDetailPage() {
   const site = usePublicSite();
   const { t, locale, formatDate } = useLocale();
   const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState(false);
   const query = useQuery({
     queryKey: ['article', slug],
     queryFn: () => publicApi.article(slug),
@@ -100,10 +101,11 @@ export function ArticleDetailPage() {
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
+      setCopyError(false);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1800);
     } catch {
-      // Clipboard may be unavailable; the URL is still visible in the browser.
+      setCopyError(true);
     }
   };
 
@@ -133,7 +135,7 @@ export function ArticleDetailPage() {
               <div className="flex items-center gap-2.5">
                 <span className="grid h-9 w-9 place-items-center rounded-full bg-navy text-[0.66rem] font-bold text-white">FT</span>
                 <div>
-                  <div className="text-[0.7rem] font-semibold text-navy">{article.author}</div>
+                  <div className="text-[0.7rem] font-semibold text-navy">{locale === 'fa' && article.author === 'FaraTech Editorial' ? 'تحریریه FaraTech' : article.author}</div>
                   <div className="text-[0.6rem] text-muted">{t('blog.published')} · {formatDate(article.published_at || article.created_at)}</div>
                 </div>
               </div>
@@ -155,10 +157,11 @@ export function ArticleDetailPage() {
                   type="button"
                   className="social-btn social-btn-light"
                   onClick={() => void copyLink()}
-                  aria-label="Copy link"
+                  aria-label={locale === 'fa' ? 'کپی پیوند' : 'Copy link'}
                 >
                   {copied ? <Check size={13} /> : <Link2 size={13} />}
                 </button>
+                <span className="sr-only" role="status">{copied ? (locale === 'fa' ? 'پیوند کپی شد.' : 'Link copied.') : copyError ? (locale === 'fa' ? 'کپی ممکن نیست؛ نشانی را از نوار مرورگر کپی کنید.' : 'Copy unavailable. Use the address bar.') : ''}</span>
               </div>
             </div>
           </div>

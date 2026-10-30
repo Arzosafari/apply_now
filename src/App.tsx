@@ -1,7 +1,8 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LocaleProvider } from '@/lib/i18n';
+import { subscribeDemoStorage } from '@/data/demoStore';
 import { PublicLayout } from '@/components/PublicLayout';
 import { HomePage } from '@/pages/HomePage';
 import { ServicesPage } from '@/pages/ServicesPage';
@@ -54,6 +55,11 @@ const publicPages = [
   { path: 'payment/cancelled', element: <PaymentCancelledPage /> },
 ];
 
+function DemoStorageSync() {
+  useEffect(() => subscribeDemoStorage(() => { void queryClient.invalidateQueries(); }), []);
+  return null;
+}
+
 function AdminFallback() {
   return (
     <div className="grid min-h-screen place-items-center bg-[#f4f7fb]">
@@ -67,6 +73,7 @@ function AdminFallback() {
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <DemoStorageSync />
       <BrowserRouter>
         <LocaleProvider>
           <Routes>

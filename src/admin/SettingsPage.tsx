@@ -1,3 +1,4 @@
+import { useAdminTranslation } from './i18n';
 import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -11,6 +12,7 @@ import {
 import { adminApi } from '@/lib/api';
 import { errorMessage } from '@/lib/errors';
 import { usePageMeta } from '@/lib/seo';
+import { useLocale } from '@/lib/i18n';
 import { useAdminAuth } from './AuthContext';
 import { AdminPageHeader } from './AdminLayout';
 import { AdminError, AdminSpinner } from './components';
@@ -41,6 +43,7 @@ function defaultsFrom(raw: Values): Values {
       name: 'FaraTech',
       legalName: 'FaraTech Global Mobility',
       tagline: 'Study · Work · Live · Abroad',
+      tagline_fa: 'تحصیل · کار · زندگی · خارج از کشور',
       logoUrl: '',
       description: '',
       description_fa: '',
@@ -118,6 +121,8 @@ function defaultsFrom(raw: Values): Values {
 }
 
 function ImageSetting({ value, onChange, label }: { value: string; onChange: (value: string) => void; label: string }) {
+  const a = useAdminTranslation();
+  const { locale } = useLocale();
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const ref = useRef<HTMLInputElement>(null);
@@ -129,9 +134,10 @@ function ImageSetting({ value, onChange, label }: { value: string; onChange: (va
       const result = await adminApi.upload(file);
       onChange(result.url);
     } catch (caught) {
-      setError(errorMessage(caught, 'en'));
+      setError(errorMessage(caught, locale));
     } finally {
       setUploading(false);
+      if (ref.current) ref.current.value = '';
     }
   };
   return (
@@ -143,11 +149,10 @@ function ImageSetting({ value, onChange, label }: { value: string; onChange: (va
         <div className="flex-1">
           <div className="flex gap-2">
             <button type="button" className="btn btn-outline btn-sm" onClick={() => ref.current?.click()} disabled={uploading}>
-              {uploading ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />} Upload
-            </button>
-            {value && <button type="button" className="btn btn-outline btn-sm text-red-600" onClick={() => onChange('')}>Clear</button>}
+              {uploading ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}{a(" Upload ")}</button>
+            {value && <button type="button" className="btn btn-outline btn-sm text-red-600" onClick={() => onChange('')}>{a("Clear")}</button>}
           </div>
-          <input className="admin-input mt-2 w-full" value={value} onChange={(event) => onChange(event.target.value)} placeholder="/images/…" aria-label={label} />
+          <input className="admin-input mt-2 w-full" value={value} onChange={(event) => onChange(event.target.value)} placeholder={a("/images/…")} aria-label={a(label)} />
           <input ref={ref} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={(event) => void upload(event.target.files?.[0])} />
           {error && <p className="field-error mt-1">{error}</p>}
         </div>
@@ -157,6 +162,8 @@ function ImageSetting({ value, onChange, label }: { value: string; onChange: (va
 }
 
 export function SettingsPage() {
+  const a = useAdminTranslation();
+  const { locale } = useLocale();
   const queryClient = useQueryClient();
   const { notify } = useToast();
   const { admin } = useAdminAuth();
@@ -184,11 +191,11 @@ export function SettingsPage() {
       void queryClient.invalidateQueries({ queryKey: ['site'] });
       void queryClient.invalidateQueries({ queryKey: ['admin-settings'] });
     },
-    onError: (error) => setSaveError(errorMessage(error, 'en')),
+    onError: (error) => setSaveError(errorMessage(error, locale)),
   });
 
-  if (query.isLoading || !values) return <AdminSpinner label="Loading website settings…" />;
   if (query.isError) return <AdminError message="Settings could not be loaded." retry={() => void query.refetch()} />;
+  if (query.isLoading || !values) return <AdminSpinner label={a("Loading website settings…")} />;
 
   const setSection = (section: string, key: string, value: unknown) => {
     setValues((current) => (current ? { ...current, [section]: { ...(current[section] || {}), [key]: value } } : current));
@@ -205,7 +212,7 @@ export function SettingsPage() {
 
   const input = (section: string, key: string, label: string, props: { dir?: 'ltr' | 'rtl'; hint?: string; type?: string } = {}) => (
     <label className="field">
-      <span className="label">{label}</span>
+      <span className="label">{a(label)}</span>
       <input
         className="admin-input"
         type={props.type || 'text'}
@@ -213,13 +220,13 @@ export function SettingsPage() {
         value={String(values[section]?.[key] ?? '')}
         onChange={(event) => setSection(section, key, event.target.value)}
       />
-      {props.hint && <span className="field-hint">{props.hint}</span>}
+      {props.hint && <span className="field-hint">{a(props.hint)}</span>}
     </label>
   );
 
   const textarea = (section: string, key: string, label: string, dir?: 'rtl') => (
     <label className="field sm:col-span-2">
-      <span className="label">{label}</span>
+      <span className="label">{a(label)}</span>
       <textarea
         className="admin-input min-h-[100px]"
         dir={dir}
@@ -232,8 +239,8 @@ export function SettingsPage() {
   return (
     <>
       <AdminPageHeader
-        title="Website settings"
-        description="Control the brand, contact details, homepage copy, legal notices and language default."
+        title={a("Website settings")}
+        description={a("Control the brand, contact details, homepage copy, legal notices and language default.")}
         action={
           <button
             type="button"
@@ -242,15 +249,14 @@ export function SettingsPage() {
             onClick={() => mutation.mutate(values)}
           >
             {mutation.isPending ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
-            {mutation.isPending ? 'Saving…' : 'Save settings'}
+            {mutation.isPending ? a("Saving…") : a("Save settings")}
           </button>
         }
       />
 
       {!canEdit && (
         <div className="notice mb-4 flex items-center gap-2 border-[#e8d1b8] bg-[#fffaf3] text-[0.72rem] text-[#7b5a39]">
-          <ShieldAlert size={15} /> Only the owner role can edit website settings. You can review the current values.
-        </div>
+          <ShieldAlert size={15} />{a(" Only the owner role can edit website settings. You can review the current values. ")}</div>
       )}
       {saveError && <div className="notice mb-4 border-red-200 bg-red-50 text-[0.72rem] text-red-800">{saveError}</div>}
 
@@ -265,7 +271,7 @@ export function SettingsPage() {
                 tab === item.key ? 'bg-navy text-white' : 'text-[#63778d] hover:bg-[#f4f8fc]'
               }`}
             >
-              {item.label}
+              {a(item.label)}
             </button>
           ))}
         </div>
@@ -274,22 +280,23 @@ export function SettingsPage() {
           {tab === 'brand' && (
             <div className="grid gap-5 sm:grid-cols-2">
               <div className="sm:col-span-2">
-                <h3 className="text-[0.88rem] font-semibold text-navy">Brand identity</h3>
-                <p className="mt-1 text-[0.67rem] text-[#8a9aab]">The logo is used in the public header and footer.</p>
+                <h3 className="text-[0.88rem] font-semibold text-navy">{a("Brand identity")}</h3>
+                <p className="mt-1 text-[0.67rem] text-[#8a9aab]">{a("The logo is used in the public header and footer.")}</p>
               </div>
               {input('brand', 'name', 'Company name')}
               {input('brand', 'legalName', 'Legal / registered name')}
-              {input('brand', 'tagline', 'Tagline')}
+              {input('brand', 'tagline', 'Tagline (English)')}
+              {input('brand', 'tagline_fa', 'Tagline (Persian)', { dir: 'rtl' })}
               <div className="field">
-                <span className="label">Logo image</span>
-                <ImageSetting label="Logo" value={String(values.brand.logoUrl || '')} onChange={(value) => setSection('brand', 'logoUrl', value)} />
+                <span className="label">{a("Logo image")}</span>
+                <ImageSetting label={a("Logo")} value={String(values.brand.logoUrl || '')} onChange={(value) => setSection('brand', 'logoUrl', value)} />
               </div>
               {textarea('brand', 'description', 'Short company description (English)')}
               {textarea('brand', 'description_fa', 'Short company description (Persian)', 'rtl')}
 
               <div className="mt-3 border-t border-line pt-5 sm:col-span-2">
-                <h3 className="text-[0.88rem] font-semibold text-navy">Contact details</h3>
-                <p className="mt-1 text-[0.67rem] text-[#8a9aab]">Only publish details that have been verified by the business.</p>
+                <h3 className="text-[0.88rem] font-semibold text-navy">{a("Contact details")}</h3>
+                <p className="mt-1 text-[0.67rem] text-[#8a9aab]">{a("Only publish details that have been verified by the business.")}</p>
               </div>
               {input('brand', 'email', 'Email address', { dir: 'ltr' })}
               {input('brand', 'phone', 'Phone number', { dir: 'ltr' })}
@@ -304,8 +311,8 @@ export function SettingsPage() {
               {input('brand', 'mapEmbedUrl', 'Map embed URL', { dir: 'ltr', hint: 'Supports OpenStreetMap and Google Maps embed URLs.' })}
 
               <div className="mt-3 border-t border-line pt-5 sm:col-span-2">
-                <h3 className="text-[0.88rem] font-semibold text-navy">Social profiles</h3>
-                <p className="mt-1 text-[0.67rem] text-[#8a9aab]">Leave blank to hide an icon. Icons link only to configured profiles.</p>
+                <h3 className="text-[0.88rem] font-semibold text-navy">{a("Social profiles")}</h3>
+                <p className="mt-1 text-[0.67rem] text-[#8a9aab]">{a("Leave blank to hide an icon. Icons link only to configured profiles.")}</p>
               </div>
               {socialNetworks.map((network) => (
                 <label className="field" key={network}>
@@ -317,7 +324,7 @@ export function SettingsPage() {
                     onChange={(event) =>
                       setSection('brand', 'social', { ...(values.brand.social || {}), [network]: event.target.value })
                     }
-                    placeholder="https://…"
+                    placeholder={a("https://…")}
                   />
                 </label>
               ))}
@@ -327,8 +334,8 @@ export function SettingsPage() {
           {tab === 'homepage' && (
             <div className="grid gap-5 sm:grid-cols-2">
               <div className="sm:col-span-2">
-                <h3 className="text-[0.88rem] font-semibold text-navy">Hero section</h3>
-                <p className="mt-1 text-[0.67rem] text-[#8a9aab]">This copy appears on the homepage and in previews.</p>
+                <h3 className="text-[0.88rem] font-semibold text-navy">{a("Hero section")}</h3>
+                <p className="mt-1 text-[0.67rem] text-[#8a9aab]">{a("This copy appears on the homepage and in previews.")}</p>
               </div>
               {input('hero', 'eyebrow', 'Eyebrow (English)')}
               {input('hero', 'eyebrow_fa', 'Eyebrow (Persian)', { dir: 'rtl' })}
@@ -345,19 +352,19 @@ export function SettingsPage() {
               {input('hero', 'secondaryCta', 'Secondary button label (English)')}
               {input('hero', 'secondaryCta_fa', 'Secondary button label (Persian)', { dir: 'rtl' })}
               <div className="field sm:col-span-2">
-                <span className="label">Hero image</span>
-                <ImageSetting label="Hero" value={String(values.hero.image || '')} onChange={(value) => setSection('hero', 'image', value)} />
+                <span className="label">{a("Hero image")}</span>
+                <ImageSetting label={a("Hero")} value={String(values.hero.image || '')} onChange={(value) => setSection('hero', 'image', value)} />
               </div>
 
               <div className="mt-3 border-t border-line pt-5 sm:col-span-2">
-                <h3 className="text-[0.88rem] font-semibold text-navy">Homepage statistics</h3>
-                <p className="mt-1 text-[0.67rem] text-[#8a9aab]">Use only metrics that can be verified. Structural counts are safer than performance claims.</p>
+                <h3 className="text-[0.88rem] font-semibold text-navy">{a("Homepage statistics")}</h3>
+                <p className="mt-1 text-[0.67rem] text-[#8a9aab]">{a("Use only metrics that can be verified. Structural counts are safer than performance claims.")}</p>
               </div>
               {(values.stats || []).map((stat: Values, index: number) => (
                 <div className="grid gap-2 rounded-lg border border-[#e8eef5] p-3 sm:col-span-2 sm:grid-cols-[90px_1fr_1fr]" key={index}>
-                  <input className="admin-input" value={stat.value} onChange={(event) => setStat(index, 'value', event.target.value)} aria-label={`Statistic ${index + 1} value`} />
-                  <input className="admin-input" value={stat.label_en} onChange={(event) => setStat(index, 'label_en', event.target.value)} aria-label={`Statistic ${index + 1} English label`} />
-                  <input className="admin-input" dir="rtl" value={stat.label_fa} onChange={(event) => setStat(index, 'label_fa', event.target.value)} aria-label={`Statistic ${index + 1} Persian label`} />
+                  <input className="admin-input" value={stat.value} onChange={(event) => setStat(index, 'value', event.target.value)} aria-label={locale === 'fa' ? `مقدار آمار ${index + 1}` : `Statistic ${index + 1} value`} />
+                  <input className="admin-input" value={stat.label_en} onChange={(event) => setStat(index, 'label_en', event.target.value)} aria-label={locale === 'fa' ? `برچسب انگلیسی آمار ${index + 1}` : `Statistic ${index + 1} English label`} />
+                  <input className="admin-input" dir="rtl" value={stat.label_fa} onChange={(event) => setStat(index, 'label_fa', event.target.value)} aria-label={locale === 'fa' ? `برچسب فارسی آمار ${index + 1}` : `Statistic ${index + 1} Persian label`} />
                 </div>
               ))}
             </div>
@@ -366,14 +373,14 @@ export function SettingsPage() {
           {tab === 'footer' && (
             <div className="grid gap-5 sm:grid-cols-2">
               <div className="sm:col-span-2">
-                <h3 className="text-[0.88rem] font-semibold text-navy">Footer statement</h3>
+                <h3 className="text-[0.88rem] font-semibold text-navy">{a("Footer statement")}</h3>
               </div>
               {textarea('footer', 'statement', 'Footer statement (English)')}
               {textarea('footer', 'statement_fa', 'Footer statement (Persian)', 'rtl')}
 
               <div className="mt-3 border-t border-line pt-5 sm:col-span-2">
-                <h3 className="text-[0.88rem] font-semibold text-navy">Final call to action</h3>
-                <p className="mt-1 text-[0.67rem] text-[#8a9aab]">Used on the dark CTA band across public pages.</p>
+                <h3 className="text-[0.88rem] font-semibold text-navy">{a("Final call to action")}</h3>
+                <p className="mt-1 text-[0.67rem] text-[#8a9aab]">{a("Used on the dark CTA band across public pages.")}</p>
               </div>
               {input('cta', 'title', 'CTA title (English)')}
               {input('cta', 'title_fa', 'CTA title (Persian)', { dir: 'rtl' })}
@@ -387,16 +394,16 @@ export function SettingsPage() {
           {tab === 'seo' && (
             <div className="grid gap-5 sm:grid-cols-2">
               <div className="sm:col-span-2">
-                <h3 className="text-[0.88rem] font-semibold text-navy">Search engine defaults</h3>
-                <p className="mt-1 text-[0.67rem] text-[#8a9aab]">Individual services, destinations and articles can override these values.</p>
+                <h3 className="text-[0.88rem] font-semibold text-navy">{a("Search engine defaults")}</h3>
+                <p className="mt-1 text-[0.67rem] text-[#8a9aab]">{a("Individual services, destinations and articles can override these values.")}</p>
               </div>
               {input('seo', 'title', 'Default title (English)')}
               {input('seo', 'title_fa', 'Default title (Persian)', { dir: 'rtl' })}
               {textarea('seo', 'description', 'Default meta description (English)')}
               {textarea('seo', 'description_fa', 'Default meta description (Persian)', 'rtl')}
               <div className="field sm:col-span-2">
-                <span className="label">Open Graph image</span>
-                <ImageSetting label="OG image" value={String(values.seo.ogImage || '')} onChange={(value) => setSection('seo', 'ogImage', value)} />
+                <span className="label">{a("Open Graph image")}</span>
+                <ImageSetting label={a("OG image")} value={String(values.seo.ogImage || '')} onChange={(value) => setSection('seo', 'ogImage', value)} />
               </div>
             </div>
           )}
@@ -404,25 +411,23 @@ export function SettingsPage() {
           {tab === 'general' && (
             <div className="grid gap-5">
               <div>
-                <h3 className="text-[0.88rem] font-semibold text-navy">Language default</h3>
-                <p className="mt-1 text-[0.67rem] text-[#8a9aab]">Applied to new visitors only; the language switcher always overrides it.</p>
+                <h3 className="text-[0.88rem] font-semibold text-navy">{a("Language default")}</h3>
+                <p className="mt-1 text-[0.67rem] text-[#8a9aab]">{a("Applied to new visitors only; the language switcher always overrides it.")}</p>
                 <select
                   className="admin-select mt-3 max-w-xs"
+                  aria-label={a('Language default')}
                   value={String(values.general?.defaultLanguage || 'en')}
                   onChange={(event) => setSection('general', 'defaultLanguage', event.target.value)}
                 >
-                  <option value="en">English (LTR)</option>
-                  <option value="fa">Persian (RTL)</option>
+                  <option value="en">{a("English (LTR)")}</option>
+                  <option value="fa">{a("Persian (RTL)")}</option>
                 </select>
               </div>
 
               <div className="rounded-xl border border-[#f0d6b7] bg-[#fffaf3] p-4">
                 <h3 className="flex items-center gap-2 text-[0.84rem] font-semibold text-[#714f2e]">
-                  <ShieldAlert size={15} /> Content verification
-                </h3>
-                <p className="mt-2 text-[0.7rem] leading-6 text-[#80664d]">
-                  Only mark this after every sample profile, testimonial, statistic, address and contact detail has been replaced with verified information. The public preview banner remains visible until the deployment environment also sets <code className="rounded bg-white/70 px-1">PUBLIC_CONTENT_VERIFIED=true</code>.
-                </p>
+                  <ShieldAlert size={15} />{a(" Content verification ")}</h3>
+                <p className="mt-2 text-[0.7rem] leading-6 text-[#80664d]">{a(" This is a local preview. Replace and verify all sample content before launch. The preview banner remains visible in demo mode. ")}</p>
                 <label className="mt-4 flex cursor-pointer items-start gap-2.5 text-[0.74rem] font-medium text-[#5f452f]">
                   <input
                     type="checkbox"
@@ -432,10 +437,10 @@ export function SettingsPage() {
                       setSection('contentVerification', 'verified', event.target.checked)
                     }
                   />
-                  <span className="flex items-center gap-1.5"><CheckCircle2 size={14} /> I confirm the public content has been replaced and reviewed.</span>
+                  <span className="flex items-center gap-1.5"><CheckCircle2 size={14} />{a(" I confirm the public content has been replaced and reviewed.")}</span>
                 </label>
                 <label className="field mt-4">
-                  <span className="label">Internal verification note</span>
+                  <span className="label">{a("Internal verification note")}</span>
                   <textarea
                     className="admin-input"
                     rows={3}
@@ -446,29 +451,29 @@ export function SettingsPage() {
               </div>
 
               <div>
-                <h3 className="text-[0.88rem] font-semibold text-navy">Legal notice</h3>
-                <p className="mt-1 text-[0.67rem] text-[#8a9aab]">Shown in footers and on destination pages.</p>
+                <h3 className="text-[0.88rem] font-semibold text-navy">{a("Legal notice")}</h3>
+                <p className="mt-1 text-[0.67rem] text-[#8a9aab]">{a("Shown in footers and on destination pages.")}</p>
               </div>
               <label className="field">
-                <span className="label">Notice (English)</span>
+                <span className="label">{a("Notice (English)")}</span>
                 <textarea className="admin-input" rows={4} value={String(values.legalNotice || '')} onChange={(event) => setRoot('legalNotice', event.target.value)} />
               </label>
               <label className="field">
-                <span className="label">Notice (Persian)</span>
+                <span className="label">{a("Notice (Persian)")}</span>
                 <textarea className="admin-input" dir="rtl" rows={4} value={String(values.legalNotice_fa || '')} onChange={(event) => setRoot('legalNotice_fa', event.target.value)} />
               </label>
             </div>
           )}
 
           <div className="mt-7 flex items-center justify-between border-t border-line pt-4">
-            <p className="text-[0.62rem] text-[#95a4b5]">Changes take effect on the public site immediately after saving.</p>
+            <p className="text-[0.62rem] text-[#95a4b5]">{a("Changes apply only to this browser after saving.")}</p>
             <button
               type="button"
               className="btn btn-primary btn-sm"
               disabled={!canEdit || mutation.isPending}
               onClick={() => mutation.mutate(values)}
             >
-              <Save size={13} /> {mutation.isPending ? 'Saving…' : 'Save settings'}
+              <Save size={13} /> {mutation.isPending ? a("Saving…") : a("Save settings")}
             </button>
           </div>
         </div>

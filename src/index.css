@@ -1062,7 +1062,12 @@ img {
 }
 
 .section-head-copy {
+  min-width: 0;
   max-width: 700px;
+}
+
+@media (max-width: 480px) {
+  .section-head { flex-wrap: wrap; gap: 16px; }
 }
 
 .section-head h2 {
@@ -2166,6 +2171,15 @@ img {
   backdrop-filter: blur(12px);
 }
 
+.admin-demo-notice {
+  padding: 7px 28px;
+  background: #fff8ed;
+  border-bottom: 1px solid #f4dfc6;
+  color: #805c3c;
+  font-size: .68rem;
+  font-weight: 600;
+}
+
 .admin-content {
   padding: 26px 28px 48px;
   max-width: 1460px;
@@ -2409,7 +2423,7 @@ img {
   animation-direction: reverse;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1023px) {
   .admin-shell {
     grid-template-columns: 1fr;
   }
@@ -2420,7 +2434,8 @@ img {
     inset-inline-start: 0;
     width: 260px;
     transform: translateX(-105%);
-    transition: transform 0.22s ease;
+    visibility: hidden;
+    transition: transform 0.22s ease, visibility 0s linear 0.22s;
   }
 
   .locale-fa .admin-sidebar {
@@ -2429,6 +2444,8 @@ img {
 
   .admin-sidebar.open {
     transform: translateX(0);
+    visibility: visible;
+    transition-delay: 0s;
   }
 
   .admin-mobile-toggle {
@@ -2438,6 +2455,8 @@ img {
   .admin-topbar {
     padding-inline: 16px;
   }
+
+  .admin-demo-notice { padding-inline: 16px; }
 
   .admin-content {
     padding: 20px 16px 40px;
@@ -2502,11 +2521,9 @@ img {
    Utilities and motion
    -------------------------------------------------------------------------- */
 .reveal {
-  opacity: 0;
-  transform: translateY(16px);
-  transition:
-    opacity 0.6s cubic-bezier(0.2, 0.65, 0.25, 1),
-    transform 0.6s cubic-bezier(0.2, 0.65, 0.25, 1);
+  /* Content stays visible even if observers, scripting, or screenshots fail. */
+  opacity: 1;
+  transform: none;
 }
 
 .reveal.is-visible {

@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowRight,
@@ -50,6 +51,7 @@ const initialForm: FormState = {
 };
 
 export function ConsultationPage() {
+  const queryClient = useQueryClient();
   const site = usePublicSite();
   const { t, locale } = useLocale();
   const [params] = useSearchParams();
@@ -101,7 +103,8 @@ export function ConsultationPage() {
     const next: Partial<Record<keyof FormState, string>> = {};
     if (form.fullName.trim().length < 2) next.fullName = t('form.required');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(form.email.trim())) next.email = t('form.invalidEmail');
-    if (form.phone.trim().length < 5) next.phone = t('form.invalidPhone');
+    if (form.phone.replace(/[^\p{N}]/gu, '').length < 5) next.phone = t('form.invalidPhone');
+    if (form.preferredDate && form.preferredDate < today) next.preferredDate = locale === 'fa' ? 'تاریخی در آینده انتخاب کنید.' : 'Choose today or a future date.';
     if (!form.serviceId) next.serviceId = t('form.required');
     if (!form.privacyConsent) next.privacyConsent = t('form.acceptPrivacy');
     setErrors(next);
@@ -127,6 +130,8 @@ export function ConsultationPage() {
         privacyConsent: true,
         website: form.website,
       });
+      void queryClient.invalidateQueries({ queryKey: ['admin-consultations'] });
+      void queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
       setResult({ reference: response.reference });
       window.scrollTo({ top: 220, behavior: 'smooth' });
     } catch (error) {
@@ -187,7 +192,7 @@ export function ConsultationPage() {
               <div className="mx-auto mt-4 max-w-md text-start text-[0.76rem] leading-7 text-muted">
                 <p className="flex gap-2">
                   <Clock3 size={14} className="mt-1 shrink-0 text-blue" />
-                  {locale === 'fa' ? 'به‌طور معمول در ۱ تا ۲ روز کاری پاسخ می‌دهیم.' : 'We typically respond within 1–2 business days.'}
+                  {locale === 'fa' ? 'هیچ مشاوره‌ای رزرو نشده و تماسی انجام نخواهد شد.' : 'No consultation was booked and no follow-up will be sent.'}
                 </p>
               </div>
 
@@ -258,6 +263,7 @@ export function ConsultationPage() {
       <section className="section">
         <div className="shell grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
           <form className="form-card" onSubmit={(event) => void submit(event)} noValidate>
+            <div className="notice mb-6" role="note">{locale === 'fa' ? 'این فرم نمایشی است؛ اطلاعات واقعی یا حساس وارد نکنید. داده‌ها فقط در مرورگر شما ذخیره می‌شوند و ارسال نمی‌شوند.' : 'Demo form only. Do not enter real or sensitive information. Entries stay in this browser and are not sent.'}</div>
             <div className="flex items-center justify-between gap-4">
               <div>
                 <div className="eyebrow">{t('consultation.eyebrow')}</div>
@@ -406,6 +412,7 @@ export function ConsultationPage() {
                     onChange={(event) => setField('preferredDate', event.target.value)}
                   />
                 </div>
+                {errors.preferredDate && <p className="field-error">{errors.preferredDate}</p>}
               </div>
 
               <div className="field sm:col-span-2">
@@ -427,7 +434,7 @@ export function ConsultationPage() {
               </div>
             </div>
 
-            <div className="absolute -left-[9999px] top-auto h-px w-px overflow-hidden" aria-hidden="true">
+            <div className="sr-only" aria-hidden="true">
               <label htmlFor="website">Website</label>
               <input
                 id="website"
@@ -510,7 +517,7 @@ export function ConsultationPage() {
                 <Mail size={13} className="text-blue" /> {site.settings.brand.email}
               </a>
               <p className="mt-3 flex items-center gap-2 text-[0.72rem] text-muted">
-                <UserRound size={13} className="text-blue" /> {site.settings.brand.hours}
+                <UserRound size={13} className="text-blue" /> {locale === 'fa' ? site.settings.brand.hours_fa : site.settings.brand.hours}
               </p>
               {selectedPackage && (
                 <p className="mt-4 border-t border-line pt-4 text-[0.69rem] leading-6 text-muted">
@@ -520,7 +527,7 @@ export function ConsultationPage() {
               )}
             </div>
             <p className="mt-4 flex items-center justify-center gap-1.5 text-center text-[0.61rem] text-muted">
-              <LockKeyhole size={11} /> {locale === 'fa' ? 'اطلاعات شما عمومی نمی‌شود' : 'Your information is never published'}
+              <LockKeyhole size={11} /> {locale === 'fa' ? 'فقط نمایش محلی؛ اطلاعات واقعی وارد نکنید' : 'Browser-only demo; do not enter real information'}
             </p>
           </aside>
         </div>

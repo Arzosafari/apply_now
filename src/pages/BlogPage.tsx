@@ -50,7 +50,7 @@ export function BlogPage() {
         <div className="shell">
           <div className="mb-8 flex flex-col gap-4 rounded-xl border border-line bg-white p-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex w-full gap-2 overflow-x-auto pb-1 lg:w-auto lg:flex-1">
-              <button type="button" className={`chip shrink-0 ${!category ? 'chip-active' : ''}`} onClick={() => setCategory('')}>
+              <button type="button" className={`chip shrink-0 ${!category ? 'chip-active' : ''}`} onClick={() => setCategory('')} aria-pressed={!category}>
                 {t('blog.allCategories')}
               </button>
               {site.categories.map((item) => (
@@ -58,6 +58,7 @@ export function BlogPage() {
                   type="button"
                   key={item.id}
                   onClick={() => setCategory(item.slug)}
+                  aria-pressed={category === item.slug}
                   className={`chip shrink-0 ${category === item.slug ? 'chip-active' : ''}`}
                 >
                   {locale === 'fa' ? item.name_fa : item.name_en}

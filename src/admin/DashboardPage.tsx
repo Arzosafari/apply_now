@@ -1,3 +1,4 @@
+import { useAdminTranslation } from './i18n';
 import { useQuery } from '@tanstack/react-query';
 import {
   ArrowRight,
@@ -26,11 +27,12 @@ import {
 import { adminApi } from '@/lib/api';
 import { usePageMeta } from '@/lib/seo';
 import { useSiteData } from '@/lib/site';
+import { useLocale } from '@/lib/i18n';
 import { AdminPageHeader } from './AdminLayout';
 import { AdminError, AdminSpinner, StatusBadge } from './components';
 
-function shortDate(value: string) {
-  return new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short' }).format(new Date(value));
+function shortDate(value: string, locale = 'en') {
+  return new Intl.DateTimeFormat(locale === 'fa' ? 'fa-IR' : 'en-GB', { day: '2-digit', month: 'short' }).format(new Date(value));
 }
 
 function money(minor: number, currency: string) {
@@ -46,11 +48,13 @@ function money(minor: number, currency: string) {
 }
 
 export function DashboardPage() {
+  const a = useAdminTranslation();
+  const { locale } = useLocale();
   const query = useQuery({ queryKey: ['admin-stats'], queryFn: adminApi.stats, retry: false });
   const site = useSiteData();
   usePageMeta({ title: 'Admin dashboard', description: 'FaraTech operations dashboard.', noindex: true });
 
-  if (query.isLoading) return <AdminSpinner label="Loading dashboard…" />;
+  if (query.isLoading) return <AdminSpinner label={a("Loading dashboard…")} />;
   if (query.isError || !query.data) {
     return <AdminError message="Dashboard data could not be loaded." retry={() => void query.refetch()} />;
   }
@@ -64,7 +68,7 @@ export function DashboardPage() {
     { label: 'Services', value: data.content.services, icon: TrendingUp, tint: 'bg-sky-50 text-sky-600' },
     { label: 'Destinations', value: data.content.destinations, icon: Globe2, tint: 'bg-teal-50 text-teal-600' },
     {
-      label: 'Verified payments',
+      label: 'Sample payment value',
       value: money(data.payments.successfulAmountMinor, data.payments.currency),
       icon: CircleDollarSign,
       tint: 'bg-orange-50 text-orange-600',
@@ -74,11 +78,10 @@ export function DashboardPage() {
   return (
     <>
       <AdminPageHeader
-        title="Dashboard"
-        description="A live view of enquiries, content and payments."
+        title={a("Dashboard")}
+        description={a("A local preview of enquiries, content and sample payments.")}
         action={
-          <Link to="/admin/consultations" className="btn btn-dark btn-sm">
-            View requests <ArrowRight size={13} />
+          <Link to="/admin/consultations" className="btn btn-dark btn-sm">{a(" View requests ")}<ArrowRight size={13} />
           </Link>
         }
       />
@@ -90,15 +93,11 @@ export function DashboardPage() {
               <Settings size={15} />
             </span>
             <div>
-              <p className="text-[0.76rem] font-semibold text-[#6b4a2d]">Sample content is currently live</p>
-              <p className="mt-0.5 text-[0.68rem] leading-5 text-[#8b6c4e]">
-                Replace demo profiles, testimonials, figures and contact details before launch. The public preview banner remains visible until content is verified.
-              </p>
+              <p className="text-[0.76rem] font-semibold text-[#6b4a2d]">{a("Frontend demonstration workspace")}</p>
+              <p className="mt-0.5 text-[0.68rem] leading-5 text-[#8b6c4e]">{a(" All records are examples or browser-local changes. No backend, real authentication or payments are connected. ")}</p>
             </div>
           </div>
-          <Link to="/admin/settings" className="btn btn-outline btn-sm shrink-0 border-[#e5c8a9] text-[#6b4a2d]">
-            Review settings
-          </Link>
+          <Link to="/admin/settings" className="btn btn-outline btn-sm shrink-0 border-[#e5c8a9] text-[#6b4a2d]">{a(" Review settings ")}</Link>
         </div>
       )}
 
@@ -107,7 +106,7 @@ export function DashboardPage() {
           <div className="stat-card" key={card.label}>
             <div>
               <div className="stat-card-value">{card.value}</div>
-              <div className="stat-card-label">{card.label}</div>
+              <div className="stat-card-label">{a(card.label)}</div>
             </div>
             <span className={`stat-card-icon ${card.tint}`}>
               <card.icon size={17} />
@@ -120,10 +119,10 @@ export function DashboardPage() {
         <div className="admin-card">
           <div className="flex items-center justify-between border-b border-[#e8eef5] px-5 py-4">
             <div>
-              <h3 className="text-[0.82rem] font-semibold text-navy">Consultation requests</h3>
-              <p className="mt-0.5 text-[0.64rem] text-[#8a9aab]">Last 14 days</p>
+              <h3 className="text-[0.82rem] font-semibold text-navy">{a("Consultation requests")}</h3>
+              <p className="mt-0.5 text-[0.64rem] text-[#8a9aab]">{a("Last 14 days")}</p>
             </div>
-            <span className="tag tag-gray">Live database</span>
+            <span className="tag tag-gray">{a("Demo data")}</span>
           </div>
           <div className="h-[260px] px-2 pb-3 pt-5">
             <ResponsiveContainer width="100%" height="100%">
@@ -137,7 +136,7 @@ export function DashboardPage() {
                 <CartesianGrid stroke="#eef2f7" vertical={false} />
                 <XAxis
                   dataKey="date"
-                  tickFormatter={(value: string) => shortDate(value)}
+                  tickFormatter={(value: string) => shortDate(value, locale)}
                   tick={{ fontSize: 9, fill: '#91a1b3' }}
                   axisLine={false}
                   tickLine={false}
@@ -146,7 +145,7 @@ export function DashboardPage() {
                 <YAxis tick={{ fontSize: 9, fill: '#91a1b3' }} axisLine={false} tickLine={false} allowDecimals={false} />
                 <Tooltip
                   contentStyle={{ borderRadius: 8, border: '1px solid #e4ebf3', fontSize: 11, boxShadow: '0 10px 30px rgba(9,38,74,.08)' }}
-                  labelFormatter={(value) => new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium' }).format(new Date(String(value)))}
+                  labelFormatter={(value) => new Intl.DateTimeFormat(locale === 'fa' ? 'fa-IR' : 'en-GB', { dateStyle: 'medium' }).format(new Date(String(value)))}
                 />
                 <Area type="monotone" dataKey="count" name="Requests" stroke="#164B82" strokeWidth={2} fill="url(#consultationsFill)" />
               </AreaChart>
@@ -156,23 +155,23 @@ export function DashboardPage() {
 
         <div className="admin-card">
           <div className="border-b border-[#e8eef5] px-5 py-4">
-            <h3 className="text-[0.82rem] font-semibold text-navy">Quick actions</h3>
-            <p className="mt-0.5 text-[0.64rem] text-[#8a9aab]">Common tasks</p>
+            <h3 className="text-[0.82rem] font-semibold text-navy">{a("Quick actions")}</h3>
+            <p className="mt-0.5 text-[0.64rem] text-[#8a9aab]">{a("Common tasks")}</p>
           </div>
           <div className="grid gap-1.5 p-3">
             {[
-              { to: '/admin/consultations', label: 'Review new requests', icon: MessageSquareText, hint: `${data.consultations.pending} pending` },
-              { to: '/admin/articles', label: 'Write an article', icon: BookOpenText, hint: `${data.content.articlesDraft} drafts` },
-              { to: '/admin/services', label: 'Update a service', icon: TrendingUp, hint: `${data.content.services} live` },
-              { to: '/admin/destinations', label: 'Manage destinations', icon: Globe2, hint: `${data.content.destinations} live` },
+              { to: '/admin/consultations', label: 'Review new requests', icon: MessageSquareText, hint: `${data.consultations.pending} ${locale === 'fa' ? 'در انتظار' : 'pending'}` },
+              { to: '/admin/articles', label: 'Write an article', icon: BookOpenText, hint: `${data.content.articlesDraft} ${locale === 'fa' ? 'پیش‌نویس' : 'drafts'}` },
+              { to: '/admin/services', label: 'Update a service', icon: TrendingUp, hint: `${data.content.services} ${locale === 'fa' ? 'نمونه' : 'demo'}` },
+              { to: '/admin/destinations', label: 'Manage destinations', icon: Globe2, hint: `${data.content.destinations} ${locale === 'fa' ? 'نمونه' : 'demo'}` },
               { to: '/admin/settings', label: 'Site settings', icon: Settings, hint: 'Brand & contact' },
             ].map((item) => (
               <Link key={item.to} to={item.to} className="flex items-center gap-3 rounded-lg px-2.5 py-2.5 transition hover:bg-[#f7fafd]">
                 <span className="grid h-8 w-8 place-items-center rounded-lg bg-[#eef5fc] text-[#346b9f]">
                   <item.icon size={15} />
                 </span>
-                <span className="flex-1 text-[0.73rem] font-medium text-[#40566c]">{item.label}</span>
-                <span className="text-[0.61rem] text-[#9aa9b9]">{item.hint}</span>
+                <span className="flex-1 text-[0.73rem] font-medium text-[#40566c]">{a(item.label)}</span>
+                <span className="text-[0.61rem] text-[#9aa9b9]">{a(item.hint)}</span>
               </Link>
             ))}
           </div>
@@ -183,43 +182,41 @@ export function DashboardPage() {
         <div className="admin-card overflow-hidden">
           <div className="flex items-center justify-between border-b border-[#e8eef5] px-5 py-4">
             <div>
-              <h3 className="text-[0.82rem] font-semibold text-navy">Recent consultation requests</h3>
-              <p className="mt-0.5 text-[0.64rem] text-[#8a9aab]">Newest submissions from the public form</p>
+              <h3 className="text-[0.82rem] font-semibold text-navy">{a("Recent consultation requests")}</h3>
+              <p className="mt-0.5 text-[0.64rem] text-[#8a9aab]">{a("Example requests and local form entries")}</p>
             </div>
-            <Link to="/admin/consultations" className="text-[0.65rem] font-medium text-blue hover:text-orange-600">
-              View all
-            </Link>
+            <Link to="/admin/consultations" className="text-[0.65rem] font-medium text-blue hover:text-orange-600">{a(" View all ")}</Link>
           </div>
           {data.recentConsultations.length === 0 ? (
-            <div className="px-6 py-14 text-center text-[0.74rem] text-[#8796a8]">No consultation requests yet.</div>
+            <div className="px-6 py-14 text-center text-[0.74rem] text-[#8796a8]">{a("No consultation requests yet.")}</div>
           ) : (
             <div className="admin-table-wrap">
               <table className="admin-table">
                 <thead>
                   <tr>
-                    <th>Reference</th>
-                    <th>Applicant</th>
-                    <th>Service</th>
-                    <th>Status</th>
-                    <th>Submitted</th>
+                    <th>{a("Reference")}</th>
+                    <th>{a("Applicant")}</th>
+                    <th>{a("Service")}</th>
+                    <th>{a("Status")}</th>
+                    <th>{a("Submitted")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {data.recentConsultations.map((request) => (
                     <tr key={request.id}>
-                      <td data-label="Reference">
+                      <td data-label={a("Reference")}>
                         <Link to={`/admin/consultations/${request.id}`} className="font-mono text-[0.68rem] font-semibold text-blue">
                           {request.reference}
                         </Link>
                       </td>
-                      <td data-label="Applicant">
+                      <td data-label={a("Applicant")}>
                         <div className="font-medium text-[#304a63]">{request.full_name}</div>
                         <div className="mt-0.5 text-[0.6rem] text-[#96a5b5]">{request.email}</div>
                       </td>
-                      <td data-label="Service">{request.service_title_en || '—'}</td>
-                      <td data-label="Status"><StatusBadge status={request.status} /></td>
-                      <td data-label="Submitted" className="whitespace-nowrap">
-                        {new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium' }).format(new Date(request.created_at))}
+                      <td data-label={a("Service")}>{(locale === 'fa' ? request.service_title_fa : request.service_title_en) || '—'}</td>
+                      <td data-label={a("Status")}><StatusBadge status={request.status} /></td>
+                      <td data-label={a("Submitted")} className="whitespace-nowrap">
+                        {new Intl.DateTimeFormat(locale === 'fa' ? 'fa-IR' : 'en-GB', { dateStyle: 'medium' }).format(new Date(request.created_at))}
                       </td>
                     </tr>
                   ))}
@@ -231,23 +228,23 @@ export function DashboardPage() {
 
         <div className="admin-card">
           <div className="border-b border-[#e8eef5] px-5 py-4">
-            <h3 className="text-[0.82rem] font-semibold text-navy">Recent activity</h3>
-            <p className="mt-0.5 text-[0.64rem] text-[#8a9aab]">Administrative changes and system events</p>
+            <h3 className="text-[0.82rem] font-semibold text-navy">{a("Recent activity")}</h3>
+            <p className="mt-0.5 text-[0.64rem] text-[#8a9aab]">{a("Local demonstration changes")}</p>
           </div>
           <div className="divide-y divide-[#eff3f8]">
             {data.recentActivity.map((entry) => (
               <div key={entry.id} className="flex items-start gap-2.5 px-5 py-3">
                 <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#8bb4d9]" />
                 <div className="min-w-0">
-                  <p className="text-[0.69rem] font-medium capitalize text-[#425b73]">{entry.action.replaceAll('_', ' ')}</p>
+                  <p className="text-[0.69rem] font-medium capitalize text-[#425b73]">{a(entry.action.replaceAll('_', ' '))}</p>
                   <p className="mt-0.5 text-[0.61rem] text-[#98a7b7]">
-                    {entry.entity_type.replaceAll('_', ' ')} · {entry.admin_name || 'System'} ·{' '}
-                    {new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(entry.created_at))}
+                    {a(entry.entity_type.replaceAll('_', ' '))} · {a(entry.admin_name || 'System')} ·{' '}
+                    {new Intl.DateTimeFormat(locale === 'fa' ? 'fa-IR' : 'en-GB', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(entry.created_at))}
                   </p>
                 </div>
               </div>
             ))}
-            {data.recentActivity.length === 0 && <p className="px-5 py-10 text-center text-[0.72rem] text-[#98a7b7]">No activity yet.</p>}
+            {data.recentActivity.length === 0 && <p className="px-5 py-10 text-center text-[0.72rem] text-[#98a7b7]">{a("No activity yet.")}</p>}
           </div>
         </div>
       </div>
@@ -263,7 +260,7 @@ export function DashboardPage() {
             <span className="grid h-9 w-9 place-items-center rounded-lg bg-[#f1f6fb] text-[#4a769e]"><item.icon size={16} /></span>
             <div>
               <div className="text-lg font-bold text-navy">{item.value}</div>
-              <div className="text-[0.63rem] text-[#8292a5]">{item.label}</div>
+              <div className="text-[0.63rem] text-[#8292a5]">{a(item.label)}</div>
             </div>
             <ArrowRight size={13} className="ms-auto text-[#a8b6c5]" />
           </Link>

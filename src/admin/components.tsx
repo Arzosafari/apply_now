@@ -1,3 +1,6 @@
+import { useAdminTranslation } from './i18n';
+import { useEffect } from 'react';
+import { useDialogFocus } from '@/lib/useDialogFocus';
 import { AlertCircle, ChevronLeft, ChevronRight, Inbox, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -22,10 +25,11 @@ const statusStyles: Record<string, string> = {
 };
 
 export function StatusBadge({ status }: { status: string | null | undefined }) {
+  const a = useAdminTranslation();
   const value = status || 'pending';
   return (
     <span className={cn('tag capitalize', statusStyles[value] || 'tag-gray')}>
-      {value.replaceAll('_', ' ')}
+      {a(value.replaceAll('_', ' '))}
     </span>
   );
 }
@@ -41,29 +45,29 @@ export function AdminLoading({ rows = 5 }: { rows?: number }) {
 }
 
 export function AdminError({ message, retry }: { message?: string; retry?: () => void }) {
+  const a = useAdminTranslation();
   return (
     <div className="grid place-items-center px-6 py-16 text-center">
       <span className="grid h-11 w-11 place-items-center rounded-full bg-red-50 text-red-600">
         <AlertCircle size={20} />
       </span>
-      <h3 className="mt-4 text-sm font-semibold text-navy">Could not load this section</h3>
-      <p className="mt-1 max-w-sm text-[0.72rem] leading-6 text-[#7b8b9d]">{message || 'Please try again.'}</p>
+      <h3 className="mt-4 text-sm font-semibold text-navy">{a("Could not load this section")}</h3>
+      <p className="mt-1 max-w-sm text-[0.72rem] leading-6 text-[#7b8b9d]">{message || a("Please try again.")}</p>
       {retry && (
-        <button type="button" className="btn btn-outline btn-sm mt-4" onClick={retry}>
-          Retry
-        </button>
+        <button type="button" className="btn btn-outline btn-sm mt-4" onClick={retry}>{a(" Retry ")}</button>
       )}
     </div>
   );
 }
 
 export function TableEmpty({ label = 'No records yet.' }: { label?: string }) {
+  const a = useAdminTranslation();
   return (
     <div className="grid place-items-center px-6 py-16 text-center">
       <span className="grid h-11 w-11 place-items-center rounded-full bg-[#f1f5f9] text-[#93a4b6]">
         <Inbox size={19} />
       </span>
-      <p className="mt-3 text-[0.78rem] text-[#7b8b9d]">{label}</p>
+      <p className="mt-3 text-[0.78rem] text-[#7b8b9d]">{a(label)}</p>
     </div>
   );
 }
@@ -79,12 +83,12 @@ export function Pagination({
   total: number;
   onChange: (page: number) => void;
 }) {
+  const a = useAdminTranslation();
   const pages = Math.max(1, Math.ceil(total / pageSize));
   if (total === 0) return null;
   return (
     <div className="flex flex-col items-center justify-between gap-3 border-t border-[#e8eef5] px-4 py-3 sm:flex-row">
-      <p className="text-[0.66rem] text-[#8494a7]">
-        Showing {Math.min((page - 1) * pageSize + 1, total)}–{Math.min(page * pageSize, total)} of {total}
+      <p className="text-[0.66rem] text-[#8494a7]">{a(" Showing ")}{Math.min((page - 1) * pageSize + 1, total)}–{Math.min(page * pageSize, total)}{a(" of ")}{total}
       </p>
       <div className="flex items-center gap-1.5">
         <button
@@ -92,9 +96,9 @@ export function Pagination({
           className="icon-btn !h-8 !w-8"
           disabled={page <= 1}
           onClick={() => onChange(Math.max(1, page - 1))}
-          aria-label="Previous page"
+          aria-label={a("Previous page")}
         >
-          <ChevronLeft size={14} />
+          <ChevronLeft size={14} className="rtl:rotate-180" />
         </button>
         <span className="min-w-16 text-center text-[0.67rem] font-medium text-[#61758a]">
           {page} / {pages}
@@ -104,9 +108,9 @@ export function Pagination({
           className="icon-btn !h-8 !w-8"
           disabled={page >= pages}
           onClick={() => onChange(Math.min(pages, page + 1))}
-          aria-label="Next page"
+          aria-label={a("Next page")}
         >
-          <ChevronRight size={14} />
+          <ChevronRight size={14} className="rtl:rotate-180" />
         </button>
       </div>
     </div>
@@ -114,10 +118,11 @@ export function Pagination({
 }
 
 export function AdminSpinner({ label = 'Loading…' }: { label?: string }) {
+  const a = useAdminTranslation();
   return (
     <div className="flex items-center justify-center gap-2 py-16 text-[0.75rem] text-[#7b8b9d]">
       <Loader2 size={16} className="animate-spin text-blue" />
-      {label}
+      {a(label)}
     </div>
   );
 }
@@ -139,16 +144,22 @@ export function ConfirmDialog({
   onCancel: () => void;
   onConfirm: () => void;
 }) {
+  const a = useAdminTranslation();
+  const dialogRef = useDialogFocus<HTMLDivElement>(open);
+  useEffect(() => {
+    if (!open) return;
+    const close = (event: KeyboardEvent) => { if (event.key === 'Escape' && !busy) onCancel(); };
+    window.addEventListener('keydown', close);
+    return () => window.removeEventListener('keydown', close);
+  }, [open, busy, onCancel]);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-[120] grid place-items-center bg-navy/45 p-4 backdrop-blur-[2px]">
-      <div className="w-full max-w-sm rounded-xl border border-line bg-white p-6 shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+    <div className="fixed inset-0 z-[120] grid place-items-center bg-navy/45 p-4 backdrop-blur-[2px]" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) onCancel(); }}>
+      <div ref={dialogRef} tabIndex={-1} className="w-full max-w-sm rounded-xl border border-line bg-white p-6 shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
         <h3 id="confirm-title" className="text-base font-semibold text-navy">{title}</h3>
         <p className="mt-2 text-[0.76rem] leading-6 text-[#708196]">{body}</p>
         <div className="mt-5 flex justify-end gap-2">
-          <button type="button" className="btn btn-outline btn-sm" onClick={onCancel} disabled={busy}>
-            Cancel
-          </button>
+          <button type="button" className="btn btn-outline btn-sm" onClick={onCancel} disabled={busy}>{a(" Cancel ")}</button>
           <button
             type="button"
             className="btn btn-sm bg-red-600 text-white hover:bg-red-700"
@@ -156,7 +167,7 @@ export function ConfirmDialog({
             disabled={busy}
           >
             {busy ? <Loader2 size={14} className="animate-spin" /> : null}
-            {confirmLabel}
+            {a(confirmLabel)}
           </button>
         </div>
       </div>

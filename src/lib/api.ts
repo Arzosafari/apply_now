@@ -18,63 +18,18 @@ import type {
   Package,
 } from '@shared/types';
 
-export class ApiError extends Error {
-  status: number;
-  code: string;
-  details?: { path: string; message: string }[];
+// The UI talks to this adapter rather than directly to a server. The demo
+// implementation is deliberately local; replace it with a real transport in
+// the backend stage without changing the page components.
+import { demoRequest } from '@/data/demoStore';
+export { ApiError } from './apiError';
 
-  constructor(
-    message: string,
-    status = 500,
-    code = 'REQUEST_ERROR',
-    details?: { path: string; message: string }[],
-  ) {
-    super(message);
-    this.name = 'ApiError';
-    this.status = status;
-    this.code = code;
-    this.details = details;
-  }
-}
-
-let csrfToken: string | null = null;
-
-export function setCsrfToken(token: string | null) {
-  csrfToken = token;
+export function setCsrfToken(_token: string | null) {
+  // Kept as part of the future transport contract. Demo mode has no auth/CSRF.
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const headers = new Headers(options.headers);
-  if (options.body && !(options.body instanceof FormData)) {
-    headers.set('Content-Type', 'application/json');
-  }
-  if (csrfToken && options.method && !['GET', 'HEAD'].includes(options.method)) {
-    headers.set('X-CSRF-Token', csrfToken);
-  }
-  const response = await fetch(`/api${path}`, {
-    ...options,
-    headers,
-    credentials: 'same-origin',
-  });
-  if (response.status === 204) return undefined as T;
-  const contentType = response.headers.get('content-type') || '';
-  const payload = contentType.includes('application/json')
-    ? await response.json().catch(() => ({}))
-    : await response.text();
-  if (!response.ok) {
-    const data = payload as {
-      error?: string;
-      code?: string;
-      details?: { path: string; message: string }[];
-    };
-    throw new ApiError(
-      data.error || 'Request failed.',
-      response.status,
-      data.code || 'REQUEST_ERROR',
-      data.details,
-    );
-  }
-  return payload as T;
+  return demoRequest<T>(path, options);
 }
 
 function queryString(params?: Record<string, string | number | boolean | undefined | null>) {

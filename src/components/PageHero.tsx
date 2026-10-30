@@ -1,5 +1,5 @@
 import { ChevronRight } from 'lucide-react';
-import { LocalLink } from '@/lib/i18n';
+import { LocalLink, useLocale } from '@/lib/i18n';
 
 export function PageHero({
   eyebrow,
@@ -14,13 +14,14 @@ export function PageHero({
   image?: string | null;
   breadcrumbs?: { label: string; to?: string }[];
 }) {
+  const { locale } = useLocale();
   return (
     <section className="page-hero">
       {image && <img className="page-hero-image" src={image} alt="" width="1600" height="700" />}
       <div className="page-hero-wash" />
       <div className="shell">
         <div className="page-hero-inner">
-          <nav className="breadcrumb" aria-label="Breadcrumb">
+          <nav className="breadcrumb" aria-label={locale === 'fa' ? 'مسیر صفحه' : 'Breadcrumb'}>
             <LocalLink to="/">FaraTech</LocalLink>
             {breadcrumbs.map((crumb) => (
               <span key={crumb.label} className="contents">

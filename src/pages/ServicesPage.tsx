@@ -55,6 +55,7 @@ export function ServicesPage() {
               <button
                 type="button"
                 onClick={() => setCategory('all')}
+                aria-pressed={category === 'all'}
                 className={`chip ${category === 'all' ? 'chip-active' : ''}`}
               >
                 {t('services.all')}
@@ -64,6 +65,7 @@ export function ServicesPage() {
                   type="button"
                   key={key}
                   onClick={() => setCategory(key)}
+                  aria-pressed={category === key}
                   className={`chip ${category === key ? 'chip-active' : ''}`}
                 >
                   {label}

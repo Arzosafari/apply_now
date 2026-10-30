@@ -39,7 +39,7 @@ export function Footer({
       <div className="shell">
         <div className="grid gap-10 py-[58px] md:grid-cols-[1.45fr_1fr_1fr_1fr_1.2fr]">
           <div>
-            <LocalLink to="/" aria-label={`${settings.brand.name} home`}>
+            <LocalLink to="/" aria-label={locale === 'fa' ? `خانه ${settings.brand.name}` : `${settings.brand.name} home`}>
               {settings.brand.logoUrl ? (
                 <img src={settings.brand.logoUrl} alt={settings.brand.name} className="h-11 w-auto max-w-[190px] object-contain" />
               ) : (
@@ -49,7 +49,7 @@ export function Footer({
             <p className="mt-5 max-w-[275px] text-[0.76rem] leading-[1.8] text-white/55">
               {locale === 'fa' ? settings.footer.statement_fa : settings.footer.statement}
             </p>
-            <p className="mt-4 text-[0.63rem] text-white/35">{settings.brand.tagline}</p>
+            <p className="mt-4 text-[0.63rem] text-white/35">{locale === 'fa' ? settings.brand.tagline_fa || settings.brand.tagline : settings.brand.tagline}</p>
             {social.length > 0 && (
               <div className="mt-5 flex gap-2">
                 {social.map(([network, url]) => {

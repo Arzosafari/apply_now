@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import type { Locale } from '@shared/types';
 
@@ -50,8 +50,8 @@ const dictionary = {
   'common.readingTime': { en: '{count} min read', fa: '{count} دقیقه مطالعه' },
   'common.notConfigured': { en: 'To be configured', fa: 'در انتظار پیکربندی' },
   'common.demoNotice': {
-    en: 'Preview build — sample content is in use. Replace it in Admin → Settings before launch.',
-    fa: 'نسخه پیش‌نمایش — محتوای نمونه استفاده شده است. پیش از انتشار، آن را در مدیریت → تنظیمات جایگزین کنید.',
+    en: 'Frontend preview — sample data only. Forms are not sent; do not enter real personal information.',
+    fa: 'پیش‌نمایش رابط کاربری — فقط داده نمونه. فرم‌ها ارسال نمی‌شوند؛ اطلاعات شخصی واقعی وارد نکنید.',
   },
   'common.demoLabel': { en: 'Demonstration content', fa: 'محتوای نمایشی' },
   'common.officialNotice': {
@@ -207,16 +207,16 @@ const dictionary = {
   'pricing.eyebrow': { en: 'Transparent pricing', fa: 'قیمت‌گذاری شفاف' },
   'pricing.title': { en: 'Choose the support that fits', fa: 'پشتیبانی مناسب خود را انتخاب کنید' },
   'pricing.intro': { en: 'Clear starting points, editable by the FaraTech team. Government fees and third-party costs are separate unless stated.', fa: 'نقاط شروع شفاف که تیم FaraTech آن را مدیریت می‌کند. هزینه‌های دولتی و شخص ثالث جدا هستند مگر ذکر شود.' },
-  'pricing.featured': { en: 'Most popular', fa: 'محبوب‌ترین' },
+  'pricing.featured': { en: 'Featured', fa: 'ویژه' },
   'pricing.included': { en: 'What is included', fa: 'چه چیزی شامل است' },
   'pricing.excluded': { en: 'Not included', fa: 'شامل نمی‌شود' },
-  'pricing.noPayment': { en: 'Online payment is not configured. Choose this package to request a consultation and confirm payment instructions with the team.', fa: 'پرداخت آنلاین پیکربندی نشده است. این بسته را انتخاب کنید تا مشاوره درخواست دهید و دستورالعمل پرداخت را با تیم تأیید کنید.' },
+  'pricing.noPayment': { en: 'Demo only: no consultation is booked and online payment is unavailable.', fa: 'فقط نمایشی: مشاوره‌ای رزرو نمی‌شود و پرداخت آنلاین در دسترس نیست.' },
   'pricing.demoNote': { en: 'Sample pricing for layout preview. The FaraTech team must confirm every amount before publication.', fa: 'قیمت نمونه برای پیش‌نمایش. تیم FaraTech باید همه مبالغ را پیش از انتشار تأیید کند.' },
   'pricing.customTitle': { en: 'Need a different scope?', fa: 'دامنه متفاوتی نیاز دارید؟' },
   'pricing.customBody': { en: 'Complex profiles and multi-person applications are scoped individually after a review.', fa: 'پرونده‌های پیچیده و درخواست‌های چندنفره پس از بررسی به‌صورت جداگانه تعیین می‌شوند.' },
   'experts.eyebrow': { en: 'The people behind the guidance', fa: 'افراد پشت راهنمایی' },
-  'experts.title': { en: 'Experienced, accountable advisers', fa: 'مشاوران باتجربه و پاسخگو' },
-  'experts.intro': { en: 'We keep the team structure simple: a named adviser, documented next steps and a supervisor who can review the work.', fa: 'ساختار تیم را ساده نگه می‌داریم: یک مشاور مشخص، گام‌های مستند و یک ناظر که کار را بازبینی می‌کند.' },
+  'experts.title': { en: 'Meet the sample adviser team', fa: 'با تیم مشاوران نمونه آشنا شوید' },
+  'experts.intro': { en: 'Explore example profile layouts. Team members and qualifications must be verified before publication.', fa: 'چیدمان پروفایل‌های نمونه را ببینید. اعضا و صلاحیت‌های تیم باید پیش از انتشار تأیید شوند.' },
   'experts.demo': { en: 'Sample profile — replace in the admin portal', fa: 'پروفایل نمونه — در پنل مدیریت جایگزین شود' },
   'experts.expertise': { en: 'Expertise', fa: 'تخصص' },
   'experts.languages': { en: 'Languages', fa: 'زبان‌ها' },
@@ -267,10 +267,10 @@ const dictionary = {
   'faq.payments': { en: 'Payments', fa: 'پرداخت' },
   'faq.noResults': { en: 'No questions match your search.', fa: 'پرسشی با جست‌وجوی شما مطابقت ندارد.' },
   'faq.ctaTitle': { en: 'Still have a question?', fa: 'هنوز پرسشی دارید؟' },
-  'faq.ctaBody': { en: 'Send it to our team and we will answer with a source, not a slogan.', fa: 'آن را برای تیم ما بفرستید؛ با منبع پاسخ می‌دهیم، نه با شعار.' },
+  'faq.ctaBody': { en: 'Explore the sample guidance or try the contact form. No message is sent in this preview.', fa: 'راهنمای نمونه را ببینید یا فرم تماس را امتحان کنید. در این پیش‌نمایش پیامی ارسال نمی‌شود.' },
   'contact.eyebrow': { en: 'Contact', fa: 'تماس' },
   'contact.title': { en: 'Let’s talk about your next step', fa: 'درباره گام بعدی شما صحبت کنیم' },
-  'contact.intro': { en: 'Use the form or contact details below. For case-specific guidance, a consultation request is the fastest route.', fa: 'از فرم یا اطلاعات تماس زیر استفاده کنید. برای راهنمایی اختصاصی، درخواست مشاوره سریع‌ترین مسیر است.' },
+  'contact.intro': { en: 'Explore the sample contact details and try the demo form. No message is sent to an adviser.', fa: 'اطلاعات تماس نمونه را ببینید و فرم نمایشی را امتحان کنید. پیامی برای مشاور ارسال نمی‌شود.' },
   'contact.getInTouch': { en: 'Get in touch', fa: 'ارتباط با ما' },
   'contact.phone': { en: 'Phone', fa: 'تلفن' },
   'contact.email': { en: 'Email', fa: 'ایمیل' },
@@ -282,16 +282,16 @@ const dictionary = {
   'contact.name': { en: 'Full name', fa: 'نام و نام خانوادگی' },
   'contact.subject': { en: 'Subject', fa: 'موضوع' },
   'contact.message': { en: 'Message', fa: 'پیام' },
-  'contact.send': { en: 'Send message', fa: 'ارسال پیام' },
-  'contact.sending': { en: 'Sending…', fa: 'در حال ارسال…' },
-  'contact.success': { en: 'Your message has been sent. We will reply as soon as possible.', fa: 'پیام شما ارسال شد. در اولین فرصت پاسخ می‌دهیم.' },
+  'contact.send': { en: 'Save demo message', fa: 'ذخیره پیام نمایشی' },
+  'contact.sending': { en: 'Saving…', fa: 'در حال ذخیره…' },
+  'contact.success': { en: 'Demo complete. Your message stays in this browser and was not sent.', fa: 'نمایش کامل شد. پیام فقط در این مرورگر ماند و ارسال نشد.' },
   'contact.map': { en: 'Office location', fa: 'موقعیت دفتر' },
   'contact.mapPending': { en: 'The interactive map will appear once office coordinates are configured in the admin portal.', fa: 'نقشه تعاملی پس از پیکربندی مختصات دفتر در پنل مدیریت نمایش داده می‌شود.' },
   'contact.openMap': { en: 'Open in maps', fa: 'بازکردن در نقشه' },
   'contact.follow': { en: 'Follow FaraTech', fa: 'FaraTech را دنبال کنید' },
   'consultation.eyebrow': { en: 'Free consultation', fa: 'مشاوره رایگان' },
   'consultation.title': { en: 'Tell us where you want to go', fa: 'بگویید به کجا می‌خواهید بروید' },
-  'consultation.intro': { en: 'Share a few details. A named adviser will review your request and contact you using your preferred method.', fa: 'چند جزئیات را به اشتراک بگذارید. یک مشاور مشخص درخواست شما را بررسی می‌کند و با روش ترجیحی شما تماس می‌گیرد.' },
+  'consultation.intro': { en: 'Explore the consultation form with sample details. This preview does not send requests.', fa: 'فرم مشاوره را با اطلاعات نمونه بررسی کنید. این پیش‌نمایش درخواستی ارسال نمی‌کند.' },
   'consultation.formTitle': { en: 'Consultation request', fa: 'درخواست مشاوره' },
   'consultation.name': { en: 'Full name', fa: 'نام و نام خانوادگی' },
   'consultation.email': { en: 'Email address', fa: 'ایمیل' },
@@ -303,10 +303,10 @@ const dictionary = {
   'consultation.message': { en: 'Additional information', fa: 'اطلاعات بیشتر' },
   'consultation.date': { en: 'Preferred consultation date', fa: 'تاریخ ترجیحی مشاوره' },
   'consultation.consent': {
-    en: 'I agree to the Privacy Policy and consent to being contacted about this request.',
-    fa: 'با سیاست حریم خصوصی موافقم و رضایت می‌دهم درباره این درخواست با من تماس گرفته شود.',
+    en: 'I acknowledge that this is a local demonstration and have read the',
+    fa: 'می‌پذیرم که این یک نمایش محلی است و مطالعه کرده‌ام:',
   },
-  'consultation.submit': { en: 'Submit request', fa: 'ارسال درخواست' },
+  'consultation.submit': { en: 'Save demo request', fa: 'ذخیره درخواست نمایشی' },
   'consultation.sending': { en: 'Submitting…', fa: 'در حال ارسال…' },
   'consultation.selectService': { en: 'Select a service', fa: 'یک خدمت انتخاب کنید' },
   'consultation.selectDestination': { en: 'Select a destination', fa: 'یک مقصد انتخاب کنید' },
@@ -320,20 +320,20 @@ const dictionary = {
   'consultation.master': { en: 'Master’s degree', fa: 'کارشناسی ارشد' },
   'consultation.doctorate': { en: 'Doctorate', fa: 'دکتری' },
   'consultation.other': { en: 'Other / professional qualification', fa: 'سایر / مدرک حرفه‌ای' },
-  'consultation.successTitle': { en: 'Request received', fa: 'درخواست دریافت شد' },
-  'consultation.successBody': { en: 'Keep this reference. An adviser will review your request and contact you using your preferred method.', fa: 'این شماره را نگه دارید. یک مشاور درخواست را بررسی و با روش ترجیحی شما تماس می‌گیرد.' },
+  'consultation.successTitle': { en: 'Demo request saved locally', fa: 'درخواست نمایشی در مرورگر ذخیره شد' },
+  'consultation.successBody': { en: 'Demo complete. This request is stored only in this browser and was not sent to an adviser.', fa: 'نمایش کامل شد. این درخواست فقط در همین مرورگر ذخیره شده و برای مشاور ارسال نشده است.' },
   'consultation.reference': { en: 'Your reference', fa: 'شماره پیگیری شما' },
   'consultation.another': { en: 'Submit another request', fa: 'ارسال درخواست دیگر' },
-  'consultation.whyTitle': { en: 'What happens next', fa: 'بعد از این چه می‌شود' },
-  'consultation.why1': { en: 'We review your profile and the route you selected.', fa: 'پروفایل و مسیر انتخابی شما را بررسی می‌کنیم.' },
-  'consultation.why2': { en: 'A named adviser contacts you within 1–2 business days.', fa: 'یک مشاور مشخص در ۱ تا ۲ روز کاری با شما تماس می‌گیرد.' },
-  'consultation.why3': { en: 'We explain realistic options, missing evidence and costs.', fa: 'گزینه‌های واقع‌بینانه، مدارک ناقص و هزینه‌ها را توضیح می‌دهیم.' },
-  'consultation.why4': { en: 'You decide whether to proceed. No payment is taken automatically.', fa: 'شما تصمیم می‌گیرید ادامه دهید یا نه. هیچ پرداختی خودکار انجام نمی‌شود.' },
-  'consultation.privacyNote': { en: 'Your details are used to respond to this request. They are not published or sold.', fa: 'اطلاعات شما برای پاسخ به این درخواست استفاده می‌شود و منتشر یا فروخته نمی‌شود.' },
-  'consultation.paymentTitle': { en: 'Complete your package payment', fa: 'پرداخت بسته خود را کامل کنید' },
-  'consultation.paymentBody': { en: 'Your consultation request is saved. You can continue to the provider’s secure checkout for the selected package.', fa: 'درخواست مشاوره شما ذخیره شد. می‌توانید برای بسته انتخابی به پرداخت امن ارائه‌دهنده بروید.' },
+  'consultation.whyTitle': { en: 'How this demo works', fa: 'این نمایش چگونه کار می‌کند' },
+  'consultation.why1': { en: 'Enter sample details, not real personal information.', fa: 'اطلاعات نمونه وارد کنید، نه اطلاعات شخصی واقعی.' },
+  'consultation.why2': { en: 'The form validates fields in your browser.', fa: 'فرم فیلدها را در مرورگر شما اعتبارسنجی می‌کند.' },
+  'consultation.why3': { en: 'The demo request appears in the local admin workspace.', fa: 'درخواست نمونه در پنل مدیریت محلی نمایش داده می‌شود.' },
+  'consultation.why4': { en: 'Nothing is sent and no payment is taken.', fa: 'چیزی ارسال نمی‌شود و هیچ پرداختی انجام نمی‌شود.' },
+  'consultation.privacyNote': { en: 'Demo entries stay in this browser, not a secure database.', fa: 'اطلاعات نمایشی در همین مرورگر می‌ماند، نه در پایگاه داده امن.' },
+  'consultation.paymentTitle': { en: 'Selected sample package', fa: 'بسته نمونه انتخاب‌شده' },
+  'consultation.paymentBody': { en: 'The package price is illustrative. Payments are not available in this preview.', fa: 'قیمت بسته صرفاً نمونه است. پرداخت در این پیش‌نمایش فعال نیست.' },
   'consultation.payNow': { en: 'Continue to secure payment', fa: 'ادامه به پرداخت امن' },
-  'consultation.paymentUnavailable': { en: 'Online payment is not configured. Our team will confirm payment instructions with you directly.', fa: 'پرداخت آنلاین پیکربندی نشده است. تیم ما دستورالعمل پرداخت را مستقیماً با شما تأیید می‌کند.' },
+  'consultation.paymentUnavailable': { en: 'No payment has been made or requested.', fa: 'هیچ پرداختی انجام یا درخواست نشده است.' },
   'consultation.paymentError': { en: 'Payment could not be started. Your request is safe; please contact us.', fa: 'شروع پرداخت ممکن نشد. درخواست شما محفوظ است؛ با ما تماس بگیرید.' },
   'consultation.validation': { en: 'Please correct the highlighted fields.', fa: 'لطفاً فیلدهای مشخص‌شده را اصلاح کنید.' },
   'form.required': { en: 'This field is required.', fa: 'این فیلد الزامی است.' },
@@ -343,19 +343,19 @@ const dictionary = {
   'form.acceptPrivacy': { en: 'Please accept the privacy policy.', fa: 'لطفاً سیاست حریم خصوصی را بپذیرید.' },
   'legal.updated': { en: 'Last updated', fa: 'آخرین به‌روزرسانی' },
   'legal.reviewNote': { en: 'This policy is editable template content and should be reviewed by a qualified legal professional before launch.', fa: 'این متن یک الگوی قابل ویرایش است و باید پیش از انتشار توسط متخصص حقوقی واجد شرایط بررسی شود.' },
-  'payment.successTitle': { en: 'Payment confirmed', fa: 'پرداخت تأیید شد' },
-  'payment.successBody': { en: 'Your payment was verified by the payment provider. A receipt has been recorded against your consultation request.', fa: 'پرداخت شما توسط ارائه‌دهنده تأیید شد. رسید در پرونده مشاوره شما ثبت شده است.' },
-  'payment.pendingTitle': { en: 'Payment is processing', fa: 'پرداخت در حال پردازش است' },
-  'payment.pendingBody': { en: 'The provider has not confirmed the payment yet. Refresh this page in a moment or contact us with your reference.', fa: 'ارائه‌دهنده هنوز پرداخت را تأیید نکرده است. لحظه‌ای بعد صفحه را تازه کنید یا با شماره پیگیری با ما تماس بگیرید.' },
+  'payment.successTitle': { en: 'Payment preview', fa: 'پیش‌نمایش پرداخت' },
+  'payment.successBody': { en: 'Payments are not connected in this frontend preview. No payment or receipt has been created.', fa: 'پرداخت در این پیش‌نمایش متصل نیست. هیچ پرداخت یا رسیدی ایجاد نشده است.' },
+  'payment.pendingTitle': { en: 'Payment preview', fa: 'پیش‌نمایش پرداخت' },
+  'payment.pendingBody': { en: 'Payments are not connected in this frontend preview.', fa: 'پرداخت در این پیش‌نمایش متصل نیست.' },
   'payment.failedTitle': { en: 'Payment was not completed', fa: 'پرداخت تکمیل نشد' },
-  'payment.failedBody': { en: 'No payment was confirmed. You can return to pricing or contact the team for help.', fa: 'پرداختی تأیید نشد. می‌توانید به صفحه قیمت‌ها بازگردید یا برای کمک با تیم تماس بگیرید.' },
+  'payment.failedBody': { en: 'No payment was confirmed in this browser-only preview. Return to pricing to continue exploring.', fa: 'در این پیش‌نمایش مرورگری پرداختی تأیید نشد. برای ادامه بررسی به صفحه قیمت‌ها بازگردید.' },
   'payment.cancelledTitle': { en: 'Checkout cancelled', fa: 'پرداخت لغو شد' },
-  'payment.cancelledBody': { en: 'You cancelled before completing payment. Nothing has been charged. Your consultation request remains saved.', fa: 'پیش از تکمیل پرداخت آن را لغو کردید. مبلغی دریافت نشد. درخواست مشاوره شما محفوظ است.' },
+  'payment.cancelledBody': { en: 'Payments are not available in this preview. Nothing has been charged.', fa: 'پرداخت در این پیش‌نمایش فعال نیست و مبلغی دریافت نشده است.' },
   'payment.reference': { en: 'Payment reference', fa: 'مرجع پرداخت' },
   'payment.amount': { en: 'Amount', fa: 'مبلغ' },
   'payment.returnHome': { en: 'Return home', fa: 'بازگشت به خانه' },
   'payment.goPricing': { en: 'View packages', fa: 'مشاهده بسته‌ها' },
-  'payment.verifying': { en: 'Verifying payment with the provider…', fa: 'در حال تأیید پرداخت با ارائه‌دهنده…' },
+  'payment.verifying': { en: 'Checking the demo status…', fa: 'در حال بررسی وضعیت نمایشی…' },
   'notfound.title': { en: 'This page took a different route.', fa: 'این صفحه مسیر دیگری را انتخاب کرد.' },
   'notfound.body': { en: 'The page you are looking for does not exist or has moved.', fa: 'صفحه‌ای که می‌خواهید وجود ندارد یا جابه‌جا شده است.' },
   'notfound.home': { en: 'Back to home', fa: 'بازگشت به خانه' },
@@ -499,7 +499,11 @@ const LocaleContext = createContext<LocaleContextValue | null>(null);
 export function LocaleProvider({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const locale: Locale = location.pathname === '/fa' || location.pathname.startsWith('/fa/') ? 'fa' : 'en';
+  const [adminLocale, setAdminLocale] = useState<Locale>(() => {
+    try { return localStorage.getItem('faratech_lang') === 'fa' ? 'fa' : 'en'; } catch { return 'en'; }
+  });
+  const inAdmin = location.pathname === '/admin' || location.pathname.startsWith('/admin/');
+  const locale: Locale = inAdmin ? adminLocale : location.pathname === '/fa' || location.pathname.startsWith('/fa/') ? 'fa' : 'en';
   const isRtl = locale === 'fa';
 
   useEffect(() => {
@@ -527,6 +531,13 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
     };
     const switchLocale = () => {
       const path = location.pathname;
+      setAdminLocale(locale === 'fa' ? 'en' : 'fa');
+      if (inAdmin) {
+        const next: Locale = locale === 'fa' ? 'en' : 'fa';
+        try { window.localStorage.setItem('faratech_lang', next); } catch { /* URL/session remains usable */ }
+        setAdminLocale(next);
+        return;
+      }
       const bare = path === '/fa' ? '/' : path.startsWith('/fa/') ? path.slice(3) : path;
       const target = locale === 'fa' ? bare || '/' : `/fa${bare === '/' ? '' : bare}`;
       try {
@@ -565,7 +576,7 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
     const pick = (en: string | null | undefined, fa: string | null | undefined) =>
       (locale === 'fa' ? fa || en : en || fa) || '';
     return { locale, isRtl, t, localize, switchLocale, formatNumber, formatDate, formatPrice, pick };
-  }, [locale, isRtl, location.pathname, location.search, location.hash, navigate]);
+  }, [locale, isRtl, inAdmin, location.pathname, location.search, location.hash, navigate]);
 
   return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>;
 }

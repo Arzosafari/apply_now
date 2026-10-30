@@ -70,7 +70,7 @@ export function DestinationsPage() {
                 />
               </label>
               <div className="flex flex-wrap gap-2">
-                <button type="button" className={`chip ${filter === 'all' ? 'chip-active' : ''}`} onClick={() => setFilter('all')}>
+                <button type="button" className={`chip ${filter === 'all' ? 'chip-active' : ''}`} onClick={() => setFilter('all')} aria-pressed={filter === 'all'}>
                   {t('common.all')}
                 </button>
                 {filterKeys.map((key) => (
@@ -79,6 +79,7 @@ export function DestinationsPage() {
                     key={key}
                     className={`chip ${filter === key ? 'chip-active' : ''}`}
                     onClick={() => setFilter(key)}
+                    aria-pressed={filter === key}
                   >
                     {t(filterLabels[key])}
                   </button>

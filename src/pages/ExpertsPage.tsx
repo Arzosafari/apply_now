@@ -34,22 +34,22 @@ export function ExpertsPage() {
                 icon: ShieldCheck,
                 en: 'Named accountability',
                 fa: 'پاسخگویی مشخص',
-                bodyEn: 'Every case has a named adviser and a documented next step.',
-                bodyFa: 'هر پرونده یک مشاور مشخص و گام بعدی مستند دارد.',
+                bodyEn: 'A future workflow can assign an adviser and document the next step.',
+                bodyFa: 'در روند نهایی می‌توان مشاور و گام بعدی را برای هر پرونده مشخص کرد.',
               },
               {
                 icon: Languages,
                 en: 'Bilingual communication',
                 fa: 'ارتباط دوزبانه',
-                bodyEn: 'Clear communication in English and Persian, without lost nuance.',
-                bodyFa: 'ارتباط شفاف به انگلیسی و فارسی، بدون از دست رفتن مفهوم.',
+                bodyEn: 'The interface supports content in English and Persian.',
+                bodyFa: 'این رابط از محتوای فارسی و انگلیسی پشتیبانی می‌کند.',
               },
               {
                 icon: Info,
                 en: 'Honest boundaries',
                 fa: 'مرزهای صادقانه',
-                bodyEn: 'We refer specialist legal, tax and financial questions to qualified professionals.',
-                bodyFa: 'پرسش‌های تخصصی حقوقی، مالیاتی و مالی را به متخصصان واجد شرایط ارجاع می‌دهیم.',
+                bodyEn: 'Legal, tax and financial questions should be referred to qualified professionals.',
+                bodyFa: 'پرسش‌های حقوقی، مالیاتی و مالی باید به متخصصان واجد شرایط ارجاع شوند.',
               },
             ].map((item) => (
               <div className="card flex gap-3 p-5" key={item.en}>

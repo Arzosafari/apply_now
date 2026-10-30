@@ -55,9 +55,9 @@ export function PaymentSuccessPage() {
                 >
                   {paid ? <CheckCircle2 size={30} /> : pending ? <Clock3 size={29} /> : <XCircle size={30} />}
                 </div>
-                <h1 className="mt-6 font-display text-2xl font-bold text-navy">
+                <h2 className="mt-6 font-display text-2xl font-bold text-navy">
                   {paid ? t('payment.successTitle') : pending ? t('payment.pendingTitle') : t('payment.failedTitle')}
-                </h1>
+                </h2>
                 <p className="mx-auto mt-3 max-w-md text-[0.84rem] leading-7 text-muted">
                   {paid ? t('payment.successBody') : pending ? t('payment.pendingBody') : t('payment.failedBody')}
                 </p>
@@ -86,8 +86,8 @@ export function PaymentSuccessPage() {
                 <p className="mt-4 flex items-center justify-center gap-1.5 text-[0.63rem] text-muted">
                   <ShieldCheck size={12} className="text-[#2f8a5d]" />
                   {locale === 'fa'
-                    ? 'وضعیت پرداخت مستقیماً از ارائه‌دهنده بررسی شد.'
-                    : 'Payment status was verified directly with the provider.'}
+                    ? 'پرداخت در این پیش‌نمایش فعال نیست.'
+                    : 'Payments are not connected in this frontend preview.'}
                 </p>
 
                 <div className="mt-7 flex flex-col justify-center gap-2 sm:flex-row">
@@ -96,7 +96,7 @@ export function PaymentSuccessPage() {
                 </div>
                 {failed && (
                   <p className="mt-4 text-[0.7rem] text-muted">
-                    {locale === 'fa' ? 'در صورت کسر مبلغ، با شماره مرجع با تیم تماس بگیرید.' : 'If funds were debited, contact the team with your reference.'}{' '}
+                    {locale === 'fa' ? 'این صفحه فقط یک پیش‌نمایش است.' : 'This page is a preview only.'}{' '}
                     <a href={`mailto:${site.settings.brand.email}`} className="text-blue underline">{site.settings.brand.email}</a>
                   </p>
                 )}
@@ -127,14 +127,14 @@ export function PaymentCancelledPage() {
             <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-amber-50 text-amber-600">
               <Clock3 size={30} />
             </div>
-            <h1 className="mt-6 font-display text-2xl font-bold text-navy">{t('payment.cancelledTitle')}</h1>
+            <h2 className="mt-6 font-display text-2xl font-bold text-navy">{t('payment.cancelledTitle')}</h2>
             <p className="mx-auto mt-3 max-w-md text-[0.84rem] leading-7 text-muted">{t('payment.cancelledBody')}</p>
             <div className="mt-7 flex flex-col justify-center gap-2 sm:flex-row">
               <LocalLink to="/pricing" className="btn btn-primary">{t('payment.goPricing')}</LocalLink>
               <LocalLink to="/contact" className="btn btn-outline">{t('nav.contact')}</LocalLink>
             </div>
             <p className="mt-4 text-[0.66rem] text-muted">
-              {locale === 'fa' ? 'درخواست مشاوره شما بدون تغییر باقی می‌ماند.' : 'Your consultation request remains saved.'}
+              {locale === 'fa' ? 'هیچ پرداختی در این پیش‌نمایش انجام نشده است.' : 'No payment has been made in this preview.'}
             </p>
           </div>
         </div>

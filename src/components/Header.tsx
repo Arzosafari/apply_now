@@ -11,6 +11,7 @@ import {
 import { useLocation } from 'react-router-dom';
 import { LocalLink, useLocale } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
+import { useDialogFocus } from '@/lib/useDialogFocus';
 import type { Destination, Service, SiteSettings } from '@shared/types';
 import { Logo } from './Logo';
 import { ServiceIcon } from './ServiceIcon';
@@ -25,6 +26,7 @@ export function Header({ settings, services, destinations }: HeaderProps) {
   const { t, locale, switchLocale } = useLocale();
   const location = useLocation();
   const [open, setOpen] = useState(false);
+  const menuRef = useDialogFocus<HTMLDivElement>(open);
   const [scrolled, setScrolled] = useState(false);
   const barePath = location.pathname === '/fa' ? '/' : location.pathname.replace(/^\/fa(?=\/|$)/, '');
 
@@ -77,7 +79,7 @@ export function Header({ settings, services, destinations }: HeaderProps) {
           )}
         </LocalLink>
 
-        <nav className="desktop-nav" aria-label="Primary">
+        <nav className="desktop-nav" aria-label={locale === 'fa' ? 'منوی اصلی' : 'Primary'}>
           <div className="nav-list">
             {nav.map((item) => (
               <div key={item.to} className={cn(item.dropdown && 'nav-dropdown')}>
@@ -118,7 +120,7 @@ export function Header({ settings, services, destinations }: HeaderProps) {
                         className="dropdown-item"
                       >
                         <span className="flag-badge !h-5 !w-7">
-                          <img src={destination.flag || ''} alt="" width="28" height="20" loading="lazy" />
+                          {destination.flag ? <img src={destination.flag} alt="" width="28" height="20" loading="lazy" /> : <span aria-hidden="true">{destination.country_code}</span>}
                         </span>
                         <span>{locale === 'fa' ? destination.name_fa : destination.name_en}</span>
                       </LocalLink>
@@ -172,14 +174,15 @@ export function Header({ settings, services, destinations }: HeaderProps) {
       </div>
 
       {open && (
-        <div className="mobile-nav" role="dialog" aria-modal="true" aria-label={t('nav.menu')}>
+        <div className="mobile-nav">
           <button
             type="button"
             className="absolute inset-0 h-full w-full cursor-default"
-            aria-label={t('nav.close')}
+            aria-hidden="true"
+            tabIndex={-1}
             onClick={() => setOpen(false)}
           />
-          <div className="mobile-nav-panel">
+          <div ref={menuRef} tabIndex={-1} className="mobile-nav-panel" role="dialog" aria-modal="true" aria-label={t('nav.menu')}>
             <div className="flex items-center justify-between">
               <LocalLink to="/" onClick={() => setOpen(false)}>
                 {settings.brand.logoUrl ? (
@@ -219,7 +222,7 @@ export function Header({ settings, services, destinations }: HeaderProps) {
               </div>
             </div>
 
-            <nav className="mt-5" aria-label="Mobile primary">
+            <nav className="mt-5" aria-label={locale === 'fa' ? 'منوی اصلی موبایل' : 'Mobile primary'}>
               {nav.map((item) => (
                 <LocalLink
                   key={item.to}
