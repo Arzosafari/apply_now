@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LocaleProvider } from '@/lib/i18n';
 import { subscribeDemoStorage } from '@/data/demoStore';
 import { PublicLayout } from '@/components/PublicLayout';
+import { LoadingScreen } from '@/components/LoadingScreen';
 import { HomePage } from '@/pages/HomePage';
 import { ServicesPage } from '@/pages/ServicesPage';
 import { ServiceDetailPage } from '@/pages/ServiceDetailPage';
@@ -60,16 +61,6 @@ function DemoStorageSync() {
   return null;
 }
 
-function AdminFallback() {
-  return (
-    <div className="grid min-h-screen place-items-center bg-[#f4f7fb]">
-      <div className="h-1 w-36 overflow-hidden rounded-full bg-[#e4ebf3]">
-        <div className="h-full w-1/2 animate-pulse rounded-full bg-orange" />
-      </div>
-    </div>
-  );
-}
-
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -80,7 +71,7 @@ export default function App() {
             <Route
               path="/admin/*"
               element={
-                <Suspense fallback={<AdminFallback />}>
+                <Suspense fallback={<LoadingScreen />}>
                   <AdminApp />
                 </Suspense>
               }

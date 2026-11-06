@@ -14,6 +14,67 @@
     <meta property="og:description" content="Personalised immigration and study-abroad guidance for applicants and families." />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="/images/hero-city.jpg" />
+    <style>
+      /* Critical styles keep the loading indicator visible before the app bundle arrives. */
+      body { margin: 0; background: #f8fafd; }
+      .site-loading {
+        display: grid;
+        min-height: 100vh;
+        min-height: 100dvh;
+        place-items: center;
+        background: radial-gradient(circle at 50% 38%, #fff 0, #f8fafd 60%);
+        color: #09264a;
+        font-family: Inter, 'Segoe UI', Tahoma, sans-serif;
+      }
+      html[lang='fa'] .site-loading { font-family: 'Vazirmatn Variable', Vazirmatn, Tahoma, sans-serif; }
+      .site-loading__content {
+        display: flex;
+        width: min(240px, calc(100vw - 48px));
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+      }
+      .site-loading__logo, .site-loading .brand-logo {
+        display: block;
+        width: auto;
+        height: 44px;
+        max-width: 120px;
+        object-fit: contain;
+      }
+      .site-loading__label {
+        margin: 0;
+        color: #64748b;
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 1.5;
+        text-align: center;
+      }
+      .site-loading__track {
+        position: relative;
+        width: 100%;
+        height: 6px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #e2edf8;
+      }
+      .site-loading__bar {
+        position: absolute;
+        inset-block: 0;
+        left: 0;
+        width: 42%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #ffb365, #ff861f, #ec6f08);
+        animation: site-loading-progress 1.3s ease-in-out infinite;
+      }
+      html[dir='rtl'] .site-loading__bar { animation-direction: reverse; }
+      @keyframes site-loading-progress {
+        from { transform: translateX(-110%); }
+        to { transform: translateX(245%); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .site-loading__bar { left: 29%; transform: none; animation: none !important; }
+      }
+    </style>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -26,7 +87,21 @@
     </script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="site-loading" data-loading-phase="bootstrap">
+        <div class="site-loading__content">
+          <img class="site-loading__logo" src="/images/apply-now-logo.png" alt="Apply Now" width="540" height="320" />
+          <p id="site-loading-label" class="site-loading__label" role="status">Loading Apply Now…</p>
+          <div class="site-loading__track" role="progressbar" aria-labelledby="site-loading-label">
+            <span class="site-loading__bar" aria-hidden="true"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <noscript>
+      <style>.site-loading { display: none; }</style>
+      <p style="margin: 2rem; font-family: sans-serif; color: #09264a;">JavaScript is required to display the Apply Now preview.</p>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

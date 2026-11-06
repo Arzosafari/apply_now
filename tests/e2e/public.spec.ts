@@ -60,7 +60,7 @@ async function expectCenteredMobileBooking(page: Page, locale: 'en' | 'fa') {
   await expectNoOverflow(page);
 }
 
-test('new visitors start in Persian and their explicit language choice is remembered', async ({ page }) => {
+test('new visitors start in English and their explicit language choice is remembered', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/fa');
   await page.evaluate(() => {
@@ -68,39 +68,105 @@ test('new visitors start in Persian and their explicit language choice is rememb
     localStorage.removeItem('faratech_frontend_demo_v1');
   });
   await page.goto('/?campaign=preview#intro');
-  await expect(page).toHaveURL(/\/fa\?campaign=preview#intro$/);
-  await expect(page.locator('html')).toHaveAttribute('lang', 'fa');
-  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
-  await expect(page.locator('h1')).toContainText('سفر جهانی شما');
-
-  await page.getByRole('button', { name: 'تغییر زبان به انگلیسی' }).click();
   await expect(page).toHaveURL(/\/\?campaign=preview#intro$/);
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
-  expect(await page.evaluate(() => localStorage.getItem('faratech_lang'))).toBe('en');
-  await page.reload();
   await expect(page.locator('h1')).toContainText('Your Global Journey');
 
   await page.getByRole('button', { name: 'Switch to Persian' }).click();
   await expect(page).toHaveURL(/\/fa\?campaign=preview#intro$/);
   expect(await page.evaluate(() => localStorage.getItem('faratech_lang'))).toBe('fa');
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+  await expect(page.locator('h1')).toContainText('سفر جهانی شما');
   await page.goto('/?returning=1#top');
   await expect(page).toHaveURL(/\/fa\?returning=1#top$/);
   // An unprefixed deep link still deliberately opens its English version.
   await page.goto('/services?source=link#top');
   await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
   await expect(page.locator('h1')).toContainText('Services built');
+
+  await page.goto('/fa?campaign=preview#intro');
+  await page.getByRole('button', { name: 'تغییر زبان به انگلیسی' }).click();
+  await expect(page).toHaveURL(/\/\?campaign=preview#intro$/);
+  expect(await page.evaluate(() => localStorage.getItem('faratech_lang'))).toBe('en');
+  await page.reload();
+  await expect(page.locator('h1')).toContainText('Your Global Journey');
+  await page.goto('/fa/services');
+  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
 });
 
-test('a fresh admin visitor sees Persian and can choose English', async ({ page }) => {
+test('a fresh admin visitor sees English and can choose Persian', async ({ page }) => {
   await page.goto('/fa');
   await page.evaluate(() => localStorage.removeItem('faratech_lang'));
   await page.goto('/admin/login');
-  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
-  await expect(page.getByRole('heading', { name: 'خوش آمدید' })).toBeVisible();
-  await page.getByRole('button', { name: 'EN', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible();
-  await page.reload();
   await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
+  await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible();
+  await page.getByRole('button', { name: 'FA', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'خوش آمدید' })).toBeVisible();
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+});
+
+test('an indeterminate loading bar is visible before the application starts and disappears when ready', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 700 });
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => { release = resolve; });
+  await page.route(/\/(?:src\/main\.tsx|assets\/index-[^/]+\.js)(?:\?.*)?$/, async (route) => {
+    await gate;
+    await route.continue();
+  });
+  await page.goto('/', { waitUntil: 'commit' });
+  try {
+    const loading = page.locator('[data-loading-phase="bootstrap"]');
+    const bar = loading.getByRole('progressbar', { name: 'Loading Apply Now…' });
+    await expect(loading).toBeVisible();
+    await expect(bar).toBeVisible();
+    expect(await bar.getAttribute('aria-valuenow')).toBeNull();
+    await expect(bar.locator('.site-loading__bar')).toHaveCSS('animation-name', 'site-loading-progress');
+    await expectNoOverflow(page);
+  } finally {
+    release();
+  }
+  await expect(page.locator('h1').first()).toContainText('Your Global Journey');
+  await expect(page.locator('.site-loading')).toHaveCount(0);
+});
+
+test('application loading bar is translated and respects reduced motion', async ({ page }) => {
+  await page.goto('/fa');
+  await page.evaluate(() => localStorage.setItem('faratech_lang', 'fa'));
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => { release = resolve; });
+  await page.route(/\/(?:src\/admin\/AdminApp\.tsx|assets\/AdminApp-[^/]+\.js)(?:\?.*)?$/, async (route) => {
+    await gate;
+    await route.continue();
+  });
+  await page.goto('/admin/login', { waitUntil: 'commit' });
+  try {
+    const loading = page.locator('[data-loading-phase="app"]');
+    const bar = loading.getByRole('progressbar', { name: 'در حال بارگذاری Apply Now…' });
+    await expect(loading).toBeVisible();
+    await expect(bar).toBeVisible();
+    expect(await bar.getAttribute('aria-valuenow')).toBeNull();
+    await expect(bar.locator('.site-loading__bar')).toHaveCSS('animation-name', 'none');
+  } finally {
+    release();
+  }
+  await expect(page.getByRole('heading', { name: 'خوش آمدید' })).toBeVisible();
+  await expect(page.locator('.site-loading')).toHaveCount(0);
+});
+
+test.describe('JavaScript-disabled fallback', () => {
+  test.use({ javaScriptEnabled: false });
+  test('explains why the site cannot load instead of showing an endless bar', async ({ page }) => {
+    await page.goto('/');
+    const message = page.locator('noscript p');
+    await expect(message).toHaveText('JavaScript is required to display the Apply Now preview.');
+    await expect(message).toBeVisible();
+    await expect(page.locator('.site-loading')).toBeHidden();
+  });
 });
 
 test('language switch remains usable when preference storage is blocked', async ({ page }) => {
@@ -130,6 +196,339 @@ test('public routes render in English and Persian without runtime errors', async
     }
   }
   expect(errors).toEqual([]);
+});
+
+for (const locale of ['en', 'fa'] as const) {
+  for (const width of [1200, 1440]) {
+    for (const menu of [
+      { label: { en: 'Services', fa: 'خدمات' }, slug: 'student-visa', section: 'services' },
+      { label: { en: 'Destinations', fa: 'مقاصد' }, slug: 'canada', section: 'destinations' },
+    ] as const) {
+      test(`desktop ${menu.section} dropdown stays open across the hover gap (${locale}, ${width}px)`, async ({ page }) => {
+        await page.setViewportSize({ width, height: 900 });
+        await page.emulateMedia({ reducedMotion: 'no-preference' });
+        await page.goto(locale === 'fa' ? '/fa' : '/');
+        const nav = page.locator('.desktop-nav');
+        const dropdown = nav.locator('.nav-dropdown').filter({ has: page.getByRole('link', { name: menu.label[locale], exact: true }) });
+        const trigger = dropdown.locator('.nav-link');
+        const panel = dropdown.locator('.dropdown-panel');
+        const destination = panel.locator(`a[href$="/${menu.slug}"]`);
+
+        await trigger.hover();
+        await expect(panel).toBeVisible();
+        await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+        await expect(panel).toHaveCSS('opacity', '1');
+        const triggerBox = (await trigger.boundingBox())!;
+        const panelBox = (await panel.boundingBox())!;
+        const gap = panelBox.y - (triggerBox.y + triggerBox.height);
+        expect(gap).toBeGreaterThan(0);
+        const gapY = triggerBox.y + triggerBox.height + gap / 2;
+        const centerX = triggerBox.x + triggerBox.width / 2;
+        const sideX = locale === 'fa' ? panelBox.x + panelBox.width - 8 : panelBox.x + 8;
+
+        // Pause in the visible gap and move toward the far side of the panel,
+        // just as a person would when choosing an item rather than the trigger.
+        await page.mouse.move(centerX, gapY, { steps: 8 });
+        await expect(panel).toHaveCSS('pointer-events', 'auto');
+        await page.mouse.move(sideX, gapY, { steps: 8 });
+        await expect(panel).toHaveCSS('pointer-events', 'auto');
+        const itemBox = (await destination.boundingBox())!;
+        const itemX = locale === 'fa' ? itemBox.x + itemBox.width - 20 : itemBox.x + 20;
+        const itemY = itemBox.y + itemBox.height / 2;
+        await page.mouse.move(itemX, itemY, { steps: 8 });
+        await expect(destination).toBeVisible();
+        expect(await destination.evaluate((element) => element.matches(':hover'))).toBe(true);
+
+        // Direct diagonal paths from either edge of the label should also work,
+        // even when the path briefly crosses a neighbouring navigation item.
+        for (const edge of [0.1, 0.9]) {
+          await page.mouse.move(10, 300);
+          await expect(panel).toBeVisible();
+          await page.mouse.click(10, 300);
+          await expect(panel).toBeHidden();
+          await page.mouse.move(triggerBox.x + triggerBox.width * edge, triggerBox.y + triggerBox.height / 2);
+          await expect(panel).toBeVisible();
+          await expect(panel).toHaveCSS('opacity', '1');
+          await page.mouse.move(itemBox.x + itemBox.width * edge, itemY, { steps: 30 });
+          expect(await destination.evaluate((element) => element.matches(':hover'))).toBe(true);
+        }
+
+        // An outside click dismisses the menu, then hovering opens it again.
+        await page.mouse.move(10, 300);
+        await expect(panel).toBeVisible();
+        await page.mouse.click(10, 300);
+        await expect(panel).toBeHidden();
+        await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+        await trigger.hover();
+        await expect(panel).toBeVisible();
+        // Start moving into the gap immediately, while the opening animation runs.
+        await page.mouse.move(centerX, triggerBox.y + triggerBox.height + 2);
+        expect(await dropdown.evaluate((element) => element.matches(':hover'))).toBe(true);
+        // The visitor can take their time even if the pointer leaves the menu.
+        await page.mouse.move(10, 300);
+        await page.waitForTimeout(1200);
+        await expect(panel).toBeVisible();
+        await page.mouse.move(itemX, itemY, { steps: 8 });
+        expect(await destination.evaluate((element) => element.matches(':hover'))).toBe(true);
+        await page.mouse.click(itemX, itemY);
+        await expect(page).toHaveURL(new RegExp(`${locale === 'fa' ? '/fa' : ''}/${menu.section}/${menu.slug}$`));
+        await expect(panel).toBeHidden();
+        await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+        await expect(page.locator('#main-content')).toBeFocused();
+      });
+    }
+  }
+}
+
+for (const language of ['en', 'fa'] as const) {
+  for (const dropdownIndex of [0, 1] as const) {
+    const menuName = dropdownIndex === 0 ? 'services' : 'destinations';
+    test(`slow diagonal ${language} ${menuName} hover keeps the original menu open`, async ({ page }) => {
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await page.emulateMedia({ reducedMotion: 'no-preference' });
+      await page.goto(language === 'fa' ? '/fa' : '/');
+      const dropdown = page.locator('.desktop-nav .nav-dropdown').nth(dropdownIndex);
+      const trigger = dropdown.locator('.nav-link');
+      const panel = dropdown.locator('.dropdown-panel');
+      const item = panel.locator('.dropdown-item').first();
+      const triggerBox = await trigger.boundingBox();
+      expect(triggerBox).not.toBeNull();
+
+      // Start near the adjacent trigger and move toward the same side of the
+      // first submenu item. At this angle the pointer crosses its neighbour.
+      const fraction = (language === 'en') === (dropdownIndex === 0) ? 0.9 : 0.1;
+      const startX = triggerBox!.x + triggerBox!.width * fraction;
+      const startY = triggerBox!.y + triggerBox!.height / 2;
+      await page.mouse.move(10, 400);
+      await page.mouse.move(startX, startY);
+      await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+      await expect(panel).toBeVisible();
+      await page.waitForTimeout(200); // Allow the panel's opening animation to settle.
+      const itemBox = await item.boundingBox();
+      expect(itemBox).not.toBeNull();
+      const endX = itemBox!.x + itemBox!.width * fraction;
+      const endY = itemBox!.y + itemBox!.height / 2;
+
+      // A real person may spend well over a second on the diagonal path.
+      for (let step = 1; step <= 20; step++) {
+        await page.mouse.move(
+          startX + (endX - startX) * step / 20,
+          startY + (endY - startY) * step / 20,
+        );
+        await page.waitForTimeout(70);
+        expect(await trigger.getAttribute('aria-expanded'), `menu closed during step ${step}`).toBe('true');
+      }
+      await expect(panel).toBeVisible();
+      expect(await item.evaluate((element) => element.matches(':hover'))).toBe(true);
+    });
+  }
+
+  test(`${language} diagonal neighbour switches only after dwelling, and cancels on leaving`, async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(language === 'fa' ? '/fa' : '/');
+    const dropdowns = page.locator('.desktop-nav .nav-dropdown');
+    const first = dropdowns.nth(0).locator('.nav-link');
+    const second = dropdowns.nth(1).locator('.nav-link');
+    const firstBox = await first.boundingBox();
+    const secondBox = await second.boundingBox();
+    expect(firstBox).not.toBeNull();
+    expect(secondBox).not.toBeNull();
+
+    const enterFirst = () => page.mouse.move(firstBox!.x + firstBox!.width / 2, firstBox!.y + firstBox!.height / 4);
+    const enterSecondDiagonally = () => page.mouse.move(secondBox!.x + secondBox!.width / 2, secondBox!.y + secondBox!.height * 3 / 4);
+    await page.mouse.move(10, 400);
+    await enterFirst();
+    await enterSecondDiagonally();
+    await expect(first).toHaveAttribute('aria-expanded', 'true');
+    await expect(second).toHaveAttribute('aria-expanded', 'false');
+
+    await page.mouse.move(10, 400);
+    await page.waitForTimeout(850);
+    await expect(first).toHaveAttribute('aria-expanded', 'true');
+    await expect(second).toHaveAttribute('aria-expanded', 'false');
+
+    await enterFirst();
+    await enterSecondDiagonally();
+    await expect(first).toHaveAttribute('aria-expanded', 'true');
+    await expect(second).toHaveAttribute('aria-expanded', 'false');
+    await page.waitForTimeout(300);
+    await expect(second).toHaveAttribute('aria-expanded', 'false');
+    await expect(second).toHaveAttribute('aria-expanded', 'true'); // Dwelling on the trigger is an intentional switch.
+    await expect(first).toHaveAttribute('aria-expanded', 'false');
+  });
+}
+
+test('desktop dropdowns switch on hover and remain keyboard accessible in both languages', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  for (const locale of ['en', 'fa'] as const) {
+    await page.goto(locale === 'fa' ? '/fa' : '/');
+    await page.mouse.move(10, 300);
+    const dropdowns = page.locator('.desktop-nav .nav-dropdown');
+    const first = dropdowns.nth(0);
+    const second = dropdowns.nth(1);
+    const firstPanel = first.locator('.dropdown-panel');
+    const secondPanel = second.locator('.dropdown-panel');
+    await first.locator('.nav-link').hover();
+    await expect(firstPanel).toBeVisible();
+    await second.locator('.nav-link').hover();
+    await expect(secondPanel).toBeVisible();
+    await expect(firstPanel).toBeHidden();
+    await page.mouse.move(10, 300);
+    await expect(secondPanel).toBeVisible();
+    await page.mouse.click(10, 300);
+    await expect(secondPanel).toBeHidden();
+
+    const trigger = first.locator('.nav-link');
+    await trigger.focus();
+    await expect(firstPanel).toBeVisible();
+    await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    await page.keyboard.press('Tab');
+    await expect(firstPanel.locator('.dropdown-item').first()).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(firstPanel).toBeHidden();
+    await expect(trigger).toBeFocused();
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    await page.keyboard.press('Tab');
+    await expect(second.locator('.nav-link')).toBeFocused();
+    await expect(secondPanel).toBeVisible();
+    await page.keyboard.press('Shift+Tab');
+    await expect(trigger).toBeFocused();
+    await expect(firstPanel).toBeVisible();
+    await page.keyboard.press('Shift+Tab');
+    await expect(firstPanel).toBeHidden();
+
+    // Even a quick Tab must enter the links before any animation finishes.
+    for (const motion of ['no-preference', 'reduce'] as const) {
+      await page.emulateMedia({ reducedMotion: motion });
+      await page.locator('#main-content').focus();
+      await trigger.focus();
+      await page.keyboard.press('Tab');
+      await expect(firstPanel.locator('.dropdown-item').first()).toBeFocused();
+    }
+    // Keyboard activation navigates and moves focus into the page, instead of
+    // leaving the now-obsolete menu open over the destination.
+    const href = await firstPanel.locator('.dropdown-item').first().getAttribute('href');
+    expect(href).toBeTruthy();
+    await page.keyboard.press('Enter');
+    await expect(page).toHaveURL(new URL(href!, page.url()).href);
+    await expect(firstPanel).toBeHidden();
+    await expect(page.locator('#main-content')).toBeFocused();
+  }
+});
+
+test('a hovered dropdown remains available when keyboard focus leaves it', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  for (const language of ['en', 'fa'] as const) {
+    await page.goto(language === 'fa' ? '/fa' : '/');
+    const dropdown = page.locator('.desktop-nav .nav-dropdown').first();
+    const trigger = dropdown.locator('.nav-link');
+    const panel = dropdown.locator('.dropdown-panel');
+    const item = panel.locator('.dropdown-item').first();
+    await trigger.focus();
+    await item.hover();
+    await page.locator('#main-content').evaluate((element) => (element as HTMLElement).focus({ preventScroll: true }));
+    await expect(panel).toBeVisible();
+    expect(await item.evaluate((element) => element.matches(':hover'))).toBe(true);
+    await page.mouse.click(10, 400);
+    await expect(panel).toBeHidden();
+  }
+});
+
+test('a pending diagonal switch is cancelled when the header becomes mobile', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+  const dropdowns = page.locator('.desktop-nav .nav-dropdown');
+  const first = dropdowns.nth(0).locator('.nav-link');
+  const second = dropdowns.nth(1).locator('.nav-link');
+  const firstBox = (await first.boundingBox())!;
+  const secondBox = (await second.boundingBox())!;
+  await page.mouse.move(firstBox.x + firstBox.width / 2, firstBox.y + firstBox.height / 4);
+  await page.mouse.move(secondBox.x + secondBox.width / 2, secondBox.y + secondBox.height * 3 / 4);
+  await expect(first).toHaveAttribute('aria-expanded', 'true');
+  await expect(second).toHaveAttribute('aria-expanded', 'false');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.mouse.move(10, 400);
+  await page.waitForTimeout(850);
+  await page.getByRole('button', { name: 'Menu', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: 'Menu' })).toBeVisible();
+  await page.getByRole('button', { name: 'Close menu' }).click();
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await expect(dropdowns.nth(0).locator('.dropdown-panel')).toBeHidden();
+  await expect(dropdowns.nth(1).locator('.dropdown-panel')).toBeHidden();
+});
+
+test('a quick hover on another menu lets visitors immediately choose from it', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  for (const locale of ['en', 'fa'] as const) {
+    for (const [fromIndex, toIndex] of [[0, 1], [1, 0]]) {
+      await page.goto(locale === 'fa' ? '/fa' : '/');
+      await page.mouse.move(10, 300);
+      const dropdowns = page.locator('.desktop-nav .nav-dropdown');
+      const from = dropdowns.nth(fromIndex);
+      const to = dropdowns.nth(toIndex);
+      await from.locator('.nav-link').hover();
+      await expect(from.locator('.dropdown-panel')).toBeVisible();
+      const triggerBox = (await to.locator('.nav-link').boundingBox())!;
+      const link = to.locator('.dropdown-item').first();
+      const linkBox = (await link.boundingBox())!;
+      const href = await link.getAttribute('href');
+      expect(href).toBeTruthy();
+      await page.mouse.move(triggerBox.x + triggerBox.width / 2, triggerBox.y + triggerBox.height / 2);
+      await page.mouse.move(linkBox.x + linkBox.width / 2, linkBox.y + linkBox.height / 2, { steps: 6 });
+      expect(await link.evaluate((element) => element.matches(':hover'))).toBe(true);
+      await page.mouse.click(linkBox.x + linkBox.width / 2, linkBox.y + linkBox.height / 2);
+      await expect(page).toHaveURL(new URL(href!, page.url()).href);
+    }
+  }
+});
+
+test('dropdown links retain modified-click behavior for opening a new tab', async ({ page, context }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+  const dropdown = page.locator('.desktop-nav .nav-dropdown').first();
+  const panel = dropdown.locator('.dropdown-panel');
+  await dropdown.locator('.nav-link').hover();
+  const link = panel.locator('.dropdown-item').first();
+  await expect(link).toBeVisible();
+  const href = await link.getAttribute('href');
+  expect(href).toBeTruthy();
+  const [newTab] = await Promise.all([
+    context.waitForEvent('page'),
+    link.click({ modifiers: ['Control'] }),
+  ]);
+  await expect(newTab).toHaveURL(new URL(href!, page.url()).href);
+  await expect(page).toHaveURL(/\/$/);
+  await expect(panel).toBeVisible();
+  await newTab.close();
+});
+
+test('dropdowns stay open after the pointer leaves and reset when the header becomes mobile', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+  const dropdown = page.locator('.desktop-nav .nav-dropdown').first();
+  const panel = dropdown.locator('.dropdown-panel');
+  const firstItem = panel.locator('.dropdown-item').first();
+  await dropdown.locator('.nav-link').hover();
+  await expect(panel).toBeVisible();
+  const itemBox = (await firstItem.boundingBox())!;
+  await page.mouse.move(10, 300);
+  await page.waitForTimeout(2000);
+  await expect(panel).toBeVisible();
+  await page.mouse.move(itemBox.x + itemBox.width / 2, itemBox.y + itemBox.height / 2);
+  await page.waitForTimeout(350);
+  await expect(panel).toBeVisible();
+  expect(await firstItem.evaluate((element) => element.matches(':hover'))).toBe(true);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.mouse.move(10, 300);
+  await expect(page.locator('.desktop-nav')).toBeHidden();
+  await page.getByRole('button', { name: 'Menu', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: 'Menu' })).toBeVisible();
+  await page.getByRole('button', { name: 'Close menu' }).click();
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await expect(page.locator('.desktop-nav')).toBeVisible();
+  await expect(panel).toBeHidden();
 });
 
 test('language, navigation, filters, detail links and accordion work', async ({ page }) => {

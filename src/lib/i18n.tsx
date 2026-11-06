@@ -31,6 +31,7 @@ const dictionary = {
   'cta.exploreCountry': { en: 'Explore country', fa: 'مشاهده کشور' },
   'cta.viewProfile': { en: 'View profile', fa: 'مشاهده پروفایل' },
   'common.loading': { en: 'Loading…', fa: 'در حال بارگذاری…' },
+  'common.loadingSite': { en: 'Loading Apply Now…', fa: 'در حال بارگذاری Apply Now…' },
   'common.error': { en: 'Something went wrong', fa: 'مشکلی پیش آمد' },
   'common.errorBody': { en: 'We could not load this section. Please try again.', fa: 'بارگذاری این بخش ممکن نشد. دوباره تلاش کنید.' },
   'common.retry': { en: 'Try again', fa: 'تلاش مجدد' },
@@ -527,7 +528,7 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [adminLocale, setAdminLocale] = useState<Locale>(() => {
-    try { return localStorage.getItem('faratech_lang') === 'en' ? 'en' : 'fa'; } catch { return 'fa'; }
+    try { return localStorage.getItem('faratech_lang') === 'fa' ? 'fa' : 'en'; } catch { return 'en'; }
   });
   const inAdmin = location.pathname === '/admin' || location.pathname.startsWith('/admin/');
   const locale: Locale = inAdmin ? adminLocale : location.pathname === '/fa' || location.pathname.startsWith('/fa/') ? 'fa' : 'en';

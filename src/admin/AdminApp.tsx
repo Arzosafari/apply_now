@@ -1,3 +1,4 @@
+import { LoadingScreen } from '@/components/LoadingScreen';
 import { useAdminTranslation } from './i18n';
 import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import { Link } from 'react-router-dom';
@@ -19,15 +20,7 @@ import { ResourceManager } from './ResourceManager';
 function AdminGuard() {
   const { admin, loading } = useAdminAuth();
   const location = useLocation();
-  if (loading) {
-    return (
-      <div className="admin-root grid min-h-screen place-items-center">
-        <div className="h-1 w-40 overflow-hidden rounded-full bg-[#e4ebf3]">
-          <div className="h-full w-1/2 animate-pulse rounded-full bg-orange" />
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <LoadingScreen />;
   if (!admin) return <Navigate to="/admin/login" replace state={{ from: `${location.pathname}${location.search}${location.hash}` }} />;
   return <Outlet />;
 }

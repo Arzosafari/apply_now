@@ -260,3 +260,94 @@ Open `http://localhost:5173`; the admin demo is at `/admin/login` with the prefi
 
 ### Not Implemented / remaining work
 - No further functionality is required for this request. The existing frontend-demo limitations remain: no real authentication, form delivery, shared backend or payment processing, and sample profiles/testimonials require verification before launch.
+
+## Inspection checklist — desktop navigation dropdown hover
+
+### Completed
+- Confirmed the Services and Destinations dropdowns already open on hover and keyboard focus in both English and Persian; their links and mobile drawer are implemented.
+- Inspected the existing working changes and the open branch; the previously completed features are being preserved.
+
+### Partially Completed
+- The dropdown panel sits 10px below its trigger, leaving a non-hoverable gap. Moving the pointer from the navigation link toward the panel can therefore close it before a submenu item is reached.
+- Existing tests cover navigation and the mobile menu, but do not exercise a real pointer crossing this dropdown gap.
+
+### Not Implemented / exact remaining work
+- Bridge the hover gap without changing the dropdown appearance or preventing nearby navigation links from working, including for RTL layouts.
+- Add regression tests for mouse movement, submenu selection, pointer exit, and keyboard focus in both languages; check mobile navigation is unaffected.
+- Run the relevant browser tests, typecheck, production build, and whitespace checks; document any remaining limitations.
+
+## Completion — desktop navigation dropdown hover
+
+### Completed
+- Added an invisible hover bridge between each navigation label and its dropdown, preserving the original visual spacing in English and Persian.
+- Added a brief close grace period and a short delay before switching to a neighbouring dropdown, so direct and diagonal pointer movements can reach menu items without the menu disappearing or switching unexpectedly.
+- Dropdown links remain keyboard-accessible, including rapid Tab presses with and without reduced motion. Selecting a normal link closes the menu and moves focus to the page content; modified clicks can still open a new tab.
+- Cleared desktop dropdown state when the layout switches to mobile. Confirmed the mobile drawer still works.
+- Inspected the open dropdown visually in both languages and tested gap traversal, both diagonal edges, submenu links, switching, pointer exit, keyboard focus, new-tab clicks and mobile resizing.
+- `npm run typecheck`, `npm run build`, `git diff --check`, and the full **60-test Chromium Playwright suite** passed.
+
+### Partially Completed
+- Browser testing used Chromium; Safari/WebKit, Firefox and physical devices were not tested.
+
+### Not Implemented / remaining work
+- No further work is required for this dropdown request. Existing frontend-demo limitations remain unchanged.
+
+## Inspection checklist — persistent hover menus, English default and site loading bar
+
+### Completed
+- Services and Destinations already open on hover and keyboard focus, with a pointer bridge and bilingual/RTL support. The earlier unpushed dropdown improvements and other existing changes are present and will be preserved.
+- The site already supports saved language preferences, explicit `/fa` routes and an admin-configured default. Initial public and admin loading states already exist.
+
+### Partially Completed
+- Desktop dropdowns still close after a short pointer-leave delay, so they do not stay open until the visitor chooses.
+- The current fresh-visitor seed and admin fallback default to Persian; the requested default is now English.
+- The initial page can be blank while JavaScript loads, and the public loading state shows a dot rather than a proper loading bar.
+
+### Not Implemented / exact remaining work
+- Open dropdowns on hover and keep them open while the visitor chooses; support switching menus, selection, outside dismissal, Escape, keyboard focus and responsive changes without requiring a click to open.
+- Change fresh defaults to English while preserving saved visitor choices, explicitly configured settings, Persian URLs and RTL behavior.
+- Add an accessible, bilingual, reduced-motion-aware indeterminate loading bar for the initial page and actual application loading states, without inventing progress percentages.
+- Update documentation and regression tests; verify both languages, desktop and mobile navigation, loading completion, build, typecheck and the browser suite. Document untested environments.
+
+## Completion — persistent hover menus, English default and site loading bar
+
+### Completed
+- Services and Destinations open on hover without a click and stay open when the pointer leaves, allowing time to choose. Hovering another menu switches it; selecting a link, clicking outside or pressing Escape dismisses the open panel. Keyboard focus, quick Tab, focus restoration, modified clicks, responsive resizing and the mobile drawer remain supported.
+- Fresh public and admin visitors now start in English. Existing saved language choices and admin-configured defaults are preserved; explicit Persian URLs and RTL layouts still work.
+- Added a branded, indeterminate loading bar in the initial HTML and shared public/admin application loading screens. It has an accessible loading label, localized application text and a non-animated reduced-motion state; no artificial percentage is claimed. A JavaScript-disabled visitor sees an explanatory message instead of an endless loader.
+- Reviewed loading-screen screenshots at desktop and narrow mobile widths, including the Persian application fallback. Added tests for delayed startup, reduced motion, language persistence, persistent hover, slow/diagonal movement, rapid menu switching, selection, dismissal and keyboard use.
+- `npm run typecheck`, `npm run build`, `git diff --check` and the full **64-test Chromium Playwright suite** passed.
+
+### Partially Completed
+- Browser testing used Chromium emulation; Safari/WebKit, Firefox and physical devices were not tested. The pre-JavaScript bootstrap label is English; the application loading state is localized.
+
+### Not Implemented / remaining work
+- No further work is required for this request. Existing demo limitations remain: no real authentication, form transmission, shared backend or payment processing.
+
+## Inspection checklist — persistent dropdown follow-up
+
+### Completed
+- Confirmed both dropdowns, keyboard handling, language support and the previous unpushed preview changes are present in the working tree; existing work is being preserved.
+- Confirmed the open GitHub pull request still points to `c43a5eb`, which contains the older hover-only dropdown and its original gap. The newer preview fixes have not yet been pushed.
+
+### Partially Completed
+- The preview is intended to keep hover menus open, but the reported disappearance needs further investigation, including slow and diagonal pointer movement near the neighbouring menu and actual browser behavior.
+
+### Not Implemented / exact remaining work
+- Reproduce and address any remaining premature closing or unintended menu switch without requiring a click, while retaining keyboard, selection, dismissal and mobile behavior.
+- Add regression coverage for realistic slow hover paths, run the appropriate tests and build/type checks, and record any remaining limitations.
+
+## Completion — persistent dropdown follow-up
+
+### Completed
+- Reproduced premature switching when a slow diagonal pointer path crossed the neighbouring navigation label: 3 of 32 measured paths failed before the fix.
+- Replaced the fixed switch delay with an inactivity-based delay that is renewed while the pointer continues downward toward the current panel. Leaving the neighbouring trigger cancels its pending switch; a deliberate horizontal hover switches immediately, and a visitor who settles over the other trigger can still switch menus. The current menu also remains available when keyboard focus leaves while the pointer is hovering it.
+- Verified Services and Destinations in English and Persian, including mouse selection, fast switching, dwelling, cancelling, keyboard use, outside dismissal, modified clicks and mobile resizing. After the fix, all 32 slow paths and 8 additional very slow paths at 1200px and 1440px completed without switching away.
+- Added regression tests for both menu directions and languages, focus changes, dwell/cancellation and pending-switch cleanup on mobile. The full **72-test Chromium Playwright suite**, `npm run typecheck`, `npm run build` and `git diff --check` passed.
+
+### Partially Completed
+- Verification used Chromium emulation; Firefox, Safari/WebKit and physical devices were not tested.
+
+### Not Implemented / remaining work
+- These changes must be merged and deployed before they appear on a production site; updating the GitHub branch alone does not deploy them.
+- Existing frontend-demo limitations remain unchanged: no real authentication, form transmission, shared backend or payment processing.

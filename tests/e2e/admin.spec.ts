@@ -273,23 +273,23 @@ test('language default, logout and guarded routes behave as a local demo', async
   await expect(page).toHaveURL(/\/admin\/requests/);
 });
 
-test('configured English default is respected while explicit visitor preferences take priority', async ({ page }) => {
+test('configured Persian default is respected while explicit visitor preferences take priority', async ({ page }) => {
   await page.goto('/admin/settings');
   await page.getByRole('button', { name: 'Language & verification' }).click();
   const setting = page.getByLabel('Language default');
-  await expect(setting).toHaveValue('fa');
-  await setting.selectOption('en');
+  await expect(setting).toHaveValue('en');
+  await setting.selectOption('fa');
   await page.getByRole('button', { name: 'Save settings' }).first().click();
   await expect(page.getByText('Website settings saved.')).toBeVisible();
   await page.evaluate(() => localStorage.removeItem('faratech_lang'));
   await page.goto('/');
-  await expect(page).toHaveURL(/\/$/);
-  await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
-  await page.getByRole('button', { name: 'FA', exact: true }).click();
-  await expect(page).toHaveURL(/\/fa$/);
-  await page.goto('/');
   await expect(page).toHaveURL(/\/fa$/);
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+  await page.getByRole('button', { name: 'EN', exact: true }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await page.goto('/');
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
 });
 
 test('resource drawer and confirmations fit narrow LTR and RTL screens', async ({ page }) => {
