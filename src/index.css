@@ -553,9 +553,16 @@ img {
 .brand-logo {
   display: block;
   width: auto;
-  height: 58px;
-  max-width: 150px;
+  height: 44px;
+  max-width: 120px;
   object-fit: contain;
+}
+
+@media (max-width: 639px) {
+  .brand-logo {
+    height: 40px;
+    max-width: 112px;
+  }
 }
 
 .brand-lockup-light {
@@ -565,7 +572,7 @@ img {
 }
 
 .brand-lockup-compact .brand-logo {
-  height: 44px;
+  height: 36px;
 }
 
 .nav-list {
@@ -588,7 +595,8 @@ img {
   transition: color 0.16s ease, background 0.16s ease;
 }
 
-.nav-link:hover {
+.nav-link:hover,
+.nav-link[aria-expanded='true'] {
   color: var(--navy);
   background: #f5f8fc;
 }
@@ -628,16 +636,25 @@ img {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: 0.18s ease;
+  /* Visibility must change immediately so rapid keyboard Tab reaches links. */
+  transition: opacity 0.18s ease, transform 0.18s ease;
   z-index: 60;
+}
+
+/* Keep the visual spacing while giving the pointer a continuous path from
+   the trigger to any part of the wider dropdown, in either text direction. */
+.dropdown-panel::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  bottom: 100%;
+  height: 12px;
 }
 
 .locale-fa .dropdown-panel {
   transform: translateX(50%) translateY(-6px);
 }
 
-.nav-dropdown:hover .dropdown-panel,
-.nav-dropdown:focus-within .dropdown-panel,
 .dropdown-panel[data-open='true'] {
   opacity: 1;
   visibility: visible;
@@ -645,8 +662,6 @@ img {
   transform: translateX(-50%) translateY(0);
 }
 
-.locale-fa .nav-dropdown:hover .dropdown-panel,
-.locale-fa .nav-dropdown:focus-within .dropdown-panel,
 .locale-fa .dropdown-panel[data-open='true'] {
   transform: translateX(50%) translateY(0);
 }
@@ -660,6 +675,8 @@ img {
   color: #43566d;
   font-size: 0.8rem;
   line-height: 1.4;
+  /* The global reduced-motion rule must not animate inherited visibility. */
+  transition-property: color, background-color;
 }
 
 .dropdown-item:hover {
@@ -707,6 +724,9 @@ img {
   box-shadow: 0 2px 7px rgba(9, 38, 74, 0.1);
 }
 
+.mobile-consultation,
+.mobile-consultation-compact,
+.mobile-header-actions,
 .mobile-toggle {
   display: none;
 }
@@ -726,14 +746,67 @@ img {
   }
 }
 
-@media (max-width: 1080px) {
+/* Includes modern iPad mini landscape and larger touch-screen iPads. */
+@media (max-width: 1199px), (max-width: 1366px) and (hover: none) and (pointer: coarse) {
   .desktop-nav,
   .desktop-actions {
     display: none;
   }
 
+  /* Equal outer tracks keep the booking link centered in both LTR and RTL. */
+  .header-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .header-brand {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .header-brand .brand-lockup {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: min(100%, 120px);
+  }
+
+  .header-brand .brand-logo {
+    max-width: 100%;
+  }
+
+  .mobile-consultation {
+    display: inline-flex;
+    min-height: 44px;
+    padding: 9px 14px;
+    font-size: 0.8125rem;
+    white-space: nowrap;
+  }
+
+  .mobile-header-actions {
+    display: flex;
+    align-items: center;
+    justify-self: end;
+    gap: 4px;
+  }
+
+  .mobile-language {
+    flex-direction: column;
+    flex-shrink: 0;
+    gap: 1px;
+    line-height: 1;
+  }
+
+  .mobile-language span {
+    font-size: 0.5rem;
+    font-weight: 750;
+    letter-spacing: 0.02em;
+  }
+
   .mobile-toggle {
     display: inline-flex;
+    flex-shrink: 0;
   }
 
   .mobile-nav {
@@ -783,6 +856,76 @@ img {
 
   .locale-fa .mobile-nav-panel {
     animation-name: drawer-in-rtl;
+  }
+}
+
+@media (max-width: 639px) {
+  .header-brand .brand-lockup {
+    max-width: min(100%, 112px);
+  }
+}
+
+@media (max-width: 379px) {
+  .mobile-consultation {
+    padding-inline: 10px;
+    font-size: 0.75rem;
+  }
+
+  .mobile-consultation-full {
+    display: none;
+  }
+
+  .mobile-consultation-compact {
+    display: inline;
+  }
+}
+
+/* Show the portrait at its natural aspect ratio on mobile and tablet. */
+@media (max-width: 1199px), (max-width: 1366px) and (hover: none) and (pointer: coarse) {
+  .home-advice-image {
+    display: flex;
+    align-items: center;
+    min-height: 0;
+    background: var(--deep-navy);
+  }
+
+  .home-advice-photo {
+    width: 100%;
+  }
+
+  .home-advice-photo img {
+    position: static;
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+  }
+
+  .home-advice-shade {
+    display: none;
+  }
+
+  .home-advice-note {
+    position: static;
+    border: 0;
+    border-radius: 0;
+    background: var(--navy);
+    backdrop-filter: none;
+  }
+}
+
+@media (min-width: 600px) {
+  .home-advice-card {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  }
+}
+
+@media (min-width: 600px) and (max-width: 1199px), (min-width: 600px) and (max-width: 1366px) and (hover: none) and (pointer: coarse) {
+  .home-advice-card {
+    grid-template-columns: minmax(0, 1fr) minmax(0, min(40%, 320px));
+  }
+
+  .home-advice-copy {
+    align-self: center;
   }
 }
 
@@ -1092,6 +1235,111 @@ img {
 .section-head p {
   margin-top: 12px;
   max-width: 640px;
+}
+
+.card-carousel {
+  min-width: 0;
+}
+
+.card-carousel-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 86%;
+  gap: 20px;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  padding-block: 3px 12px;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.card-carousel-track::-webkit-scrollbar {
+  display: none;
+}
+
+.card-carousel-slide {
+  min-width: 0;
+  scroll-snap-align: start;
+}
+
+.card-carousel-slide > .expert-card {
+  height: 100%;
+}
+
+.card-carousel-track.is-dragging {
+  cursor: grabbing;
+  scroll-snap-type: none;
+  user-select: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card-carousel-track { cursor: grab; }
+}
+
+@media (max-width: 599px) {
+  .card-carousel[data-slide-count='1'] .card-carousel-track {
+    grid-auto-columns: 100%;
+  }
+}
+
+@media (min-width: 600px) {
+  .card-carousel-track {
+    grid-auto-columns: calc((100% - 20px) / 2.12);
+  }
+}
+
+@media (min-width: 1024px) {
+  .card-carousel-experts .card-carousel-track {
+    grid-auto-columns: calc((100% - 60px) / 3.1);
+  }
+
+  .card-carousel-testimonials .card-carousel-track {
+    grid-auto-columns: calc((100% - 40px) / 2.35);
+  }
+}
+
+.card-carousel-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  margin-top: 12px;
+}
+
+.card-carousel-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #60758c;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.card-carousel-controls,
+.card-carousel-indicators {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.card-carousel-arrow:disabled {
+  cursor: not-allowed;
+  opacity: 0.38;
+}
+
+.card-carousel-indicators span {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #cad7e5;
+  transition: width 0.2s ease, background 0.2s ease;
+}
+
+.card-carousel-indicators span.is-active {
+  width: 20px;
+  background: var(--orange);
 }
 
 .page-hero {
@@ -1917,6 +2165,47 @@ img {
   background: white;
   padding: 30px;
   box-shadow: 0 25px 60px -45px rgba(9, 38, 74, 0.35);
+}
+
+.consultation-benefits {
+  padding: 20px;
+  border: 1px solid #d6e8f9;
+  border-radius: 14px;
+  background: #f4f9ff;
+}
+
+.consultation-benefits-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--light-blue);
+  color: var(--blue);
+}
+
+.consultation-benefits-list {
+  display: grid;
+  gap: 10px 18px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #d6e8f9;
+}
+
+.consultation-benefits-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: #405b76;
+  font-size: 0.72rem;
+  line-height: 1.6;
+}
+
+@media (min-width: 640px) {
+  .consultation-benefits-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 .contact-info-card {

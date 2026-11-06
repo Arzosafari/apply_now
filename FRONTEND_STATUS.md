@@ -82,7 +82,7 @@ npm run dev
 
 Open `http://localhost:5173`; the admin demo is at `/admin/login` with the prefilled `demo@applynow.example` / `demo` values. For normal local Playwright use, install Chromium via `npx playwright install chromium` and run `npm run test:e2e`. See `README.md` for storage keys, environment details and limitations.
 
-**Readiness:** suitable for an interactive frontend demonstration and review, not for production use or real applicant information. The project branch has an open pull request; review its current commits to confirm which updates have been published.
+**Readiness:** suitable for an interactive frontend demonstration and review, not for production use or real applicant information.
 
 ### Branding and mobile navigation update — 2026-10-30
 
@@ -97,3 +97,257 @@ Open `http://localhost:5173`; the admin demo is at `/admin/login` with the prefi
 
 - [ ] Review any previously customized branding, legal text and logo; custom values are intentionally not overwritten. Validate the result on physical mobile devices and additional browsers, including Safari and Firefox.
 - [ ] Address the demo and production limitations above before launching the website.
+
+### Homepage consultants, image position and logo — inspection
+
+**Completed**
+
+- [x] The site already provides published, ordered consultant data and reusable bilingual expert cards, including sample-profile labels and links to individual profiles.
+- [x] The requested first-conversation section and shared logo component already exist in both language layouts.
+
+**Partially completed**
+
+- [ ] Consultant profiles are available on the experts page but are not yet shown on the homepage.
+- [ ] The first-conversation image currently appears before the text; its sides need to be swapped, including in the Persian RTL layout.
+- [ ] The shared logo needs a modest size reduction while remaining legible on mobile and on dark backgrounds.
+
+**Not yet implemented for this update**
+
+- [ ] Homepage consultant cards and links, the revised image order, and responsive/RTL regression checks.
+
+
+### Homepage consultants, image position and logo — completion
+
+**Completed**
+
+- [x] Added a bilingual homepage consultant section using up to four published profiles in admin display order. Each card links to its profile, and the section links to all consultants. An empty published list does not leave an empty section.
+- [x] Kept sample-profile badges and a clear notice; real consultant information can be managed in the existing local demo admin.
+- [x] Moved the first-conversation image to the opposite side of the text in English and Persian. The text appears first when the layout stacks on smaller screens.
+- [x] Reduced the shared logo height from 58px to 50px and checked the header at desktop and mobile sizes.
+- [x] Verified admin publication and ordering, localized profile links, the empty state, image position and overflow at 320, 390, 768, 1024 and 1440px. Visually inspected the English and Persian desktop/mobile layouts.
+- [x] `npm run typecheck`, `npm run build`, `git diff --check` and the full Chromium Playwright suite passed; **33 tests passed**.
+
+**Partially completed / requires review**
+
+- [ ] The existing consultant names and photographs are illustrative samples, not verified staff. Replace them in Admin → Experts with real, approved profiles before launch.
+- [ ] Test on physical devices and other browsers, including Safari and Firefox; the present QA used headless Chromium.
+
+**Not implemented (outside this update)**
+
+- [ ] Production authentication, a shared backend and database, real form submission and payment processing remain outside this browser-local demo.
+
+### Responsive logo refinement — inspection
+
+**Completed**
+
+- [x] The supplied Apply Now image is already shared by the public header, mobile menu, footer and admin layouts, with configurable public logos supported.
+
+**Partially completed**
+
+- [ ] The current 50px logo still appears larger than requested. It needs a smaller, responsive size while keeping its original proportions and enough clearance in the header and menu.
+
+**Not yet implemented for this update**
+
+- [ ] Refined desktop/mobile dimensions and regression checks for the header, menu, footer and administrator views.
+
+### Responsive logo refinement — completion
+
+**Completed**
+
+- [x] Reduced the shared logo to 44px high on larger screens and 40px on screens below 640px, with sensible width limits and preserved image proportions. Compact variants remain smaller.
+- [x] Checked the public header, mobile drawer, footer and admin views in English and Persian; wide custom logos remain contained without horizontal overflow.
+- [x] Checked 320, 390, 639, 640, 768, 1024 and 1440px layouts. Typecheck, production build, `git diff --check` and all **35 Chromium Playwright tests** passed.
+
+**Partially completed / remaining**
+
+- [ ] Check final logo rendering on physical devices and additional browsers before launch. The existing frontend-demo limitations remain unchanged.
+
+**Not implemented**
+
+- [ ] Production backend, real authentication and live form/payment processing remain outside this frontend-only update.
+
+### Home “Clarity” image alignment — inspection
+
+**Completed**
+
+- [x] The homepage already includes the bilingual “Clarity is the foundation of a good immigration plan” section, consultation image, six features and the existing image caption card.
+
+**Partially completed**
+
+- [ ] On larger screens, the image currently extends above the section title and below the adjacent content. On smaller screens, its tall portrait crop takes up excessive vertical space.
+
+**Not yet implemented for this update**
+
+- [ ] Resize and align the image from the title through the end of the related content, while retaining a compact responsive layout and RTL support.
+
+### Home “Clarity” image alignment — completion
+
+**Completed**
+
+- [x] On desktop and laptop widths, aligned the image top with the “Clarity” heading and its bottom with the end of the adjacent feature content in both English and Persian.
+- [x] Replaced the tall mobile/tablet crop with a more compact 4:3 image and kept the existing caption card inside the image boundaries.
+- [x] Visually inspected both language layouts and checked image alignment, sizing and horizontal overflow at 320, 390, 768, 1023, 1024, 1280 and 1440px.
+- [x] Typecheck, production build, `git diff --check` and the full **36-test Chromium Playwright suite** passed.
+
+**Partially completed / remaining**
+
+- [ ] Verify the layout on physical devices and additional browsers before production launch.
+
+**Not implemented**
+
+- [ ] The production backend, authentication and real submissions/payments remain outside the frontend demo.
+
+## Inspection checklist — iPad advice image and responsive header consultation link
+
+### Completed
+- Confirmed the existing site, localized routes, responsive header/drawer, branding, and advice section are already implemented; the working branch was clean before this request.
+- Confirmed `/images/team.jpg` is a 1800 × 2699 portrait, while the tablet advice frame uses a wide `object-cover` crop that hides much of the photo.
+- Confirmed the consultation route and translated labels already exist, but the public navbar currently hides its consultation button at mobile/tablet widths.
+
+### Partially Completed
+- The advice card and responsive header need layout changes and verification at mobile and iPad mini sizes, including Persian RTL and custom logos.
+
+### Not Implemented / exact remaining work
+- Show the full advice photograph on iPad mini without excessively enlarging the section, and keep the image and caption usable on narrow screens.
+- Add a genuinely centered, localized consultation link to the mobile/tablet navbar without overlapping the logo or menu button.
+- Add regression coverage and check screenshots, navigation, menu interactions, overflow, typecheck, build, and the existing browser suite. The demo limitations documented above remain unchanged.
+
+## Completion — iPad advice image and centered responsive consultation link
+
+### Completed
+- The advice photograph now keeps its correct 1800 × 2699 portrait ratio on mobile/tablet; its adviser caption sits below rather than covering the image. From 600px through tablet sizes, a capped-width portrait column keeps the section compact, with the correct EN/FA ordering. Desktop retains its previous crop and presentation.
+- Added a 44px-high “Book a consultation” / “رزرو مشاوره” link centered between the logo and menu on mobile and iPad layouts. The links route to `/consultation` and `/fa/consultation`, respectively, and accommodate very wide configured logos without overlapping.
+- Extended the responsive header and image treatment to cover modern iPad mini landscape widths as well as larger coarse-pointer touch tablets; menu resize behavior uses the same media query.
+- Visually reviewed Chromium screenshots at 320 and 390px, older iPad mini portrait/landscape (768 × 1024 and 1024 × 768), newer mini portrait/landscape (744 × 1133 and 1133 × 744), and a simulated 1366px touch tablet, including Persian RTL.
+- Added image-aspect/caption, centered-link geometry/routing, EN/FA, custom-logo, touch rotation, menu and overflow regression coverage. All 39 Chromium end-to-end tests passed; `npm run typecheck`, `npm run build`, and `git diff --check` passed.
+
+### Partially Completed
+- Layouts were verified using Chromium device/touch emulation, not on a physical iPad or in Safari/WebKit; a real-device cross-browser check remains advisable.
+
+### Not Implemented / remaining work
+- No further changes are required for this specific responsive request. The existing demo limitations (no production backend, real authentication, form delivery, or payment processing) remain as documented above.
+
+## Inspection checklist — Persian default, mobile language switch, swipeable cards and consultation benefits
+
+### Completed
+- The existing site already has bilingual public routes, a remembered language switcher, configurable default-language settings, consultant profiles, clearly marked demonstration testimonials, and a consultation form with demo disclosures.
+- The previously completed responsive booking link and iPad advice-image treatment are present in the working tree. Existing changes were inspected and will be preserved.
+
+### Partially Completed
+- The new-visitor language setting currently defaults to English, and the mobile/tablet language switch is only inside the menu drawer.
+- Homepage consultants and testimonial cards are presented as static grids rather than touch-draggable slides.
+- The consultation page explains how the local demo works, but does not yet explain why a consultation can help.
+
+### Not Implemented / exact remaining work
+- Make Persian the default for new public-site visitors without overriding explicit language choices or configurable admin settings.
+- Add an accessible language-switch control directly to the mobile/tablet navbar while preserving the centered consultation button and narrow-screen logo/menu clearance.
+- Add usable, bilingual, RTL-aware swipeable consultant and testimonial sliders, with non-swipe controls and preserved profile links/sample disclosures.
+- Add concise, bilingual consultation-benefit content while keeping existing demo and privacy disclosures truthful.
+- Test routes, language persistence, dragging/buttons/keyboard, menu and booking links, responsive layouts, overflow, form behavior, build and typecheck; update this report with results and remaining limitations.
+
+## Completion — Persian default, mobile language switch, swipeable cards and consultation benefits
+
+### Completed
+- New public-home visitors now start in Persian (`/fa`), and a fresh admin login also starts in Persian. Saved EN/FA choices and explicitly configured default-language settings take precedence; existing settings are not overwritten. Explicit English deep links remain English, and query strings and fragments survive language switching.
+- Added an accessible globe/language control directly to the mobile and iPad navbar. The consultation button remains centered, the menu stays reachable, and compact English text prevents overlap at narrow widths, including with wide configured logos.
+- Replaced the homepage consultant and testimonial grids with RTL-aware, touch-swipeable carousels. Mouse drag, arrow buttons, keyboard navigation, reduced-motion preferences, links, published order and sample labels are supported. All published testimonials are shown; empty sections are hidden.
+- Added bilingual consultation-benefit copy before the form, including a no-guarantee clarification, while retaining the prominent browser-only demo and privacy disclosures.
+- Visually inspected Persian/English headers, sliders and consultation content at phone, iPad and desktop widths. Verified native simulated touch swipes in both directions, mouse dragging without accidental profile navigation, keyboard/arrow controls, language persistence, responsive geometry, published/draft/empty content and existing forms.
+- `npm run typecheck`, `npm run build`, `git diff --check` and the full **49-test Chromium Playwright suite** passed. The carousel interaction tests were rerun after the final styling adjustment and passed.
+
+### Partially Completed
+- Device checks used Chromium emulation, not a physical iPad or Safari/WebKit; real-device and additional-browser review remains advisable.
+
+### Not Implemented / remaining work
+- No further functionality is required for this request. The existing frontend-demo limitations remain: no real authentication, form delivery, shared backend or payment processing, and sample profiles/testimonials require verification before launch.
+
+## Inspection checklist — desktop navigation dropdown hover
+
+### Completed
+- Confirmed the Services and Destinations dropdowns already open on hover and keyboard focus in both English and Persian; their links and mobile drawer are implemented.
+- Inspected the existing working changes and the open branch; the previously completed features are being preserved.
+
+### Partially Completed
+- The dropdown panel sits 10px below its trigger, leaving a non-hoverable gap. Moving the pointer from the navigation link toward the panel can therefore close it before a submenu item is reached.
+- Existing tests cover navigation and the mobile menu, but do not exercise a real pointer crossing this dropdown gap.
+
+### Not Implemented / exact remaining work
+- Bridge the hover gap without changing the dropdown appearance or preventing nearby navigation links from working, including for RTL layouts.
+- Add regression tests for mouse movement, submenu selection, pointer exit, and keyboard focus in both languages; check mobile navigation is unaffected.
+- Run the relevant browser tests, typecheck, production build, and whitespace checks; document any remaining limitations.
+
+## Completion — desktop navigation dropdown hover
+
+### Completed
+- Added an invisible hover bridge between each navigation label and its dropdown, preserving the original visual spacing in English and Persian.
+- Added a brief close grace period and a short delay before switching to a neighbouring dropdown, so direct and diagonal pointer movements can reach menu items without the menu disappearing or switching unexpectedly.
+- Dropdown links remain keyboard-accessible, including rapid Tab presses with and without reduced motion. Selecting a normal link closes the menu and moves focus to the page content; modified clicks can still open a new tab.
+- Cleared desktop dropdown state when the layout switches to mobile. Confirmed the mobile drawer still works.
+- Inspected the open dropdown visually in both languages and tested gap traversal, both diagonal edges, submenu links, switching, pointer exit, keyboard focus, new-tab clicks and mobile resizing.
+- `npm run typecheck`, `npm run build`, `git diff --check`, and the full **60-test Chromium Playwright suite** passed.
+
+### Partially Completed
+- Browser testing used Chromium; Safari/WebKit, Firefox and physical devices were not tested.
+
+### Not Implemented / remaining work
+- No further work is required for this dropdown request. Existing frontend-demo limitations remain unchanged.
+
+## Inspection checklist — persistent hover menus, English default and site loading bar
+
+### Completed
+- Services and Destinations already open on hover and keyboard focus, with a pointer bridge and bilingual/RTL support. The earlier unpushed dropdown improvements and other existing changes are present and will be preserved.
+- The site already supports saved language preferences, explicit `/fa` routes and an admin-configured default. Initial public and admin loading states already exist.
+
+### Partially Completed
+- Desktop dropdowns still close after a short pointer-leave delay, so they do not stay open until the visitor chooses.
+- The current fresh-visitor seed and admin fallback default to Persian; the requested default is now English.
+- The initial page can be blank while JavaScript loads, and the public loading state shows a dot rather than a proper loading bar.
+
+### Not Implemented / exact remaining work
+- Open dropdowns on hover and keep them open while the visitor chooses; support switching menus, selection, outside dismissal, Escape, keyboard focus and responsive changes without requiring a click to open.
+- Change fresh defaults to English while preserving saved visitor choices, explicitly configured settings, Persian URLs and RTL behavior.
+- Add an accessible, bilingual, reduced-motion-aware indeterminate loading bar for the initial page and actual application loading states, without inventing progress percentages.
+- Update documentation and regression tests; verify both languages, desktop and mobile navigation, loading completion, build, typecheck and the browser suite. Document untested environments.
+
+## Completion — persistent hover menus, English default and site loading bar
+
+### Completed
+- Services and Destinations open on hover without a click and stay open when the pointer leaves, allowing time to choose. Hovering another menu switches it; selecting a link, clicking outside or pressing Escape dismisses the open panel. Keyboard focus, quick Tab, focus restoration, modified clicks, responsive resizing and the mobile drawer remain supported.
+- Fresh public and admin visitors now start in English. Existing saved language choices and admin-configured defaults are preserved; explicit Persian URLs and RTL layouts still work.
+- Added a branded, indeterminate loading bar in the initial HTML and shared public/admin application loading screens. It has an accessible loading label, localized application text and a non-animated reduced-motion state; no artificial percentage is claimed. A JavaScript-disabled visitor sees an explanatory message instead of an endless loader.
+- Reviewed loading-screen screenshots at desktop and narrow mobile widths, including the Persian application fallback. Added tests for delayed startup, reduced motion, language persistence, persistent hover, slow/diagonal movement, rapid menu switching, selection, dismissal and keyboard use.
+- `npm run typecheck`, `npm run build`, `git diff --check` and the full **64-test Chromium Playwright suite** passed.
+
+### Partially Completed
+- Browser testing used Chromium emulation; Safari/WebKit, Firefox and physical devices were not tested. The pre-JavaScript bootstrap label is English; the application loading state is localized.
+
+### Not Implemented / remaining work
+- No further work is required for this request. Existing demo limitations remain: no real authentication, form transmission, shared backend or payment processing.
+
+## Inspection checklist — persistent dropdown follow-up
+
+### Completed
+- Confirmed both dropdowns, keyboard handling, language support and the previous unpushed preview changes are present in the working tree; existing work is being preserved.
+- Confirmed the open GitHub pull request still points to `c43a5eb`, which contains the older hover-only dropdown and its original gap. The newer preview fixes have not yet been pushed.
+
+### Partially Completed
+- The preview is intended to keep hover menus open, but the reported disappearance needs further investigation, including slow and diagonal pointer movement near the neighbouring menu and actual browser behavior.
+
+### Not Implemented / exact remaining work
+- Reproduce and address any remaining premature closing or unintended menu switch without requiring a click, while retaining keyboard, selection, dismissal and mobile behavior.
+- Add regression coverage for realistic slow hover paths, run the appropriate tests and build/type checks, and record any remaining limitations.
+
+## Completion — persistent dropdown follow-up
+
+### Completed
+- Reproduced premature switching when a slow diagonal pointer path crossed the neighbouring navigation label: 3 of 32 measured paths failed before the fix.
+- Replaced the fixed switch delay with an inactivity-based delay that is renewed while the pointer continues downward toward the current panel. Leaving the neighbouring trigger cancels its pending switch; a deliberate horizontal hover switches immediately, and a visitor who settles over the other trigger can still switch menus. The current menu also remains available when keyboard focus leaves while the pointer is hovering it.
+- Verified Services and Destinations in English and Persian, including mouse selection, fast switching, dwelling, cancelling, keyboard use, outside dismissal, modified clicks and mobile resizing. After the fix, all 32 slow paths and 8 additional very slow paths at 1200px and 1440px completed without switching away.
+- Added regression tests for both menu directions and languages, focus changes, dwell/cancellation and pending-switch cleanup on mobile. The full **72-test Chromium Playwright suite**, `npm run typecheck`, `npm run build` and `git diff --check` passed.
+
+### Partially Completed
+- Verification used Chromium emulation; Firefox, Safari/WebKit and physical devices were not tested.
+
+### Not Implemented / remaining work
+- These changes must be merged and deployed before they appear on a production site; updating the GitHub branch alone does not deploy them.
+- Existing frontend-demo limitations remain unchanged: no real authentication, form transmission, shared backend or payment processing.

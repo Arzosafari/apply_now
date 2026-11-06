@@ -27,6 +27,7 @@ import {
   X,
 } from 'lucide-react';
 import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { LoadingScreen } from '@/components/LoadingScreen';
 import { Logo } from '@/components/Logo';
 import { useLocale } from '@/lib/i18n';
 import { cn, initials } from '@/lib/utils';
@@ -124,18 +125,7 @@ export function AdminLayout() {
     };
   }, [open]);
 
-  if (loading) {
-    return (
-      <div className="admin-root grid min-h-screen place-items-center">
-        <div className="flex flex-col items-center gap-4">
-          <Logo />
-          <div className="h-1 w-32 overflow-hidden rounded-full bg-[#e4ebf3]">
-            <div className="h-full w-1/2 animate-pulse rounded-full bg-orange" />
-          </div>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <LoadingScreen />;
   if (!admin) return <Navigate to="/admin/login" replace state={{ from: `${location.pathname}${location.search}${location.hash}` }} />;
 
   const sidebar = (

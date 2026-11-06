@@ -1,4 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
+import { preferEnglishForExistingChecks } from './locale-fixture';
+
+test.beforeEach(async ({ page }) => { await preferEnglishForExistingChecks(page); });
 
 const publicRoutes: [string, string, string][] = [
   ['/', 'Your Global Journey', 'سفر جهانی شما'],
@@ -24,6 +27,160 @@ async function expectNoOverflow(page: Page) {
   expect(widths.scroll, 'document should not scroll horizontally').toBeLessThanOrEqual(widths.client + 1);
 }
 
+async function expectCenteredMobileBooking(page: Page, locale: 'en' | 'fa') {
+  const header = page.locator('.site-header .header-inner');
+  const brand = header.locator('.header-brand');
+  const logo = brand.locator('img');
+  const booking = header.locator('.mobile-consultation');
+  const language = header.locator('.mobile-language');
+  const menu = header.locator('.mobile-toggle');
+  await expect(booking).toBeVisible();
+  await expect(booking).toHaveAccessibleName(locale === 'fa' ? 'رزرو مشاوره' : 'Book a consultation');
+  await expect(booking).toHaveAttribute('href', locale === 'fa' ? '/fa/consultation' : '/consultation');
+  await expect(language).toBeVisible();
+  await expect(language).toHaveAccessibleName(locale === 'fa' ? 'تغییر زبان به انگلیسی' : 'Switch to Persian');
+  await expect(menu).toBeVisible();
+  const [headerBox, brandBox, logoBox, bookingBox, languageBox, menuBox] = await Promise.all([
+    header.boundingBox(), brand.boundingBox(), logo.boundingBox(), booking.boundingBox(), language.boundingBox(), menu.boundingBox(),
+  ]);
+  expect(headerBox && brandBox && logoBox && bookingBox && languageBox && menuBox).toBeTruthy();
+  expect(Math.abs(bookingBox!.x + bookingBox!.width / 2 - (headerBox!.x + headerBox!.width / 2))).toBeLessThanOrEqual(1);
+  expect(bookingBox!.height).toBeGreaterThanOrEqual(44);
+  expect(logoBox!.x).toBeGreaterThanOrEqual(brandBox!.x - 1);
+  expect(logoBox!.x + logoBox!.width).toBeLessThanOrEqual(brandBox!.x + brandBox!.width + 1);
+  if (locale === 'en') {
+    expect(brandBox!.x + brandBox!.width).toBeLessThanOrEqual(bookingBox!.x);
+    expect(bookingBox!.x + bookingBox!.width).toBeLessThanOrEqual(languageBox!.x);
+    expect(languageBox!.x + languageBox!.width).toBeLessThanOrEqual(menuBox!.x);
+  } else {
+    expect(menuBox!.x + menuBox!.width).toBeLessThanOrEqual(languageBox!.x);
+    expect(languageBox!.x + languageBox!.width).toBeLessThanOrEqual(bookingBox!.x);
+    expect(bookingBox!.x + bookingBox!.width).toBeLessThanOrEqual(brandBox!.x);
+  }
+  await expectNoOverflow(page);
+}
+
+test('new visitors start in English and their explicit language choice is remembered', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/fa');
+  await page.evaluate(() => {
+    localStorage.removeItem('faratech_lang');
+    localStorage.removeItem('faratech_frontend_demo_v1');
+  });
+  await page.goto('/?campaign=preview#intro');
+  await expect(page).toHaveURL(/\/\?campaign=preview#intro$/);
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
+  await expect(page.locator('h1')).toContainText('Your Global Journey');
+
+  await page.getByRole('button', { name: 'Switch to Persian' }).click();
+  await expect(page).toHaveURL(/\/fa\?campaign=preview#intro$/);
+  expect(await page.evaluate(() => localStorage.getItem('faratech_lang'))).toBe('fa');
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+  await expect(page.locator('h1')).toContainText('سفر جهانی شما');
+  await page.goto('/?returning=1#top');
+  await expect(page).toHaveURL(/\/fa\?returning=1#top$/);
+  // An unprefixed deep link still deliberately opens its English version.
+  await page.goto('/services?source=link#top');
+  await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
+  await expect(page.locator('h1')).toContainText('Services built');
+
+  await page.goto('/fa?campaign=preview#intro');
+  await page.getByRole('button', { name: 'تغییر زبان به انگلیسی' }).click();
+  await expect(page).toHaveURL(/\/\?campaign=preview#intro$/);
+  expect(await page.evaluate(() => localStorage.getItem('faratech_lang'))).toBe('en');
+  await page.reload();
+  await expect(page.locator('h1')).toContainText('Your Global Journey');
+  await page.goto('/fa/services');
+  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+});
+
+test('a fresh admin visitor sees English and can choose Persian', async ({ page }) => {
+  await page.goto('/fa');
+  await page.evaluate(() => localStorage.removeItem('faratech_lang'));
+  await page.goto('/admin/login');
+  await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
+  await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible();
+  await page.getByRole('button', { name: 'FA', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'خوش آمدید' })).toBeVisible();
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+});
+
+test('an indeterminate loading bar is visible before the application starts and disappears when ready', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 700 });
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => { release = resolve; });
+  await page.route(/\/(?:src\/main\.tsx|assets\/index-[^/]+\.js)(?:\?.*)?$/, async (route) => {
+    await gate;
+    await route.continue();
+  });
+  await page.goto('/', { waitUntil: 'commit' });
+  try {
+    const loading = page.locator('[data-loading-phase="bootstrap"]');
+    const bar = loading.getByRole('progressbar', { name: 'Loading Apply Now…' });
+    await expect(loading).toBeVisible();
+    await expect(bar).toBeVisible();
+    expect(await bar.getAttribute('aria-valuenow')).toBeNull();
+    await expect(bar.locator('.site-loading__bar')).toHaveCSS('animation-name', 'site-loading-progress');
+    await expectNoOverflow(page);
+  } finally {
+    release();
+  }
+  await expect(page.locator('h1').first()).toContainText('Your Global Journey');
+  await expect(page.locator('.site-loading')).toHaveCount(0);
+});
+
+test('application loading bar is translated and respects reduced motion', async ({ page }) => {
+  await page.goto('/fa');
+  await page.evaluate(() => localStorage.setItem('faratech_lang', 'fa'));
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => { release = resolve; });
+  await page.route(/\/(?:src\/admin\/AdminApp\.tsx|assets\/AdminApp-[^/]+\.js)(?:\?.*)?$/, async (route) => {
+    await gate;
+    await route.continue();
+  });
+  await page.goto('/admin/login', { waitUntil: 'commit' });
+  try {
+    const loading = page.locator('[data-loading-phase="app"]');
+    const bar = loading.getByRole('progressbar', { name: 'در حال بارگذاری Apply Now…' });
+    await expect(loading).toBeVisible();
+    await expect(bar).toBeVisible();
+    expect(await bar.getAttribute('aria-valuenow')).toBeNull();
+    await expect(bar.locator('.site-loading__bar')).toHaveCSS('animation-name', 'none');
+  } finally {
+    release();
+  }
+  await expect(page.getByRole('heading', { name: 'خوش آمدید' })).toBeVisible();
+  await expect(page.locator('.site-loading')).toHaveCount(0);
+});
+
+test.describe('JavaScript-disabled fallback', () => {
+  test.use({ javaScriptEnabled: false });
+  test('explains why the site cannot load instead of showing an endless bar', async ({ page }) => {
+    await page.goto('/');
+    const message = page.locator('noscript p');
+    await expect(message).toHaveText('JavaScript is required to display the Apply Now preview.');
+    await expect(message).toBeVisible();
+    await expect(page.locator('.site-loading')).toBeHidden();
+  });
+});
+
+test('language switch remains usable when preference storage is blocked', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/fa');
+  await page.evaluate(() => {
+    localStorage.removeItem('faratech_lang');
+    Object.defineProperty(Storage.prototype, 'setItem', { configurable: true, value() { throw new Error('storage blocked'); } });
+  });
+  await page.getByRole('button', { name: 'تغییر زبان به انگلیسی' }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
+});
+
 test('public routes render in English and Persian without runtime errors', async ({ page }) => {
   test.setTimeout(120_000);
   const errors: string[] = [];
@@ -39,6 +196,339 @@ test('public routes render in English and Persian without runtime errors', async
     }
   }
   expect(errors).toEqual([]);
+});
+
+for (const locale of ['en', 'fa'] as const) {
+  for (const width of [1200, 1440]) {
+    for (const menu of [
+      { label: { en: 'Services', fa: 'خدمات' }, slug: 'student-visa', section: 'services' },
+      { label: { en: 'Destinations', fa: 'مقاصد' }, slug: 'canada', section: 'destinations' },
+    ] as const) {
+      test(`desktop ${menu.section} dropdown stays open across the hover gap (${locale}, ${width}px)`, async ({ page }) => {
+        await page.setViewportSize({ width, height: 900 });
+        await page.emulateMedia({ reducedMotion: 'no-preference' });
+        await page.goto(locale === 'fa' ? '/fa' : '/');
+        const nav = page.locator('.desktop-nav');
+        const dropdown = nav.locator('.nav-dropdown').filter({ has: page.getByRole('link', { name: menu.label[locale], exact: true }) });
+        const trigger = dropdown.locator('.nav-link');
+        const panel = dropdown.locator('.dropdown-panel');
+        const destination = panel.locator(`a[href$="/${menu.slug}"]`);
+
+        await trigger.hover();
+        await expect(panel).toBeVisible();
+        await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+        await expect(panel).toHaveCSS('opacity', '1');
+        const triggerBox = (await trigger.boundingBox())!;
+        const panelBox = (await panel.boundingBox())!;
+        const gap = panelBox.y - (triggerBox.y + triggerBox.height);
+        expect(gap).toBeGreaterThan(0);
+        const gapY = triggerBox.y + triggerBox.height + gap / 2;
+        const centerX = triggerBox.x + triggerBox.width / 2;
+        const sideX = locale === 'fa' ? panelBox.x + panelBox.width - 8 : panelBox.x + 8;
+
+        // Pause in the visible gap and move toward the far side of the panel,
+        // just as a person would when choosing an item rather than the trigger.
+        await page.mouse.move(centerX, gapY, { steps: 8 });
+        await expect(panel).toHaveCSS('pointer-events', 'auto');
+        await page.mouse.move(sideX, gapY, { steps: 8 });
+        await expect(panel).toHaveCSS('pointer-events', 'auto');
+        const itemBox = (await destination.boundingBox())!;
+        const itemX = locale === 'fa' ? itemBox.x + itemBox.width - 20 : itemBox.x + 20;
+        const itemY = itemBox.y + itemBox.height / 2;
+        await page.mouse.move(itemX, itemY, { steps: 8 });
+        await expect(destination).toBeVisible();
+        expect(await destination.evaluate((element) => element.matches(':hover'))).toBe(true);
+
+        // Direct diagonal paths from either edge of the label should also work,
+        // even when the path briefly crosses a neighbouring navigation item.
+        for (const edge of [0.1, 0.9]) {
+          await page.mouse.move(10, 300);
+          await expect(panel).toBeVisible();
+          await page.mouse.click(10, 300);
+          await expect(panel).toBeHidden();
+          await page.mouse.move(triggerBox.x + triggerBox.width * edge, triggerBox.y + triggerBox.height / 2);
+          await expect(panel).toBeVisible();
+          await expect(panel).toHaveCSS('opacity', '1');
+          await page.mouse.move(itemBox.x + itemBox.width * edge, itemY, { steps: 30 });
+          expect(await destination.evaluate((element) => element.matches(':hover'))).toBe(true);
+        }
+
+        // An outside click dismisses the menu, then hovering opens it again.
+        await page.mouse.move(10, 300);
+        await expect(panel).toBeVisible();
+        await page.mouse.click(10, 300);
+        await expect(panel).toBeHidden();
+        await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+        await trigger.hover();
+        await expect(panel).toBeVisible();
+        // Start moving into the gap immediately, while the opening animation runs.
+        await page.mouse.move(centerX, triggerBox.y + triggerBox.height + 2);
+        expect(await dropdown.evaluate((element) => element.matches(':hover'))).toBe(true);
+        // The visitor can take their time even if the pointer leaves the menu.
+        await page.mouse.move(10, 300);
+        await page.waitForTimeout(1200);
+        await expect(panel).toBeVisible();
+        await page.mouse.move(itemX, itemY, { steps: 8 });
+        expect(await destination.evaluate((element) => element.matches(':hover'))).toBe(true);
+        await page.mouse.click(itemX, itemY);
+        await expect(page).toHaveURL(new RegExp(`${locale === 'fa' ? '/fa' : ''}/${menu.section}/${menu.slug}$`));
+        await expect(panel).toBeHidden();
+        await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+        await expect(page.locator('#main-content')).toBeFocused();
+      });
+    }
+  }
+}
+
+for (const language of ['en', 'fa'] as const) {
+  for (const dropdownIndex of [0, 1] as const) {
+    const menuName = dropdownIndex === 0 ? 'services' : 'destinations';
+    test(`slow diagonal ${language} ${menuName} hover keeps the original menu open`, async ({ page }) => {
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await page.emulateMedia({ reducedMotion: 'no-preference' });
+      await page.goto(language === 'fa' ? '/fa' : '/');
+      const dropdown = page.locator('.desktop-nav .nav-dropdown').nth(dropdownIndex);
+      const trigger = dropdown.locator('.nav-link');
+      const panel = dropdown.locator('.dropdown-panel');
+      const item = panel.locator('.dropdown-item').first();
+      const triggerBox = await trigger.boundingBox();
+      expect(triggerBox).not.toBeNull();
+
+      // Start near the adjacent trigger and move toward the same side of the
+      // first submenu item. At this angle the pointer crosses its neighbour.
+      const fraction = (language === 'en') === (dropdownIndex === 0) ? 0.9 : 0.1;
+      const startX = triggerBox!.x + triggerBox!.width * fraction;
+      const startY = triggerBox!.y + triggerBox!.height / 2;
+      await page.mouse.move(10, 400);
+      await page.mouse.move(startX, startY);
+      await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+      await expect(panel).toBeVisible();
+      await page.waitForTimeout(200); // Allow the panel's opening animation to settle.
+      const itemBox = await item.boundingBox();
+      expect(itemBox).not.toBeNull();
+      const endX = itemBox!.x + itemBox!.width * fraction;
+      const endY = itemBox!.y + itemBox!.height / 2;
+
+      // A real person may spend well over a second on the diagonal path.
+      for (let step = 1; step <= 20; step++) {
+        await page.mouse.move(
+          startX + (endX - startX) * step / 20,
+          startY + (endY - startY) * step / 20,
+        );
+        await page.waitForTimeout(70);
+        expect(await trigger.getAttribute('aria-expanded'), `menu closed during step ${step}`).toBe('true');
+      }
+      await expect(panel).toBeVisible();
+      expect(await item.evaluate((element) => element.matches(':hover'))).toBe(true);
+    });
+  }
+
+  test(`${language} diagonal neighbour switches only after dwelling, and cancels on leaving`, async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(language === 'fa' ? '/fa' : '/');
+    const dropdowns = page.locator('.desktop-nav .nav-dropdown');
+    const first = dropdowns.nth(0).locator('.nav-link');
+    const second = dropdowns.nth(1).locator('.nav-link');
+    const firstBox = await first.boundingBox();
+    const secondBox = await second.boundingBox();
+    expect(firstBox).not.toBeNull();
+    expect(secondBox).not.toBeNull();
+
+    const enterFirst = () => page.mouse.move(firstBox!.x + firstBox!.width / 2, firstBox!.y + firstBox!.height / 4);
+    const enterSecondDiagonally = () => page.mouse.move(secondBox!.x + secondBox!.width / 2, secondBox!.y + secondBox!.height * 3 / 4);
+    await page.mouse.move(10, 400);
+    await enterFirst();
+    await enterSecondDiagonally();
+    await expect(first).toHaveAttribute('aria-expanded', 'true');
+    await expect(second).toHaveAttribute('aria-expanded', 'false');
+
+    await page.mouse.move(10, 400);
+    await page.waitForTimeout(850);
+    await expect(first).toHaveAttribute('aria-expanded', 'true');
+    await expect(second).toHaveAttribute('aria-expanded', 'false');
+
+    await enterFirst();
+    await enterSecondDiagonally();
+    await expect(first).toHaveAttribute('aria-expanded', 'true');
+    await expect(second).toHaveAttribute('aria-expanded', 'false');
+    await page.waitForTimeout(300);
+    await expect(second).toHaveAttribute('aria-expanded', 'false');
+    await expect(second).toHaveAttribute('aria-expanded', 'true'); // Dwelling on the trigger is an intentional switch.
+    await expect(first).toHaveAttribute('aria-expanded', 'false');
+  });
+}
+
+test('desktop dropdowns switch on hover and remain keyboard accessible in both languages', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  for (const locale of ['en', 'fa'] as const) {
+    await page.goto(locale === 'fa' ? '/fa' : '/');
+    await page.mouse.move(10, 300);
+    const dropdowns = page.locator('.desktop-nav .nav-dropdown');
+    const first = dropdowns.nth(0);
+    const second = dropdowns.nth(1);
+    const firstPanel = first.locator('.dropdown-panel');
+    const secondPanel = second.locator('.dropdown-panel');
+    await first.locator('.nav-link').hover();
+    await expect(firstPanel).toBeVisible();
+    await second.locator('.nav-link').hover();
+    await expect(secondPanel).toBeVisible();
+    await expect(firstPanel).toBeHidden();
+    await page.mouse.move(10, 300);
+    await expect(secondPanel).toBeVisible();
+    await page.mouse.click(10, 300);
+    await expect(secondPanel).toBeHidden();
+
+    const trigger = first.locator('.nav-link');
+    await trigger.focus();
+    await expect(firstPanel).toBeVisible();
+    await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    await page.keyboard.press('Tab');
+    await expect(firstPanel.locator('.dropdown-item').first()).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(firstPanel).toBeHidden();
+    await expect(trigger).toBeFocused();
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    await page.keyboard.press('Tab');
+    await expect(second.locator('.nav-link')).toBeFocused();
+    await expect(secondPanel).toBeVisible();
+    await page.keyboard.press('Shift+Tab');
+    await expect(trigger).toBeFocused();
+    await expect(firstPanel).toBeVisible();
+    await page.keyboard.press('Shift+Tab');
+    await expect(firstPanel).toBeHidden();
+
+    // Even a quick Tab must enter the links before any animation finishes.
+    for (const motion of ['no-preference', 'reduce'] as const) {
+      await page.emulateMedia({ reducedMotion: motion });
+      await page.locator('#main-content').focus();
+      await trigger.focus();
+      await page.keyboard.press('Tab');
+      await expect(firstPanel.locator('.dropdown-item').first()).toBeFocused();
+    }
+    // Keyboard activation navigates and moves focus into the page, instead of
+    // leaving the now-obsolete menu open over the destination.
+    const href = await firstPanel.locator('.dropdown-item').first().getAttribute('href');
+    expect(href).toBeTruthy();
+    await page.keyboard.press('Enter');
+    await expect(page).toHaveURL(new URL(href!, page.url()).href);
+    await expect(firstPanel).toBeHidden();
+    await expect(page.locator('#main-content')).toBeFocused();
+  }
+});
+
+test('a hovered dropdown remains available when keyboard focus leaves it', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  for (const language of ['en', 'fa'] as const) {
+    await page.goto(language === 'fa' ? '/fa' : '/');
+    const dropdown = page.locator('.desktop-nav .nav-dropdown').first();
+    const trigger = dropdown.locator('.nav-link');
+    const panel = dropdown.locator('.dropdown-panel');
+    const item = panel.locator('.dropdown-item').first();
+    await trigger.focus();
+    await item.hover();
+    await page.locator('#main-content').evaluate((element) => (element as HTMLElement).focus({ preventScroll: true }));
+    await expect(panel).toBeVisible();
+    expect(await item.evaluate((element) => element.matches(':hover'))).toBe(true);
+    await page.mouse.click(10, 400);
+    await expect(panel).toBeHidden();
+  }
+});
+
+test('a pending diagonal switch is cancelled when the header becomes mobile', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+  const dropdowns = page.locator('.desktop-nav .nav-dropdown');
+  const first = dropdowns.nth(0).locator('.nav-link');
+  const second = dropdowns.nth(1).locator('.nav-link');
+  const firstBox = (await first.boundingBox())!;
+  const secondBox = (await second.boundingBox())!;
+  await page.mouse.move(firstBox.x + firstBox.width / 2, firstBox.y + firstBox.height / 4);
+  await page.mouse.move(secondBox.x + secondBox.width / 2, secondBox.y + secondBox.height * 3 / 4);
+  await expect(first).toHaveAttribute('aria-expanded', 'true');
+  await expect(second).toHaveAttribute('aria-expanded', 'false');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.mouse.move(10, 400);
+  await page.waitForTimeout(850);
+  await page.getByRole('button', { name: 'Menu', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: 'Menu' })).toBeVisible();
+  await page.getByRole('button', { name: 'Close menu' }).click();
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await expect(dropdowns.nth(0).locator('.dropdown-panel')).toBeHidden();
+  await expect(dropdowns.nth(1).locator('.dropdown-panel')).toBeHidden();
+});
+
+test('a quick hover on another menu lets visitors immediately choose from it', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  for (const locale of ['en', 'fa'] as const) {
+    for (const [fromIndex, toIndex] of [[0, 1], [1, 0]]) {
+      await page.goto(locale === 'fa' ? '/fa' : '/');
+      await page.mouse.move(10, 300);
+      const dropdowns = page.locator('.desktop-nav .nav-dropdown');
+      const from = dropdowns.nth(fromIndex);
+      const to = dropdowns.nth(toIndex);
+      await from.locator('.nav-link').hover();
+      await expect(from.locator('.dropdown-panel')).toBeVisible();
+      const triggerBox = (await to.locator('.nav-link').boundingBox())!;
+      const link = to.locator('.dropdown-item').first();
+      const linkBox = (await link.boundingBox())!;
+      const href = await link.getAttribute('href');
+      expect(href).toBeTruthy();
+      await page.mouse.move(triggerBox.x + triggerBox.width / 2, triggerBox.y + triggerBox.height / 2);
+      await page.mouse.move(linkBox.x + linkBox.width / 2, linkBox.y + linkBox.height / 2, { steps: 6 });
+      expect(await link.evaluate((element) => element.matches(':hover'))).toBe(true);
+      await page.mouse.click(linkBox.x + linkBox.width / 2, linkBox.y + linkBox.height / 2);
+      await expect(page).toHaveURL(new URL(href!, page.url()).href);
+    }
+  }
+});
+
+test('dropdown links retain modified-click behavior for opening a new tab', async ({ page, context }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+  const dropdown = page.locator('.desktop-nav .nav-dropdown').first();
+  const panel = dropdown.locator('.dropdown-panel');
+  await dropdown.locator('.nav-link').hover();
+  const link = panel.locator('.dropdown-item').first();
+  await expect(link).toBeVisible();
+  const href = await link.getAttribute('href');
+  expect(href).toBeTruthy();
+  const [newTab] = await Promise.all([
+    context.waitForEvent('page'),
+    link.click({ modifiers: ['Control'] }),
+  ]);
+  await expect(newTab).toHaveURL(new URL(href!, page.url()).href);
+  await expect(page).toHaveURL(/\/$/);
+  await expect(panel).toBeVisible();
+  await newTab.close();
+});
+
+test('dropdowns stay open after the pointer leaves and reset when the header becomes mobile', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+  const dropdown = page.locator('.desktop-nav .nav-dropdown').first();
+  const panel = dropdown.locator('.dropdown-panel');
+  const firstItem = panel.locator('.dropdown-item').first();
+  await dropdown.locator('.nav-link').hover();
+  await expect(panel).toBeVisible();
+  const itemBox = (await firstItem.boundingBox())!;
+  await page.mouse.move(10, 300);
+  await page.waitForTimeout(2000);
+  await expect(panel).toBeVisible();
+  await page.mouse.move(itemBox.x + itemBox.width / 2, itemBox.y + itemBox.height / 2);
+  await page.waitForTimeout(350);
+  await expect(panel).toBeVisible();
+  expect(await firstItem.evaluate((element) => element.matches(':hover'))).toBe(true);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.mouse.move(10, 300);
+  await expect(page.locator('.desktop-nav')).toBeHidden();
+  await page.getByRole('button', { name: 'Menu', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: 'Menu' })).toBeVisible();
+  await page.getByRole('button', { name: 'Close menu' }).click();
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await expect(page.locator('.desktop-nav')).toBeVisible();
+  await expect(panel).toBeHidden();
 });
 
 test('language, navigation, filters, detail links and accordion work', async ({ page }) => {
@@ -313,5 +803,408 @@ test('tablet menu animates from the correct side and closes on the backdrop', as
     await page.mouse.click(backdropX, 400);
     await expect(panel).toHaveCount(0);
     await expect(toggle).toBeFocused();
+  }
+});
+
+test('consultation page explains the benefits without hiding the demo disclosure', async ({ page }) => {
+  for (const width of [320, 744, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const [path, title, disclaimer] of [
+      ['/consultation', 'Why start with a consultation?', 'Demo form only.'],
+      ['/fa/consultation', 'چرا مشاوره بگیریم؟', 'این فرم نمایشی است'],
+    ] as const) {
+      await page.goto(path);
+      const benefits = page.getByRole('region', { name: title });
+      await expect(benefits.getByRole('heading', { name: title })).toBeVisible();
+      await expect(benefits.getByRole('listitem')).toHaveCount(3);
+      await expect(page.getByText(disclaimer, { exact: false }).first()).toBeVisible();
+      await expect(page.locator('#fullName')).toBeVisible();
+      if (path.startsWith('/fa')) await expect(benefits).toContainText('نمی‌تواند ویزا یا نتیجه را تضمین کند');
+      else await expect(benefits).toContainText('No adviser can guarantee a visa or outcome');
+      await expectNoOverflow(page);
+    }
+  }
+});
+
+test('consultant and testimonial carousels support arrows, keyboard and mouse dragging', async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const locale of ['en', 'fa'] as const) {
+    for (const variant of ['experts', 'testimonials'] as const) {
+      await page.goto(locale === 'fa' ? '/fa' : '/');
+      const carousel = page.locator(`.card-carousel-${variant}`);
+      const track = carousel.locator('.card-carousel-track');
+      const previous = carousel.getByRole('button', { name: locale === 'fa' ? 'اسلاید قبلی' : 'Previous slide' });
+      const next = carousel.getByRole('button', { name: locale === 'fa' ? 'اسلاید بعدی' : 'Next slide' });
+      await expect(carousel.locator('.card-carousel-slide')).toHaveCount(variant === 'experts' ? 4 : 3);
+      await track.scrollIntoViewIfNeeded();
+      await expect(previous).toBeDisabled();
+      await next.click();
+      await expect.poll(() => track.evaluate((element) => Math.abs(element.scrollLeft))).toBeGreaterThan(20);
+      await expect(previous).toBeEnabled();
+      await previous.click();
+      await expect.poll(() => track.evaluate((element) => Math.abs(element.scrollLeft))).toBeLessThan(2);
+
+      await track.focus();
+      await page.keyboard.press(locale === 'fa' ? 'ArrowLeft' : 'ArrowRight');
+      await expect.poll(() => track.evaluate((element) => Math.abs(element.scrollLeft))).toBeGreaterThan(20);
+      await page.keyboard.press('End');
+      await expect(next).toBeDisabled();
+      await page.keyboard.press('Home');
+      await expect.poll(() => track.evaluate((element) => Math.abs(element.scrollLeft))).toBeLessThan(2);
+      await expect(previous).toBeDisabled();
+      if (variant === 'experts') {
+        await page.keyboard.press('Tab');
+        await expect(carousel.locator('.expert-card').first()).toBeFocused();
+        await page.keyboard.press('Tab');
+        await expect(carousel.locator('.expert-card').nth(1)).toBeFocused();
+        await track.focus();
+        await page.keyboard.press('Home');
+        await expect.poll(() => track.evaluate((element) => Math.abs(element.scrollLeft))).toBeLessThan(2);
+      }
+
+      await track.scrollIntoViewIfNeeded();
+      const box = await track.boundingBox();
+      expect(box).not.toBeNull();
+      const y = box!.y + Math.min(150, box!.height / 2);
+      const from = locale === 'fa' ? box!.x + box!.width * 0.25 : box!.x + box!.width * 0.75;
+      const to = locale === 'fa' ? box!.x + box!.width * 0.8 : box!.x + box!.width * 0.2;
+      const originalUrl = page.url();
+      await page.mouse.move(from, y);
+      await page.mouse.down();
+      await page.mouse.move(to, y, { steps: 12 });
+      await page.mouse.up();
+      await expect.poll(() => track.evaluate((element) => Math.abs(element.scrollLeft))).toBeGreaterThan(20);
+      expect(page.url()).toBe(originalUrl); // Dragging a linked consultant must not open the profile.
+      await expectNoOverflow(page);
+      if (variant === 'experts') {
+        await carousel.locator('.expert-card').nth(1).click();
+        await expect(page).toHaveURL(locale === 'fa' ? /\/fa\/experts\/sample-education-advisor$/ : /\/experts\/sample-education-advisor$/);
+      } else {
+        await expect(carousel.locator('.testimonial-card').first()).toContainText(locale === 'fa' ? 'نمونه' : 'Sample');
+      }
+    }
+  }
+});
+
+test('carousel arrows stay usable on tablet and desktop in both languages', async ({ page }) => {
+  test.setTimeout(120_000);
+  for (const width of [744, 1133, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const locale of ['en', 'fa'] as const) {
+      await page.goto(locale === 'fa' ? '/fa' : '/');
+      for (const variant of ['experts', 'testimonials'] as const) {
+        const carousel = page.locator(`.card-carousel-${variant}`);
+        const track = carousel.locator('.card-carousel-track');
+        const next = carousel.getByRole('button', { name: locale === 'fa' ? 'اسلاید بعدی' : 'Next slide' });
+        const previous = carousel.getByRole('button', { name: locale === 'fa' ? 'اسلاید قبلی' : 'Previous slide' });
+        await expect(next).toBeVisible();
+        await next.click();
+        await expect.poll(() => track.evaluate((element) => Math.abs(element.scrollLeft))).toBeGreaterThan(20);
+        await previous.click();
+        await expect.poll(() => track.evaluate((element) => Math.abs(element.scrollLeft))).toBeLessThan(2);
+        await expectNoOverflow(page);
+      }
+    }
+  }
+});
+
+test('homepage shows consultant profiles and localized links in both languages', async ({ page }) => {
+  for (const [path, title, name, sample, viewAll] of [
+    ['/', 'Meet our consultants', 'Sample Senior Advisor', 'Sample', 'View all consultants'],
+    ['/fa', 'با مشاوران ما آشنا شوید', 'مشاور ارشد نمونه', 'نمونه', 'مشاهده همه مشاوران'],
+  ] as const) {
+    await page.goto(path);
+    const section = page.getByRole('region', { name: title });
+    await expect(section.getByRole('heading', { name: title })).toBeVisible();
+    const cards = section.locator('.expert-card');
+    await expect(cards).toHaveCount(4);
+    await expect(cards.first().getByRole('heading', { name })).toBeVisible();
+    await expect(section.getByText(sample, { exact: true })).toHaveCount(4);
+    await expect(cards.first()).toHaveAttribute('href', path === '/' ? '/experts/sample-senior-advisor' : '/fa/experts/sample-senior-advisor');
+    await expect(section.getByRole('link', { name: viewAll })).toHaveAttribute('href', path === '/' ? '/experts' : '/fa/experts');
+    await cards.first().click();
+    await expect(page.locator('h1').first()).toHaveText(name);
+    await page.goto(path);
+    await page.getByRole('region', { name: title }).getByRole('link', { name: viewAll }).click();
+    await expect(page).toHaveURL(path === '/' ? /\/experts$/ : /\/fa\/experts$/);
+  }
+});
+
+test('mobile and iPad navbar language icon switches the current page in both directions', async ({ page }) => {
+  test.setTimeout(120_000);
+  for (const width of [320, 360, 375, 380, 390, 744, 1133]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/services?source=nav#top');
+    await expectCenteredMobileBooking(page, 'en');
+    await page.getByRole('button', { name: 'Switch to Persian', exact: true }).click();
+    await expect(page).toHaveURL(/\/fa\/services\?source=nav#top$/);
+    await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+    await expectCenteredMobileBooking(page, 'fa');
+    expect(await page.evaluate(() => localStorage.getItem('faratech_lang'))).toBe('fa');
+    await page.getByRole('button', { name: 'تغییر زبان به انگلیسی', exact: true }).click();
+    await expect(page).toHaveURL(/\/services\?source=nav#top$/);
+    await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
+    expect(await page.evaluate(() => localStorage.getItem('faratech_lang'))).toBe('en');
+    await expectCenteredMobileBooking(page, 'en');
+  }
+});
+
+test('mobile and tablet headers center a working localized booking link without collisions', async ({ page }) => {
+  test.setTimeout(120_000);
+  for (const width of [320, 360, 390, 599, 600, 744, 768, 1024, 1133, 1199]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const locale of ['en', 'fa'] as const) {
+      await page.goto(locale === 'fa' ? '/fa' : '/');
+      await page.evaluate(() => document.fonts.ready);
+      await expectCenteredMobileBooking(page, locale);
+      if ([320, 744, 1133].includes(width)) {
+        await page.locator('.site-header .mobile-consultation').click();
+        await expect(page).toHaveURL(locale === 'fa' ? /\/fa\/consultation$/ : /\/consultation$/);
+        await expect(page.locator('h1')).toBeVisible();
+      }
+    }
+  }
+
+  await page.setViewportSize({ width: 1200, height: 900 });
+  await page.goto('/');
+  await expect(page.locator('.site-header .mobile-consultation')).toBeHidden();
+  await expect(page.locator('.site-header .mobile-language')).toBeHidden();
+  await expect(page.locator('.site-header .mobile-toggle')).toBeHidden();
+  await expect(page.getByRole('navigation', { name: 'Primary', exact: true })).toBeVisible();
+});
+
+test('advice portrait is fully visible with its caption below on mobile and iPad sizes', async ({ page }) => {
+  test.setTimeout(120_000);
+  for (const width of [320, 390, 599, 600, 744, 768, 1024, 1133, 1199]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const locale of ['en', 'fa'] as const) {
+      await page.goto(locale === 'fa' ? '/fa' : '/');
+      const image = page.locator('.home-advice-photo img');
+      const note = page.locator('.home-advice-note');
+      const frame = page.locator('.home-advice-image');
+      await image.scrollIntoViewIfNeeded();
+      await expect(image).toHaveJSProperty('naturalWidth', 1800);
+      await expect(image).toHaveJSProperty('naturalHeight', 2699);
+      await expect(image).toHaveAttribute('width', '1800');
+      await expect(image).toHaveAttribute('height', '2699');
+      await expect(image).toHaveCSS('position', 'static');
+      await expect(image).toHaveCSS('object-fit', 'contain');
+      await expect(page.locator('.home-advice-shade')).toBeHidden();
+      await expect(note).toBeVisible();
+      const [imageBox, noteBox, frameBox] = await Promise.all([image.boundingBox(), note.boundingBox(), frame.boundingBox()]);
+      expect(imageBox && noteBox && frameBox).toBeTruthy();
+      expect(imageBox!.height / imageBox!.width).toBeCloseTo(2699 / 1800, 2);
+      expect(noteBox!.y).toBeGreaterThanOrEqual(imageBox!.y + imageBox!.height - 1);
+      expect(imageBox!.x).toBeGreaterThanOrEqual(frameBox!.x - 1);
+      expect(imageBox!.x + imageBox!.width).toBeLessThanOrEqual(frameBox!.x + frameBox!.width + 1);
+      expect(imageBox!.y).toBeGreaterThanOrEqual(frameBox!.y - 1);
+      expect(noteBox!.y + noteBox!.height).toBeLessThanOrEqual(frameBox!.y + frameBox!.height + 1);
+      if (width >= 600) expect(imageBox!.width).toBeLessThanOrEqual(321);
+      await expectNoOverflow(page);
+    }
+  }
+});
+
+test.describe('touch-screen iPad layouts', () => {
+  test.use({ hasTouch: true, isMobile: true });
+
+  test('touch swipes move both carousels forwards and backwards in LTR and RTL', async ({ page }) => {
+    test.setTimeout(120_000);
+    const client = await page.context().newCDPSession(page);
+    for (const width of [390, 744]) {
+      await page.setViewportSize({ width, height: width === 744 ? 1133 : 844 });
+      for (const locale of ['en', 'fa'] as const) {
+        for (const variant of ['experts', 'testimonials'] as const) {
+          await page.goto(locale === 'fa' ? '/fa' : '/');
+          const track = page.locator(`.card-carousel-${variant} .card-carousel-track`);
+          await track.scrollIntoViewIfNeeded();
+          const box = await track.boundingBox();
+          expect(box).not.toBeNull();
+          const y = box!.y + Math.min(150, box!.height / 2);
+          const start = locale === 'fa' ? box!.x + box!.width * 0.25 : box!.x + box!.width * 0.75;
+          const end = locale === 'fa' ? box!.x + box!.width * 0.8 : box!.x + box!.width * 0.2;
+          const swipe = async (from: number, to: number) => {
+            await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: from, y }] });
+            for (let i = 1; i <= 12; i++) {
+              await client.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: from + (to - from) * i / 12, y }] });
+              await page.waitForTimeout(12);
+            }
+            await client.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+          };
+          await swipe(start, end);
+          await expect.poll(() => track.evaluate((element) => Math.abs(element.scrollLeft))).toBeGreaterThan(20);
+          await page.waitForTimeout(400); // Let touch momentum and snap settle before reversing direction.
+          const moved = await track.evaluate((element) => Math.abs(element.scrollLeft));
+          await swipe(end, start);
+          await expect.poll(() => track.evaluate((element) => Math.abs(element.scrollLeft))).toBeLessThan(moved - 10);
+          await expectNoOverflow(page);
+        }
+      }
+    }
+  });
+
+  test('rotation keeps the mobile menu until a true desktop layout is reached', async ({ page }) => {
+    await page.setViewportSize({ width: 744, height: 1133 });
+    await page.goto('/');
+    expect(await page.evaluate(() => matchMedia('(pointer: coarse)').matches)).toBe(true);
+    await expectCenteredMobileBooking(page, 'en');
+    await page.getByRole('button', { name: 'Menu', exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: 'Menu' });
+    await expect(dialog).toBeVisible();
+
+    await page.setViewportSize({ width: 1133, height: 744 });
+    await expect(dialog).toBeVisible();
+    await page.setViewportSize({ width: 1366, height: 1024 });
+    await expect(dialog).toBeVisible();
+    await page.getByRole('button', { name: 'Close menu' }).click();
+    await expectCenteredMobileBooking(page, 'en');
+    const image = page.locator('.home-advice-photo img');
+    await expect(image).toHaveCSS('position', 'static');
+    await expect(image).toHaveCSS('object-fit', 'contain');
+    const imageBox = await image.boundingBox();
+    expect(imageBox!.height / imageBox!.width).toBeCloseTo(2699 / 1800, 2);
+
+    await page.getByRole('button', { name: 'Menu', exact: true }).click();
+    await page.setViewportSize({ width: 1367, height: 1024 });
+    await expect(dialog).toHaveCount(0);
+    await expect(page.locator('body')).not.toHaveCSS('overflow', 'hidden');
+    await expect(page.locator('.site-header .mobile-consultation')).toBeHidden();
+    await expect(page.getByRole('navigation', { name: 'Primary', exact: true })).toBeVisible();
+  });
+});
+
+test('conversation image swaps sides and the smaller logo fits across viewports', async ({ page }) => {
+  test.setTimeout(120_000);
+  for (const width of [320, 390, 639, 640, 768, 1024, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const locale of ['en', 'fa'] as const) {
+      await page.goto(locale === 'fa' ? '/fa' : '/');
+      const heading = page.getByRole('heading', { name: locale === 'fa' ? 'پرسش‌هایی را بیاورید که از پرسیدنشان می‌ترسیدید.' : 'Bring the questions you have been afraid to ask.', exact: true });
+      await expect(heading).toBeVisible();
+      const section = heading.locator('xpath=ancestor::section');
+      const copy = await section.locator('.home-advice-copy').boundingBox();
+      const image = await section.locator('.home-advice-image').boundingBox();
+      expect(copy).not.toBeNull();
+      expect(image).not.toBeNull();
+      if (width >= 600) {
+        if (locale === 'fa') expect(image!.x + image!.width).toBeLessThanOrEqual(copy!.x + 1);
+        else expect(copy!.x + copy!.width).toBeLessThanOrEqual(image!.x + 1);
+      } else {
+        expect(copy!.y + copy!.height).toBeLessThanOrEqual(image!.y + 1);
+      }
+      const logo = page.locator('.site-header img.brand-logo');
+      await expect(logo).toHaveCSS('height', width < 640 ? '40px' : '44px');
+      const logoBounds = await logo.boundingBox();
+      expect(logoBounds && logoBounds.x >= 0 && logoBounds.x + logoBounds.width <= width).toBeTruthy();
+      expect(logoBounds!.width / logoBounds!.height).toBeCloseTo(540 / 320, 2);
+      await expectNoOverflow(page);
+    }
+  }
+});
+
+test('responsive logo fits the mobile menu, footer and admin layouts', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 800 });
+  for (const [path, menu, close] of [['/', 'Menu', 'Close menu'], ['/fa', 'منو', 'بستن منو']] as const) {
+    await page.goto(path);
+    const headerLogo = page.locator('.site-header img.brand-logo');
+    await expect(headerLogo).toHaveCSS('height', '40px');
+    await page.getByRole('button', { name: menu, exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: menu });
+    const menuLogo = dialog.locator('img.brand-logo');
+    await expect(menuLogo).toBeVisible();
+    await expect(menuLogo).toHaveCSS('height', '40px');
+    const menuBox = await dialog.boundingBox();
+    const logoBox = await menuLogo.boundingBox();
+    expect(menuBox && logoBox && logoBox.x >= menuBox.x && logoBox.x + logoBox.width <= menuBox.x + menuBox.width).toBeTruthy();
+    await dialog.getByRole('button', { name: close }).click();
+    const footerLogo = page.locator('footer .brand-lockup-light img.brand-logo');
+    await expect(footerLogo).toHaveCSS('height', '40px');
+    await expect(footerLogo).toHaveCSS('object-fit', 'contain');
+    await expectNoOverflow(page);
+  }
+
+  await page.goto('/admin/login');
+  await expect(page.locator('img.brand-logo:visible')).toHaveCSS('height', '40px');
+  await page.getByRole('button', { name: 'Enter demo workspace' }).click();
+  await page.getByRole('button', { name: 'Open navigation' }).click();
+  const adminLogo = page.locator('.admin-sidebar img.brand-logo');
+  await expect(adminLogo).toBeVisible();
+  await expect(adminLogo).toHaveCSS('height', '40px');
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await expect(adminLogo).toHaveCSS('height', '44px');
+  await expectNoOverflow(page);
+});
+
+test('wide configured logos remain contained on mobile and desktop', async ({ page }) => {
+  const wideLogo = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="100"><rect width="1200" height="100" fill="#09264a"/></svg>')}`;
+  await page.setViewportSize({ width: 320, height: 800 });
+  await page.goto('/admin/login');
+  await page.getByRole('button', { name: 'Enter demo workspace' }).click();
+  await expect(page).toHaveURL(/\/admin$/);
+  await page.goto('/admin/settings');
+  await page.getByLabel('Logo', { exact: true }).fill(wideLogo);
+  await page.getByRole('button', { name: 'Save settings' }).first().click();
+  await expect(page.getByText('Website settings saved.')).toBeVisible();
+  await page.goto('/');
+  const logo = page.locator('.site-header img.brand-logo');
+  await expect(logo).toHaveAttribute('src', wideLogo);
+  await expect(logo).toHaveJSProperty('naturalWidth', 1200);
+  await expect(logo).toHaveCSS('height', '40px');
+  await expect(logo).toHaveCSS('object-fit', 'contain');
+  expect((await logo.boundingBox())!.width).toBeLessThanOrEqual(112);
+  await expectCenteredMobileBooking(page, 'en');
+  await page.getByRole('button', { name: 'Menu', exact: true }).click();
+  const menuLogo = page.getByRole('dialog', { name: 'Menu' }).locator('img.brand-logo');
+  expect((await menuLogo.boundingBox())!.width).toBeLessThanOrEqual(112);
+  await page.getByRole('button', { name: 'Close menu' }).click();
+  await page.goto('/fa');
+  await expect(logo).toHaveAttribute('src', wideLogo);
+  await expectCenteredMobileBooking(page, 'fa');
+  await page.getByRole('button', { name: 'منو', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: 'منو' }).locator('img.brand-logo')).toBeVisible();
+  await page.getByRole('button', { name: 'بستن منو' }).click();
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await expect(logo).toHaveCSS('height', '44px');
+  expect((await logo.boundingBox())!.width).toBeLessThanOrEqual(120);
+  await expectNoOverflow(page);
+});
+
+test('homepage clarity image aligns with its title and content, and stays compact on smaller screens', async ({ page }) => {
+  test.setTimeout(120_000);
+  for (const width of [320, 390, 768, 1023, 1024, 1280, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const locale of ['en', 'fa'] as const) {
+      await page.goto(locale === 'fa' ? '/fa' : '/');
+      const heading = page.getByRole('heading', {
+        name: locale === 'fa' ? 'شفافیت، پایه یک برنامه مهاجرتی خوب است.' : 'Clarity is the foundation of a good immigration plan.',
+        exact: true,
+      });
+      await expect(heading).toBeVisible();
+      await page.evaluate(() => document.fonts.ready);
+      const section = heading.locator('xpath=ancestor::section');
+      const image = section.locator('.home-why-image-frame img');
+      const details = section.locator('.home-why-details');
+      const note = section.locator('.home-why-image-note');
+      const [titleBox, imageBox, detailsBox, noteBox] = await Promise.all([
+        heading.boundingBox(), image.boundingBox(), details.boundingBox(), note.boundingBox(),
+      ]);
+      expect(titleBox && imageBox && detailsBox && noteBox).toBeTruthy();
+      if (width >= 1024) {
+        expect(Math.abs(imageBox!.y - titleBox!.y)).toBeLessThanOrEqual(1);
+        expect(Math.abs(imageBox!.y + imageBox!.height - detailsBox!.y - detailsBox!.height)).toBeLessThanOrEqual(1);
+        if (locale === 'en') expect(imageBox!.x + imageBox!.width).toBeLessThanOrEqual(titleBox!.x);
+        else expect(titleBox!.x + titleBox!.width).toBeLessThanOrEqual(imageBox!.x);
+        if (width >= 1280) expect(imageBox!.height).toBeLessThan(imageBox!.width * 1.125);
+      } else {
+        expect(imageBox!.height / imageBox!.width).toBeCloseTo(3 / 4, 2);
+        expect(imageBox!.y + imageBox!.height).toBeLessThan(titleBox!.y);
+      }
+      expect(noteBox!.x).toBeGreaterThanOrEqual(imageBox!.x);
+      expect(noteBox!.x + noteBox!.width).toBeLessThanOrEqual(imageBox!.x + imageBox!.width + 1);
+      expect(noteBox!.y).toBeGreaterThanOrEqual(imageBox!.y);
+      expect(noteBox!.y + noteBox!.height).toBeLessThanOrEqual(imageBox!.y + imageBox!.height + 1);
+      await expectNoOverflow(page);
+    }
   }
 });

@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { ArrowUp, RefreshCw } from 'lucide-react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import type { PublicSitePayload } from '@shared/types';
@@ -7,6 +7,7 @@ import { useSiteData } from '@/lib/site';
 import { useScrollToTop } from '@/lib/seo';
 import { Footer } from './Footer';
 import { Header } from './Header';
+import { LoadingScreen } from './LoadingScreen';
 import { Logo } from './Logo';
 
 const SiteContext = createContext<PublicSitePayload | null>(null);
@@ -15,20 +16,6 @@ export function usePublicSite() {
   const value = useContext(SiteContext);
   if (!value) throw new Error('usePublicSite must be used inside PublicLayout');
   return value;
-}
-
-function FullPageLoader() {
-  return (
-    <div className="grid min-h-screen place-items-center bg-sky-50">
-      <div className="flex flex-col items-center gap-5">
-        <Logo />
-        <div className="flex items-center gap-2 text-xs text-muted">
-          <span className="h-2 w-2 animate-pulse rounded-full bg-orange" />
-          <span>Loading Apply Now…</span>
-        </div>
-      </div>
-    </div>
-  );
 }
 
 function LoadError({ retry }: { retry: () => void }) {
@@ -49,25 +36,36 @@ function LoadError({ retry }: { retry: () => void }) {
 
 export function PublicLayout() {
   const { data, isLoading, isError, refetch } = useSiteData();
-  const { pathname, search } = useLocation();
+  const { pathname, search, hash } = useLocation();
   const navigate = useNavigate();
   const { t, locale } = useLocale();
   const [showTop, setShowTop] = useState(false);
+  const [initialLanguageReady, setInitialLanguageReady] = useState(false);
+  const checkedInitialLanguage = useRef(false);
   useScrollToTop(pathname);
 
   useEffect(() => {
-    if (!data || pathname !== '/') return;
-    const preference = (() => {
-      try {
-        return window.localStorage.getItem('faratech_lang');
-      } catch {
-        return null;
+    if (!data || checkedInitialLanguage.current) return;
+    checkedInitialLanguage.current = true;
+    // A prefixed or deep URL is an explicit language choice. Only the initial
+    // unprefixed home URL uses the visitor preference or configured default.
+    if (pathname === '/') {
+      const preference = (() => {
+        try {
+          return window.localStorage.getItem('faratech_lang');
+        } catch {
+          return null;
+        }
+      })();
+      const initialLanguage = preference === 'en' || preference === 'fa'
+        ? preference
+        : data.settings.general?.defaultLanguage || 'en';
+      if (initialLanguage === 'fa') {
+        navigate(`/fa${search}${hash}`, { replace: true });
       }
-    })();
-    if (!preference && data.settings.general?.defaultLanguage === 'fa') {
-      navigate(`/fa${search}`, { replace: true });
     }
-  }, [data, pathname, search, navigate]);
+    setInitialLanguageReady(true);
+  }, [data, pathname, search, hash, navigate]);
 
   useEffect(() => {
     const onScroll = () => setShowTop(window.scrollY > 700);
@@ -75,7 +73,7 @@ export function PublicLayout() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  if (isLoading || (!data && !isError)) return <FullPageLoader />;
+  if (isLoading || (!data && !isError) || (data && !initialLanguageReady)) return <LoadingScreen />;
   if (isError || !data) return <LoadError retry={() => void refetch()} />;
 
   return (
@@ -92,7 +90,7 @@ export function PublicLayout() {
         </div>
       )}
       <Header settings={data.settings} services={data.services} destinations={data.destinations} />
-      <main id="main-content">
+      <main id="main-content" tabIndex={-1}>
         <Outlet />
       </main>
       <Footer settings={data.settings} services={data.services} destinations={data.destinations} />

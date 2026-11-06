@@ -133,7 +133,7 @@ export function ExpertCard({ expert }: { expert: Expert }) {
 }
 
 export function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
-  const { locale, t } = useLocale();
+  const { locale, t, formatNumber } = useLocale();
   const quote = locale === 'fa' ? testimonial.quote_fa : testimonial.quote_en;
   const service = locale === 'fa' ? testimonial.service_fa : testimonial.service_en;
   return (
@@ -144,9 +144,9 @@ export function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
         </span>
         <div className="flex items-center gap-2">
           {testimonial.is_demo && <span className="tag tag-orange">{t('common.demo')}</span>}
-          <span className="rating" aria-label={`${testimonial.rating} out of 5`}>
+          <span className="rating" aria-label={locale === 'fa' ? `${formatNumber(testimonial.rating)} از ۵ ستاره` : `${testimonial.rating} out of 5 stars`}>
             {Array.from({ length: 5 }).map((_, index) => (
-              <Star key={index} size={11} fill={index < testimonial.rating ? 'currentColor' : 'none'} />
+              <Star key={index} size={11} fill={index < testimonial.rating ? 'currentColor' : 'none'} aria-hidden="true" />
             ))}
           </span>
         </div>

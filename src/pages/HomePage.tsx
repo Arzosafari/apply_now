@@ -15,7 +15,8 @@ import {
 import { LocalLink, useLocale } from '@/lib/i18n';
 import { usePageMeta } from '@/lib/seo';
 import { usePublicSite } from '@/components/PublicLayout';
-import { ArticleCard, DestinationCard, ServiceCard, TestimonialCard } from '@/components/Cards';
+import { ArticleCard, DestinationCard, ExpertCard, ServiceCard, TestimonialCard } from '@/components/Cards';
+import { CardCarousel } from '@/components/CardCarousel';
 import { CtaBand } from '@/components/CtaBand';
 import { FaqAccordion } from '@/components/FaqAccordion';
 import { Reveal } from '@/components/Reveal';
@@ -36,9 +37,10 @@ const processIcons = [MessageSquareText, Route, FileCheck2, BadgeCheck];
 
 export function HomePage() {
   const site = usePublicSite();
-  const { settings, services, destinations, testimonials, articles, faqs } = site;
+  const { settings, services, destinations, experts, testimonials, articles, faqs } = site;
   const { t, locale } = useLocale();
   const hero = settings.hero;
+  const featuredExperts = experts.slice(0, 4);
 
   usePageMeta({
     title: locale === 'fa' ? settings.seo.title_fa : settings.seo.title,
@@ -230,19 +232,19 @@ export function HomePage() {
       </section>
 
       <section className="section">
-        <div className="shell grid items-center gap-12 lg:grid-cols-[0.9fr_1.1fr]">
-          <Reveal className="relative">
-            <div className="overflow-hidden rounded-[20px]">
+        <div className="shell grid lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:grid-rows-[auto_auto_1fr] lg:gap-x-12">
+          <Reveal className="home-why-image relative mb-12 lg:col-start-1 lg:row-start-2 lg:row-end-4 lg:mb-0">
+            <div className="home-why-image-frame relative aspect-[4/3] overflow-hidden rounded-[20px] lg:absolute lg:inset-0 lg:aspect-auto">
               <img
-                className="aspect-[4/4.5] w-full object-cover"
+                className="absolute inset-0 h-full w-full object-cover"
                 src="/images/consultation.jpg"
                 alt={locale === 'fa' ? 'جلسه مشاوره حرفه‌ای' : 'A professional immigration consultation'}
                 loading="lazy"
-                width="800"
-                height="900"
+                width="1800"
+                height="1350"
               />
             </div>
-            <div className="absolute -bottom-5 start-5 end-5 rounded-xl border border-line bg-white/95 p-4 shadow-card backdrop-blur md:end-auto md:w-72">
+            <div className="home-why-image-note absolute bottom-4 start-4 end-4 rounded-xl border border-line bg-white/95 p-4 shadow-card backdrop-blur md:end-auto md:w-72">
               <div className="flex items-center gap-3">
                 <span className="grid h-10 w-10 place-items-center rounded-lg bg-orange text-[#2c210f]">
                   <ShieldCheck size={19} />
@@ -259,10 +261,10 @@ export function HomePage() {
             </div>
           </Reveal>
 
-          <Reveal delay={80}>
-            <div className="eyebrow">{t('home.whyEyebrow')}</div>
-            <h2 className="section-title mt-4">{t('home.whyTitle')}</h2>
-            <p className="lede mt-4">{t('home.whyBody')}</p>
+          <div className="eyebrow mb-4 justify-self-start lg:col-start-2 lg:row-start-1">{t('home.whyEyebrow')}</div>
+          <h2 className="section-title min-w-0 lg:col-start-2 lg:row-start-2">{t('home.whyTitle')}</h2>
+          <Reveal className="home-why-details mt-4 min-w-0 lg:col-start-2 lg:row-start-3" delay={80}>
+            <p className="lede">{t('home.whyBody')}</p>
             <div className="mt-8 grid gap-x-8 gap-y-7 sm:grid-cols-2">
               {whyItems.map((item) => (
                 <div key={item.title} className="flex gap-3.5">
@@ -282,32 +284,8 @@ export function HomePage() {
 
       <section className="bg-sky-100/60">
         <div className="shell">
-          <div className="grid overflow-hidden rounded-[20px] bg-white shadow-card lg:grid-cols-[0.9fr_1.1fr]">
-            <div className="relative min-h-[280px] overflow-hidden">
-              <img
-                className="absolute inset-0 h-full w-full object-cover"
-                src="/images/team.jpg"
-                alt={locale === 'fa' ? 'تیم مشاوره در حال بررسی پرونده' : 'Advisers reviewing a client case'}
-                loading="lazy"
-                width="900"
-                height="600"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-navy/70 via-navy/10 to-transparent" />
-              <div className="absolute bottom-5 start-5 end-5 flex items-center gap-3 rounded-xl border border-white/20 bg-navy/60 p-3 text-white backdrop-blur">
-                <span className="grid h-9 w-9 place-items-center rounded-lg bg-orange text-navy">
-                  <UserRound size={17} />
-                </span>
-                <div>
-                  <div className="text-[0.75rem] font-semibold">
-                    {locale === 'fa' ? 'یک مشاور مشخص برای پرونده شما' : 'One named adviser for your case'}
-                  </div>
-                  <div className="mt-0.5 text-[0.63rem] text-white/55">
-                    {locale === 'fa' ? 'بدون انتقال مکرر میان افراد' : 'No repeated hand-offs'}
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="p-7 md:p-10">
+          <div className="home-advice-card grid overflow-hidden rounded-[20px] bg-white shadow-card">
+            <div className="home-advice-copy p-7 md:p-10">
               <div className="eyebrow">{t('home.adviceEyebrow')}</div>
               <h2 className="mt-4 font-display text-[clamp(1.5rem,2.6vw,2.05rem)] font-bold leading-[1.2] text-navy">
                 {t('home.adviceTitle')}
@@ -323,9 +301,60 @@ export function HomePage() {
                 </LocalLink>
               </div>
             </div>
+            <div className="home-advice-image relative min-h-[280px] overflow-hidden">
+              <div className="home-advice-photo">
+                <img
+                  className="absolute inset-0 h-full w-full object-cover"
+                  src="/images/team.jpg"
+                  alt={locale === 'fa' ? 'تیم مشاوره در حال بررسی پرونده' : 'Advisers reviewing a client case'}
+                  loading="lazy"
+                  width="1800"
+                  height="2699"
+                />
+                <div className="home-advice-shade absolute inset-0 bg-gradient-to-t from-navy/70 via-navy/10 to-transparent" />
+                <div className="home-advice-note absolute bottom-5 start-5 end-5 flex items-center gap-3 rounded-xl border border-white/20 bg-navy/60 p-3 text-white backdrop-blur">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-orange text-navy">
+                    <UserRound size={17} />
+                  </span>
+                  <div>
+                    <div className="text-[0.75rem] font-semibold">
+                      {locale === 'fa' ? 'یک مشاور مشخص برای پرونده شما' : 'One named adviser for your case'}
+                    </div>
+                    <div className="mt-0.5 text-[0.63rem] text-white/55">
+                      {locale === 'fa' ? 'بدون انتقال مکرر میان افراد' : 'No repeated hand-offs'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
+
+      {featuredExperts.length > 0 && (
+        <section className="section bg-sky-50" aria-label={t('home.expertsTitle')}>
+          <div className="shell">
+            <Reveal>
+              <SectionHead
+                eyebrow={t('home.expertsEyebrow')}
+                title={t('home.expertsTitle')}
+                intro={t('home.expertsIntro')}
+                action={
+                  <LocalLink to="/experts" className="link-arrow">
+                    {t('home.expertsViewAll')} <ArrowRight size={14} className="rtl:rotate-180" />
+                  </LocalLink>
+                }
+              />
+            </Reveal>
+            <CardCarousel label={t('home.expertsTitle')} variant="experts">
+              {featuredExperts.map((expert) => <ExpertCard key={expert.id} expert={expert} />)}
+            </CardCarousel>
+            {featuredExperts.some((expert) => expert.is_demo) && (
+              <p className="mt-6 text-[0.72rem] leading-6 text-muted">{t('home.expertsDemoNote')}</p>
+            )}
+          </div>
+        </section>
+      )}
 
       <section className="section">
         <div className="shell">
@@ -363,24 +392,22 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="section bg-sky-50">
-        <div className="shell">
-          <Reveal>
-            <SectionHead
-              eyebrow={t('home.storiesEyebrow')}
-              title={t('home.storiesTitle')}
-              intro={t('home.storiesNote')}
-            />
-          </Reveal>
-          <div className="grid gap-5 md:grid-cols-3">
-            {testimonials.slice(0, 3).map((testimonial, index) => (
-              <Reveal key={testimonial.id} delay={index * 60}>
-                <TestimonialCard testimonial={testimonial} />
-              </Reveal>
-            ))}
+      {testimonials.length > 0 && (
+        <section className="section bg-sky-50" aria-label={t('home.storiesTitle')}>
+          <div className="shell">
+            <Reveal>
+              <SectionHead
+                eyebrow={t('home.storiesEyebrow')}
+                title={t('home.storiesTitle')}
+                intro={testimonials.some((testimonial) => testimonial.is_demo) ? t('home.storiesNote') : undefined}
+              />
+            </Reveal>
+            <CardCarousel label={t('home.storiesTitle')} variant="testimonials">
+              {testimonials.map((testimonial) => <TestimonialCard key={testimonial.id} testimonial={testimonial} />)}
+            </CardCarousel>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <section className="section">
         <div className="shell">
