@@ -57,14 +57,30 @@ export function HomePage() {
     },
   });
 
-  const stats = settings.stats?.length
-    ? settings.stats
-    : [
-        { value: '10', label_en: 'Specialist services', label_fa: 'خدمت تخصصی' },
-        { value: '6', label_en: 'Destination countries', label_fa: 'کشور مقصد' },
-        { value: '4', label_en: 'Guided steps', label_fa: 'گام راهنما' },
-        { value: '1:1', label_en: 'Advisor support', label_fa: 'پشتیبانی مشاور' },
-      ];
+  const stats = (() => {
+    const statsData = settings.stats;
+    if (statsData && typeof statsData === 'string') {
+      try {
+        return JSON.parse(statsData);
+      } catch {
+        return [
+          { value: '10', label_en: 'Specialist services', label_fa: 'خدمت تخصصی' },
+          { value: '6', label_en: 'Destination countries', label_fa: 'کشور مقصد' },
+          { value: '4', label_en: 'Guided steps', label_fa: 'گام راهنما' },
+          { value: '1:1', label_en: 'Advisor support', label_fa: 'پشتیبانی مشاور' },
+        ];
+      }
+    }
+    if (Array.isArray(statsData) && statsData.length > 0) {
+      return statsData;
+    }
+    return [
+      { value: '10', label_en: 'Specialist services', label_fa: 'خدمت تخصصی' },
+      { value: '6', label_en: 'Destination countries', label_fa: 'کشور مقصد' },
+      { value: '4', label_en: 'Guided steps', label_fa: 'گام راهنما' },
+      { value: '1:1', label_en: 'Advisor support', label_fa: 'پشتیبانی مشاور' },
+    ];
+  })();
 
   return (
     <>

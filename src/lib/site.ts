@@ -6,6 +6,6 @@ export function useSiteData() {
     queryKey: ['site'],
     queryFn: publicApi.site,
     staleTime: 60_000,
-    retry: 1,
+    retry: 0, // Disable retry to avoid hanging
   });
 }

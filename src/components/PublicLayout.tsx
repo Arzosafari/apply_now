@@ -35,7 +35,7 @@ function LoadError({ retry }: { retry: () => void }) {
 }
 
 export function PublicLayout() {
-  const { data, isLoading, isError, refetch } = useSiteData();
+  const { data, isLoading, isError, refetch, error } = useSiteData();
   const { pathname, search, hash } = useLocation();
   const navigate = useNavigate();
   const { t, locale } = useLocale();
@@ -73,8 +73,11 @@ export function PublicLayout() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  if (isLoading || (!data && !isError) || (data && !initialLanguageReady)) return <LoadingScreen />;
-  if (isError || !data) return <LoadError retry={() => void refetch()} />;
+  const shouldShowLoading = isLoading || (!data && !isError) || (data && !initialLanguageReady);
+  const shouldShowError = isError || !data;
+
+  if (shouldShowLoading) return <LoadingScreen />;
+  if (shouldShowError) return <LoadError retry={() => void refetch()} />;
 
   return (
     <SiteContext.Provider value={data}>
