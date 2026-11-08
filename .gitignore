@@ -15,3 +15,30 @@ playwright-report/
 proposal.pdf
 proposal.txt
 hero-test.jpg
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.eggs/
+dist/
+build/
+*.egg-info/
+.eggs
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+.db
+*.db
+*.sqlite3
+
+# Django
+*.log
+static/
+media/

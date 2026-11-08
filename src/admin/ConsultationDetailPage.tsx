@@ -189,7 +189,7 @@ export function ConsultationDetailPage() {
                 />
               </label>
               <div className="flex items-center justify-between">
-                <span className="text-[0.6rem] text-[#9aa9b9]">{note.length}{a("/5000 · local demo only")}</span>
+                <span className="text-[0.6rem] text-[#9aa9b9]">{note.length}{a("/5000")}</span>
                 <button
                   type="button"
                   className="btn btn-dark btn-sm"

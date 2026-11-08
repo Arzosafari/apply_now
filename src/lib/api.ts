@@ -18,18 +18,39 @@ import type {
   Package,
 } from '@shared/types';
 
-// The UI talks to this adapter rather than directly to a server. The demo
-// implementation is deliberately local; replace it with a real transport in
-// the backend stage without changing the page components.
-import { demoRequest } from '@/data/demoStore';
 export { ApiError } from './apiError';
 
-export function setCsrfToken(_token: string | null) {
-  // Kept as part of the future transport contract. Demo mode has no auth/CSRF.
+const API_BASE_URL = 'http://localhost:4000/api';
+
+let csrfToken: string | null = null;
+
+export function setCsrfToken(token: string | null) {
+  csrfToken = token;
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  return demoRequest<T>(path, options);
+  const url = `${API_BASE_URL}${path}`;
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+  };
+
+  if (csrfToken) {
+    headers['X-CSRF-Token'] = csrfToken;
+  }
+
+  const response = await fetch(url, {
+    ...options,
+    headers,
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Network error' }));
+    throw new Error(error.error || error.message || 'Request failed');
+  }
+
+  return response.json();
 }
 
 function queryString(params?: Record<string, string | number | boolean | undefined | null>) {
@@ -140,12 +161,12 @@ export const adminApi = {
       payments: Payment[];
     }>(`/admin/consultations/${id}`),
   updateConsultationStatus: (id: number, status: string) =>
-    request<{ ok: boolean; status: string }>(`/admin/consultations/${id}`, {
+    request<{ ok: boolean; status: string }>(`/admin/consultations/${id}/update_status`, {
       method: 'PATCH',
       body: JSON.stringify({ status }),
     }),
   addNote: (id: number, note: string) =>
-    request<{ ok: boolean; id: number }>(`/admin/consultations/${id}/notes`, {
+    request<{ ok: boolean; id: number }>(`/admin/consultations/${id}/add_note`, {
       method: 'POST',
       body: JSON.stringify({ note }),
     }),

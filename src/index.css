@@ -2475,15 +2475,6 @@ img {
   backdrop-filter: blur(12px);
 }
 
-.admin-demo-notice {
-  padding: 7px 28px;
-  background: #fff8ed;
-  border-bottom: 1px solid #f4dfc6;
-  color: #805c3c;
-  font-size: .68rem;
-  font-weight: 600;
-}
-
 .admin-content {
   padding: 26px 28px 48px;
   max-width: 1460px;
@@ -2759,8 +2750,6 @@ img {
   .admin-topbar {
     padding-inline: 16px;
   }
-
-  .admin-demo-notice { padding-inline: 16px; }
 
   .admin-content {
     padding: 20px 16px 40px;

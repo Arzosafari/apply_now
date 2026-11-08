@@ -236,7 +236,6 @@ export function AdminLayout() {
               </div>
             </div>
           </header>
-          <div className="admin-demo-notice">{locale === 'fa' ? 'پیش‌نمایش محلی • بدون احراز هویت یا پرداخت واقعی' : 'Local demo • no real authentication or payments'}</div>
           <main className="admin-content">
             <Outlet />
           </main>

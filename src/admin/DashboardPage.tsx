@@ -86,20 +86,7 @@ export function DashboardPage() {
         }
       />
 
-      {site.data && !site.data.contentVerified && (
-        <div className="mb-5 flex flex-col justify-between gap-3 rounded-xl border border-[#f1d6b8] bg-[#fffaf3] p-4 sm:flex-row sm:items-center">
-          <div className="flex items-start gap-3">
-            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-orange/15 text-orange-600">
-              <Settings size={15} />
-            </span>
-            <div>
-              <p className="text-[0.76rem] font-semibold text-[#6b4a2d]">{a("Frontend demonstration workspace")}</p>
-              <p className="mt-0.5 text-[0.68rem] leading-5 text-[#8b6c4e]">{a(" All records are examples or browser-local changes. No backend, real authentication or payments are connected. ")}</p>
-            </div>
-          </div>
-          <Link to="/admin/settings" className="btn btn-outline btn-sm shrink-0 border-[#e5c8a9] text-[#6b4a2d]">{a(" Review settings ")}</Link>
-        </div>
-      )}
+
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map((card) => (
