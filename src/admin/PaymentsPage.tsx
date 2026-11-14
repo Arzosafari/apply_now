@@ -83,7 +83,7 @@ export function PaymentsPage() {
           <AdminSpinner />
         ) : query.isError ? (
           <AdminError message="Payments could not be loaded." retry={() => void query.refetch()} />
-        ) : !query.data || query.data.items.length === 0 ? (
+        ) : !query.data || !query.data.items || query.data.items.length === 0 ? (
           <TableEmpty label={a("No payments have been recorded yet.")} />
         ) : (
           <>

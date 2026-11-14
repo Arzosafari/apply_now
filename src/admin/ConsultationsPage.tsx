@@ -165,7 +165,7 @@ export function ConsultationsPage() {
           <AdminSpinner />
         ) : query.isError ? (
           <AdminError message="The requests could not be loaded." retry={() => void query.refetch()} />
-        ) : !query.data || query.data.items.length === 0 ? (
+        ) : !query.data || !query.data.items || query.data.items.length === 0 ? (
           <TableEmpty label={a("No consultation requests match these filters.")} />
         ) : (
           <>

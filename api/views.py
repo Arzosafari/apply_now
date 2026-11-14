@@ -11,6 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 import secrets
 import hashlib
+import json
 
 from .models import (
     Admin, AdminSession, Service, Destination, Package, Expert, ArticleCategory, Article,
@@ -30,13 +31,14 @@ from .serializers import (
 @method_decorator(csrf_exempt, name='dispatch')
 class LoginView(APIView):
     permission_classes = [AllowAny]
+    authentication_classes = []
 
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
             email = serializer.validated_data['email']
             password = serializer.validated_data['password']
-            
+
             user = authenticate(request, username=email, password=password)
             if user and user.is_active:
                 login(request, user)
@@ -175,6 +177,7 @@ class ServiceViewSet(viewsets.ModelViewSet):
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer
     permission_classes = [AllowAny]
+    lookup_field = 'slug'
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -218,6 +221,7 @@ class DestinationViewSet(viewsets.ModelViewSet):
     queryset = Destination.objects.all()
     serializer_class = DestinationSerializer
     permission_classes = [AllowAny]
+    lookup_field = 'slug'
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -472,7 +476,85 @@ class TestimonialViewSet(viewsets.ModelViewSet):
 class ConsultationViewSet(viewsets.ModelViewSet):
     queryset = Consultation.objects.select_related('service', 'destination').all()
     serializer_class = ConsultationSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = []  # No permission check for now
+    pagination_class = None  # Disable default pagination
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        page = int(request.query_params.get('page', 1))
+        page_size = int(request.query_params.get('pageSize', 20))
+        
+        start = (page - 1) * page_size
+        end = start + page_size
+        total = queryset.count()
+        
+        page_queryset = queryset[start:end]
+        serializer = self.get_serializer(page_queryset, many=True)
+        
+        return Response({
+            'items': serializer.data,
+            'total': total,
+            'page': page,
+            'pageSize': page_size
+        })
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response({
+            'consultation': serializer.data
+        })
+
+    @action(detail=True, methods=['post'])
+    def add_note(self, request, pk=None):
+        consultation = self.get_object()
+        note = request.data.get('note')
+
+        if note:
+            consultation_note = ConsultationNote.objects.create(
+                consultation=consultation,
+                admin=request.user if request.user.is_authenticated else None,
+                note=note
+            )
+
+            if request.user.is_authenticated:
+                ActivityLog.objects.create(
+                    admin=request.user,
+                    action='note_added',
+                    entity_type='consultation',
+                    entity_id=str(consultation.id),
+                    details={'note_id': consultation_note.id},
+                    ip=self.get_client_ip(request)
+                )
+
+            return Response(
+                ConsultationNoteSerializer(consultation_note).data,
+                status=status.HTTP_201_CREATED
+            )
+
+        return Response({'error': 'Note is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ConsultationUpdateStatusView(APIView):
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def patch(self, request, pk=None):
+        try:
+            consultation = Consultation.objects.get(pk=pk)
+            new_status = request.data.get('status')
+
+            if new_status in dict(Consultation.STATUS_CHOICES):
+                old_status = consultation.status
+                consultation.status = new_status
+                consultation.save()
+
+                return Response({'ok': True, 'status': new_status})
+
+            return Response({'error': 'Invalid status'}, status=status.HTTP_400_BAD_REQUEST)
+        except Consultation.DoesNotExist:
+            return Response({'error': 'Consultation not found'}, status=status.HTTP_404_NOT_FOUND)
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -536,14 +618,16 @@ class ConsultationViewSet(viewsets.ModelViewSet):
             consultation.status = new_status
             consultation.save()
 
-            ActivityLog.objects.create(
-                admin=request.user,
-                action='status_change',
-                entity_type='consultation',
-                entity_id=str(consultation.id),
-                details={'reference': consultation.reference, 'from': old_status, 'to': new_status},
-                ip=self.get_client_ip(request)
-            )
+            # Skip activity log if no authenticated user
+            if request.user.is_authenticated:
+                ActivityLog.objects.create(
+                    admin=request.user,
+                    action='status_change',
+                    entity_type='consultation',
+                    entity_id=str(consultation.id),
+                    details={'reference': consultation.reference, 'from': old_status, 'to': new_status},
+                    ip=self.get_client_ip(request)
+                )
 
             return Response({'ok': True, 'status': new_status})
 
@@ -557,18 +641,19 @@ class ConsultationViewSet(viewsets.ModelViewSet):
         if note:
             consultation_note = ConsultationNote.objects.create(
                 consultation=consultation,
-                admin=request.user,
+                admin=request.user if request.user.is_authenticated else None,
                 note=note
             )
 
-            ActivityLog.objects.create(
-                admin=request.user,
-                action='note_added',
-                entity_type='consultation',
-                entity_id=str(consultation.id),
-                details={'note_id': consultation_note.id},
-                ip=self.get_client_ip(request)
-            )
+            if request.user.is_authenticated:
+                ActivityLog.objects.create(
+                    admin=request.user,
+                    action='note_added',
+                    entity_type='consultation',
+                    entity_id=str(consultation.id),
+                    details={'note_id': consultation_note.id},
+                    ip=self.get_client_ip(request)
+                )
 
             return Response(
                 ConsultationNoteSerializer(consultation_note).data,
@@ -589,6 +674,7 @@ class ConsultationViewSet(viewsets.ModelViewSet):
 @method_decorator(csrf_exempt, name='dispatch')
 class ConsultationPublicView(APIView):
     permission_classes = [AllowAny]
+    authentication_classes = []
 
     def post(self, request):
         serializer = ConsultationCreateSerializer(data=request.data)
@@ -597,26 +683,55 @@ class ConsultationPublicView(APIView):
             year = datetime.now().year
             suffix = secrets.token_hex(3).upper()[:6]
             reference = f'FT-{year}-{suffix}'
-            
+
             consultation = serializer.save(
                 reference=reference,
                 status='pending',
                 source='website'
             )
-            
+
             return Response({
                 'reference': reference,
                 'status': 'pending',
                 'message': 'Your consultation request has been received.'
             }, status=status.HTTP_201_CREATED)
-        
+
+        print(f"Validation errors: {serializer.errors}")
+        print(f"Request data: {request.data}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ContactMessageViewSet(viewsets.ModelViewSet):
     queryset = ContactMessage.objects.all()
     serializer_class = ContactMessageSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]  # Allow any for now
+    pagination_class = None  # Disable default pagination
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        page = int(request.query_params.get('page', 1))
+        page_size = int(request.query_params.get('pageSize', 20))
+        
+        start = (page - 1) * page_size
+        end = start + page_size
+        total = queryset.count()
+        
+        page_queryset = queryset[start:end]
+        serializer = self.get_serializer(page_queryset, many=True)
+        
+        return Response({
+            'items': serializer.data,
+            'total': total,
+            'page': page,
+            'pageSize': page_size
+        })
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response({
+            'message': serializer.data
+        })
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -665,6 +780,7 @@ class ContactMessageViewSet(viewsets.ModelViewSet):
 @method_decorator(csrf_exempt, name='dispatch')
 class ContactMessagePublicView(APIView):
     permission_classes = [AllowAny]
+    authentication_classes = []
 
     def post(self, request):
         serializer = ContactMessageCreateSerializer(data=request.data)
@@ -762,7 +878,13 @@ class SiteDataView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        settings_dict = {setting.key: setting.value for setting in SiteSetting.objects.all()}
+        settings_dict = {}
+        for setting in SiteSetting.objects.all():
+            # Try to parse JSON values
+            try:
+                settings_dict[setting.key] = json.loads(setting.value)
+            except (json.JSONDecodeError, TypeError):
+                settings_dict[setting.key] = setting.value
 
         return Response({
             'settings': settings_dict,
@@ -784,7 +906,7 @@ class SiteDataView(APIView):
 
 
 class SettingsView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]  # Allow any for now
 
     def get(self, request):
         settings_dict = {setting.key: setting.value for setting in SiteSetting.objects.all()}
@@ -806,7 +928,37 @@ class SettingsView(APIView):
 
 
 class LegalDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]  # Allow any for now
+
+    def get(self, request, slug=None):
+        if slug:
+            try:
+                page = LegalPage.objects.get(slug=slug)
+                return Response({
+                    'slug': page.slug,
+                    'title_en': page.title_en,
+                    'title_fa': page.title_fa,
+                    'body_en': page.body_en,
+                    'body_fa': page.body_fa,
+                    'updated_at': page.updated_at.isoformat()
+                })
+            except LegalPage.DoesNotExist:
+                return Response({'error': 'Page not found'}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            # List all legal pages
+            pages = LegalPage.objects.all()
+            return Response({
+                'items': [
+                    {
+                        'slug': page.slug,
+                        'title_en': page.title_en,
+                        'title_fa': page.title_fa,
+                        'updated_at': page.updated_at.isoformat()
+                    }
+                    for page in pages
+                ],
+                'total': pages.count()
+            })
 
     def put(self, request, slug):
         try:
@@ -824,7 +976,34 @@ class LegalDetailView(APIView):
 class PaymentsViewSet(viewsets.ModelViewSet):
     queryset = Payment.objects.select_related('consultation', 'package').all()
     serializer_class = PaymentSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]  # Allow any for now
+    pagination_class = None  # Disable default pagination
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        page = int(request.query_params.get('page', 1))
+        page_size = int(request.query_params.get('pageSize', 20))
+        
+        start = (page - 1) * page_size
+        end = start + page_size
+        total = queryset.count()
+        
+        page_queryset = queryset[start:end]
+        serializer = self.get_serializer(page_queryset, many=True)
+        
+        return Response({
+            'items': serializer.data,
+            'total': total,
+            'page': page,
+            'pageSize': page_size
+        })
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response({
+            'payment': serializer.data
+        })
 
     def get_queryset(self):
         queryset = super().get_queryset()

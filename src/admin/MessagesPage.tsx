@@ -80,7 +80,7 @@ export function MessagesPage() {
           <AdminSpinner />
         ) : query.isError ? (
           <AdminError message="Messages could not be loaded." retry={() => void query.refetch()} />
-        ) : !query.data || query.data.items.length === 0 ? (
+        ) : !query.data || !query.data.items || query.data.items.length === 0 ? (
           <TableEmpty label={a("No contact messages yet.")} />
         ) : (
           <>

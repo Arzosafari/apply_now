@@ -75,7 +75,7 @@ export function ConsultationDetailPage() {
     return <AdminError message="This request could not be loaded." retry={() => void query.refetch()} />;
   }
 
-  const { consultation, notes, payments } = query.data;
+  const { consultation, notes = [], payments = [] } = query.data;
   const date = (value: string | null) =>
     value ? new Intl.DateTimeFormat(locale === 'fa' ? 'fa-IR' : 'en-GB', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '—';
   const amount = (minor: number, currency: string) =>
@@ -138,7 +138,7 @@ export function ConsultationDetailPage() {
             <div className="border-b border-[#e8eef5] px-5 py-3.5">
               <h3 className="text-[0.8rem] font-semibold text-navy">{a("Payments")}</h3>
             </div>
-            {payments.length === 0 ? (
+            {(!payments || payments.length === 0) ? (
               <p className="px-5 py-8 text-center text-[0.73rem] text-[#93a2b4]">{a("No payments are associated with this request.")}</p>
             ) : (
               <div className="admin-table-wrap">

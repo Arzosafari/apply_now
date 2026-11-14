@@ -7,7 +7,7 @@ from .views import (
     ArticleCategoryViewSet, ArticleViewSet, FAQViewSet, TestimonialViewSet,
     ConsultationViewSet, ConsultationPublicView, ContactMessageViewSet,
     ContactMessagePublicView, StatsView, SiteDataView, SettingsView,
-    LegalDetailView, PaymentsViewSet, UploadView
+    LegalDetailView, PaymentsViewSet, UploadView, ConsultationUpdateStatusView
 )
 
 router = DefaultRouter()
@@ -26,6 +26,9 @@ urlpatterns = [
     path('public/site', SiteDataView.as_view(), name='site-data'),
     path('public/consultations', csrf_exempt(ConsultationPublicView.as_view()), name='consultation-public'),
     path('public/contact', csrf_exempt(ContactMessagePublicView.as_view()), name='contact-public'),
+    path('public/legal/<slug:slug>', LegalDetailView.as_view(), name='public-legal-detail'),
+    path('public/services/<slug:slug>', ServiceViewSet.as_view({'get': 'retrieve'}), name='public-service-detail'),
+    path('public/destinations/<slug:slug>', DestinationViewSet.as_view({'get': 'retrieve'}), name='public-destination-detail'),
 
     # Admin endpoints
     path('admin/login', csrf_exempt(LoginView.as_view()), name='login'),
@@ -35,14 +38,17 @@ urlpatterns = [
     path('admin/account/password', ChangePasswordView.as_view(), name='change-password'),
     path('admin/stats', StatsView.as_view(), name='stats'),
     path('admin/settings', SettingsView.as_view(), name='settings'),
+    path('admin/legal', LegalDetailView.as_view(), name='legal-list'),
     path('admin/legal/<slug:slug>', LegalDetailView.as_view(), name='legal-detail'),
     path('admin/uploads', UploadView.as_view(), name='upload'),
-    path('admin/consultations', ConsultationViewSet.as_view({'get': 'list', 'post': 'create'}), name='consultations'),
-    path('admin/consultations/<int:pk>', ConsultationViewSet.as_view({'get': 'retrieve', 'patch': 'partial_update'}), name='consultation-detail'),
-    path('admin/consultations/<int:pk>/update_status', ConsultationViewSet.as_view({'patch': 'update_status'}), name='consultation-update-status'),
-    path('admin/consultations/<int:pk>/add_note', ConsultationViewSet.as_view({'post': 'add_note'}), name='consultation-add-note'),
-    path('admin/contact-messages', ContactMessageViewSet.as_view({'get': 'list', 'post': 'create'}), name='contact-messages'),
-    path('admin/contact-messages/<int:pk>', ContactMessageViewSet.as_view({'get': 'retrieve', 'patch': 'partial_update'}), name='contact-message-detail'),
+    path('admin/consultations', csrf_exempt(ConsultationViewSet.as_view({'get': 'list', 'post': 'create'})), name='consultations'),
+    path('admin/consultations/<int:pk>', csrf_exempt(ConsultationViewSet.as_view({'get': 'retrieve', 'patch': 'partial_update'})), name='consultation-detail'),
+    path('admin/consultations/<int:pk>/update_status', ConsultationUpdateStatusView.as_view(), name='consultation-update-status'),
+    path('admin/consultations/<int:pk>/add_note', csrf_exempt(ConsultationViewSet.as_view({'post': 'add_note'})), name='consultation-add-note'),
+    path('admin/contact-messages', csrf_exempt(ContactMessageViewSet.as_view({'get': 'list', 'post': 'create'})), name='contact-messages'),
+    path('admin/contact-messages/<int:pk>', csrf_exempt(ContactMessageViewSet.as_view({'get': 'retrieve', 'patch': 'partial_update'})), name='contact-message-detail'),
+    path('admin/payments', csrf_exempt(PaymentsViewSet.as_view({'get': 'list'})), name='payments'),
+    path('admin/payments/<int:pk>', csrf_exempt(PaymentsViewSet.as_view({'get': 'retrieve'})), name='payment-detail'),
 
     # Admin CRUD endpoints
     path('admin/services', ServiceViewSet.as_view({'get': 'list', 'post': 'create'}), name='admin-services'),

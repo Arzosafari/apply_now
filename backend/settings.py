@@ -145,6 +145,18 @@ CORS_ALLOWED_ORIGINS = config(
     cast=lambda x: [s.strip() for s in x.split(',')]
 )
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+    'x-csrf-token',
+]
 
 # REST Framework settings
 REST_FRAMEWORK = {
