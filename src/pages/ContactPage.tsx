@@ -67,6 +67,7 @@ export function ContactPage() {
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
+    console.log('Contact form submit called', form);
     const next: Partial<Record<keyof ContactForm, string>> = {};
     if (form.name.trim().length < 2) next.name = t('form.required');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(form.email.trim())) next.email = t('form.invalidEmail');
@@ -77,8 +78,9 @@ export function ContactPage() {
     if (Object.keys(next).length) return;
     setSending(true);
     setServerError('');
+    console.log('Submitting contact form to API...');
     try {
-      await publicApi.submitContact({
+      const result = await publicApi.submitContact({
         name: form.name.trim(),
         email: form.email.trim(),
         phone: form.phone.trim() || null,
@@ -86,6 +88,7 @@ export function ContactPage() {
         message: form.message.trim(),
         website: form.website,
       });
+      console.log('Contact form submitted successfully', result);
       void queryClient.invalidateQueries({ queryKey: ['admin-messages'] });
       void queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
       setSuccess(true);
@@ -212,7 +215,6 @@ export function ContactPage() {
 
           <div>
             <div className="form-card">
-              <div className="notice mb-6" role="note">{locale === 'fa' ? 'این فرم نمایشی است؛ اطلاعات واقعی وارد نکنید. پیام فقط در این مرورگر ذخیره می‌شود و ارسال نخواهد شد.' : 'Demo form only. Do not enter real information. Your message stays in this browser and is not sent.'}</div>
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h2 className="font-display text-xl font-bold text-navy">{t('contact.formTitle')}</h2>
@@ -304,7 +306,7 @@ export function ContactPage() {
                   {serverError && <div className="notice sm:col-span-2 border-red-200 bg-red-50 text-red-800">{serverError}</div>}
                   <div className="flex flex-col gap-3 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between">
                     <p className="text-[0.62rem] leading-5 text-muted">
-                      {locale === 'fa' ? 'با ثبت نمایشی فرم، ' : 'By saving this demo form, you acknowledge the ' }<LocalLink to="/privacy-policy" className="text-blue underline">{locale === 'fa' ? 'سیاست حریم خصوصی' : 'privacy policy'}</LocalLink>{locale === 'fa' ? ' را می‌پذیرید.' : '.'}
+                      {locale === 'fa' ? 'با ثبت فرم، ' : 'By submitting this form, you acknowledge the ' }<LocalLink to="/privacy-policy" className="text-blue underline">{locale === 'fa' ? 'سیاست حریم خصوصی' : 'privacy policy'}</LocalLink>{locale === 'fa' ? ' را می‌پذیرید.' : '.'}
                     </p>
                     <button type="submit" className="btn btn-primary" disabled={sending}>
                       {sending ? <Loader2 size={15} className="animate-spin" /> : <Send size={14} />}
