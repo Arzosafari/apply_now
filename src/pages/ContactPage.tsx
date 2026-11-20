@@ -67,7 +67,6 @@ export function ContactPage() {
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
-    console.log('Contact form submit called', form);
     const next: Partial<Record<keyof ContactForm, string>> = {};
     if (form.name.trim().length < 2) next.name = t('form.required');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(form.email.trim())) next.email = t('form.invalidEmail');
@@ -78,9 +77,8 @@ export function ContactPage() {
     if (Object.keys(next).length) return;
     setSending(true);
     setServerError('');
-    console.log('Submitting contact form to API...');
     try {
-      const result = await publicApi.submitContact({
+      await publicApi.submitContact({
         name: form.name.trim(),
         email: form.email.trim(),
         phone: form.phone.trim() || null,
@@ -88,7 +86,6 @@ export function ContactPage() {
         message: form.message.trim(),
         website: form.website,
       });
-      console.log('Contact form submitted successfully', result);
       void queryClient.invalidateQueries({ queryKey: ['admin-messages'] });
       void queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
       setSuccess(true);
