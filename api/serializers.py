@@ -33,6 +33,35 @@ class ServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Service
         fields = '__all__'
+        extra_kwargs = {
+            'slug': {'required': True},
+            'title_en': {'required': True},
+            'title_fa': {'required': True},
+            'description_en': {'required': False, 'allow_blank': True},
+            'description_fa': {'required': False, 'allow_blank': True},
+            'short_en': {'required': False, 'allow_blank': True},
+            'short_fa': {'required': False, 'allow_blank': True},
+            'eligibility_en': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'eligibility_fa': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'documents_en': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'documents_fa': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'process_en': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'process_fa': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'benefits_en': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'benefits_fa': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'faqs_en': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'faqs_fa': {'required': False, 'allow_null': True, 'allow_blank': True},
+        }
+
+    def to_internal_value(self, data):
+        # Convert JSON arrays to strings for JSON fields
+        json_fields = ['eligibility_en', 'eligibility_fa', 'documents_en', 'documents_fa',
+                       'process_en', 'process_fa', 'benefits_en', 'benefits_fa',
+                       'faqs_en', 'faqs_fa']
+        for field in json_fields:
+            if field in data and isinstance(data[field], list):
+                data[field] = json.dumps(data[field], ensure_ascii=False)
+        return super().to_internal_value(data)
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
