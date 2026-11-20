@@ -16,7 +16,7 @@ import json
 from .models import (
     Admin, AdminSession, Service, Destination, Package, Expert, ArticleCategory, Article,
     FAQ, Testimonial, Consultation, ConsultationNote, ContactMessage,
-    Payment, SiteSetting, LegalPage, ActivityLog
+    Payment, SiteSetting, LegalPage, ActivityLog, DAADProgram, StudyProgram
 )
 from .serializers import (
     AdminSerializer, ServiceSerializer, DestinationSerializer, PackageSerializer,
@@ -24,7 +24,7 @@ from .serializers import (
     TestimonialSerializer, ConsultationSerializer, ConsultationNoteSerializer,
     ContactMessageSerializer, PaymentSerializer, SiteSettingSerializer,
     LegalPageSerializer, ActivityLogSerializer, ConsultationCreateSerializer,
-    ContactMessageCreateSerializer, LoginSerializer
+    ContactMessageCreateSerializer, LoginSerializer, DAADProgramSerializer, StudyProgramSerializer
 )
 
 
@@ -911,3 +911,47 @@ class UploadView(APIView):
         
         url = f"/uploads/{filename}"
         return Response({'url': url})
+
+
+class DAADProgramViewSet(viewsets.ModelViewSet):
+    queryset = DAADProgram.objects.all()
+    serializer_class = DAADProgramSerializer
+    permission_classes = [AllowAny]
+    lookup_field = 'slug'
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'items': serializer.data})
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response({'item': serializer.data})
+
+
+class StudyProgramViewSet(viewsets.ModelViewSet):
+    queryset = StudyProgram.objects.all()
+    serializer_class = StudyProgramSerializer
+    permission_classes = [AllowAny]
+    lookup_field = 'slug'
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        # Filter by country if provided
+        country = request.query_params.get('country')
+        if country:
+            queryset = queryset.filter(country=country)
+        
+        # Filter by featured if requested
+        featured = request.query_params.get('featured')
+        if featured == 'true':
+            queryset = queryset.filter(featured=True)
+        
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'items': serializer.data})
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response({'item': serializer.data})

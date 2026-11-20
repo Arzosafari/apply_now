@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import (
     Admin, Service, Destination, Package, Expert, ArticleCategory, Article,
     FAQ, Testimonial, Consultation, ConsultationNote, ContactMessage,
-    Payment, SiteSetting, LegalPage, ActivityLog
+    Payment, SiteSetting, LegalPage, ActivityLog, DAADProgram, StudyProgram
 )
 import json
 
@@ -388,6 +388,32 @@ class ContactMessageCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContactMessage
         fields = ['name', 'email', 'phone', 'subject', 'message']
+
+
+class DAADProgramSerializer(serializers.ModelSerializer):
+    course_type_display = serializers.CharField(source='get_course_type_display', read_only=True)
+
+    class Meta:
+        model = DAADProgram
+        fields = '__all__'
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        return data
+
+
+class StudyProgramSerializer(serializers.ModelSerializer):
+    course_type_display = serializers.CharField(source='get_course_type_display', read_only=True)
+    country_display = serializers.CharField(source='get_country_display', read_only=True)
+    data_source_display = serializers.CharField(source='get_data_source_display', read_only=True)
+
+    class Meta:
+        model = StudyProgram
+        fields = '__all__'
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        return data
 
 
 class LoginSerializer(serializers.Serializer):

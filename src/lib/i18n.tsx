@@ -8,6 +8,8 @@ const dictionary = {
   'nav.destinations': { en: 'Destinations', fa: 'مقاصد' },
   'nav.pricing': { en: 'Pricing', fa: 'قیمت‌ها' },
   'nav.experts': { en: 'Our Experts', fa: 'کارشناسان' },
+  'nav.studyPrograms': { en: 'Study Programs', fa: 'برنامه‌های تحصیلی' },
+  'nav.daadPrograms': { en: 'Germany Programs', fa: 'برنامه‌های آلمان' },
   'nav.blog': { en: 'Blog', fa: 'وبلاگ' },
   'nav.about': { en: 'About Us', fa: 'درباره ما' },
   'nav.contact': { en: 'Contact Us', fa: 'تماس با ما' },

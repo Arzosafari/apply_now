@@ -6,11 +6,11 @@ from .views import (
     ArticleCategoryViewSet, ArticleViewSet, FAQViewSet, TestimonialViewSet,
     ConsultationViewSet, ConsultationPublicView, ContactMessageViewSet,
     ContactMessagePublicView, StatsView, SiteDataView, SettingsView,
-    LegalDetailView, PaymentsViewSet, UploadView, ConsultationUpdateStatusView
+    LegalDetailView, PaymentsViewSet, UploadView, ConsultationUpdateStatusView,
+    DAADProgramViewSet, StudyProgramViewSet
 )
 
 urlpatterns = [
-    # Public endpoints
     path('public/site', SiteDataView.as_view(), name='site-data'),
     path('public/consultations', csrf_exempt(ConsultationPublicView.as_view()), name='consultation-public'),
     path('public/contact', csrf_exempt(ContactMessagePublicView.as_view()), name='contact-public'),
@@ -26,8 +26,6 @@ urlpatterns = [
     path('public/articles/<slug:slug>', ArticleViewSet.as_view({'get': 'retrieve'}), name='public-article-detail'),
     path('public/faqs', FAQViewSet.as_view({'get': 'list'}), name='public-faqs'),
     path('public/testimonials', TestimonialViewSet.as_view({'get': 'list'}), name='public-testimonials'),
-
-    # Admin endpoints
     path('admin/login', csrf_exempt(LoginView.as_view()), name='login'),
     path('admin/logout', csrf_exempt(LogoutView.as_view()), name='logout'),
     path('admin/session', csrf_exempt(SessionView.as_view()), name='session'),
@@ -46,8 +44,6 @@ urlpatterns = [
     path('admin/contact-messages/<int:pk>', csrf_exempt(ContactMessageViewSet.as_view({'get': 'retrieve', 'patch': 'partial_update'})), name='contact-message-detail'),
     path('admin/payments', csrf_exempt(PaymentsViewSet.as_view({'get': 'list'})), name='payments'),
     path('admin/payments/<int:pk>', csrf_exempt(PaymentsViewSet.as_view({'get': 'retrieve'})), name='payment-detail'),
-
-    # Admin CRUD endpoints
     path('admin/services', csrf_exempt(ServiceViewSet.as_view({'get': 'list', 'post': 'create'})), name='admin-services'),
     path('admin/services/<int:pk>', csrf_exempt(ServiceViewSet.as_view({'get': 'retrieve', 'patch': 'partial_update', 'delete': 'destroy'})), name='admin-service-detail'),
     path('admin/destinations', csrf_exempt(DestinationViewSet.as_view({'get': 'list', 'post': 'create'})), name='admin-destinations'),
@@ -64,4 +60,16 @@ urlpatterns = [
     path('admin/faqs/<int:pk>', csrf_exempt(FAQViewSet.as_view({'get': 'retrieve', 'patch': 'partial_update', 'delete': 'destroy'})), name='admin-faq-detail'),
     path('admin/testimonials', csrf_exempt(TestimonialViewSet.as_view({'get': 'list', 'post': 'create'})), name='admin-testimonials'),
     path('admin/testimonials/<int:pk>', csrf_exempt(TestimonialViewSet.as_view({'get': 'retrieve', 'patch': 'partial_update', 'delete': 'destroy'})), name='admin-testimonial-detail'),
+
+    # DAAD Programs
+    path('admin/daad-programs', csrf_exempt(DAADProgramViewSet.as_view({'get': 'list', 'post': 'create'})), name='admin-daad-programs'),
+    path('admin/daad-programs/<int:pk>', csrf_exempt(DAADProgramViewSet.as_view({'get': 'retrieve', 'patch': 'partial_update', 'delete': 'destroy'})), name='admin-daad-program-detail'),
+    path('public/daad-programs', DAADProgramViewSet.as_view({'get': 'list'}), name='public-daad-programs'),
+    path('public/daad-programs/<slug:slug>', DAADProgramViewSet.as_view({'get': 'retrieve'}), name='public-daad-program-detail'),
+
+    # Study Programs (general)
+    path('admin/study-programs', csrf_exempt(StudyProgramViewSet.as_view({'get': 'list', 'post': 'create'})), name='admin-study-programs'),
+    path('admin/study-programs/<int:pk>', csrf_exempt(StudyProgramViewSet.as_view({'get': 'retrieve', 'patch': 'partial_update', 'delete': 'destroy'})), name='admin-study-program-detail'),
+    path('public/study-programs', StudyProgramViewSet.as_view({'get': 'list'}), name='public-study-programs'),
+    path('public/study-programs/<slug:slug>', StudyProgramViewSet.as_view({'get': 'retrieve'}), name='public-study-program-detail'),
 ]
