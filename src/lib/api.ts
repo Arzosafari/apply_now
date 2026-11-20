@@ -31,9 +31,13 @@ export function setCsrfToken(token: string | null) {
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_BASE_URL}${path}`;
   const headers: HeadersInit = {
-    'Content-Type': 'application/json',
     ...options.headers,
   };
+
+  // Only set Content-Type to application/json if body is not FormData
+  if (!(options.body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   if (csrfToken) {
     headers['X-CSRF-Token'] = csrfToken;

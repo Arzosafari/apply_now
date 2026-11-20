@@ -179,27 +179,23 @@ class ServiceViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
     lookup_field = 'slug'
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        published = self.request.query_params.get('published')
-        featured = self.request.query_params.get('featured')
-        category = self.request.query_params.get('category')
-
-        if published == '1':
-            queryset = queryset.filter(published=True)
-        if featured == '1':
-            queryset = queryset.filter(featured=True)
-        if category:
-            queryset = queryset.filter(category_en__iexact=category)
-
-        return queryset.order_by('sort_order', 'id')
-
-    def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            return [IsAuthenticated()]
-        return [AllowAny()]
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'items': serializer.data})
 
     def retrieve(self, request, *args, **kwargs):
+        # If called with slug (public), return wrapped response
+        if 'slug' in kwargs:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance)
+            queryset = self.get_queryset().exclude(id=instance.id)[:3]
+            related_serializer = self.get_serializer(queryset, many=True)
+            return Response({
+                'service': serializer.data,
+                'related': related_serializer.data
+            })
+        # Otherwise default behavior (admin pk lookup)
         return super().retrieve(request, *args, **kwargs)
 
     def create(self, request, *args, **kwargs):
@@ -223,44 +219,19 @@ class DestinationViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
     lookup_field = 'slug'
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        published = self.request.query_params.get('published')
-        featured = self.request.query_params.get('featured')
-        search = self.request.query_params.get('search', '')
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'items': serializer.data})
 
-        if published == '1':
-            queryset = queryset.filter(published=True)
-        if featured == '1':
-            queryset = queryset.filter(featured=True)
-        if search:
-            queryset = queryset.filter(
-                Q(name_en__icontains=search) |
-                Q(name_fa__icontains=search) |
-                Q(tagline_en__icontains=search) |
-                Q(tagline_fa__icontains=search)
-            )
-
-        return queryset.order_by('sort_order', 'id')
-
-    def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            return [IsAuthenticated()]
-        return [AllowAny()]
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        return Response({'item': serializer.data}, status=status.HTTP_201_CREATED)
-
-    def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        return Response({'item': serializer.data})
+    def retrieve(self, request, *args, **kwargs):
+        # If called with slug (public), return wrapped response
+        if 'slug' in kwargs:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance)
+            return Response({'destination': serializer.data})
+        # Otherwise default behavior (admin pk lookup)
+        return super().retrieve(request, *args, **kwargs)
 
 
 class PackageViewSet(viewsets.ModelViewSet):
@@ -268,33 +239,17 @@ class PackageViewSet(viewsets.ModelViewSet):
     serializer_class = PackageSerializer
     permission_classes = [AllowAny]
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        visible = self.request.query_params.get('visible')
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'items': serializer.data})
 
-        if visible == '1':
-            queryset = queryset.filter(visible=True)
-
-        return queryset.order_by('sort_order', 'id')
-
-    def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            return [IsAuthenticated()]
-        return [AllowAny()]
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        return Response({'item': serializer.data}, status=status.HTTP_201_CREATED)
-
-    def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        return Response({'item': serializer.data})
+    def retrieve(self, request, *args, **kwargs):
+        if 'slug' in kwargs:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance)
+            return Response({'package': serializer.data})
+        return super().retrieve(request, *args, **kwargs)
 
 
 class ExpertViewSet(viewsets.ModelViewSet):
@@ -302,33 +257,17 @@ class ExpertViewSet(viewsets.ModelViewSet):
     serializer_class = ExpertSerializer
     permission_classes = [AllowAny]
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        published = self.request.query_params.get('published')
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'items': serializer.data})
 
-        if published == '1':
-            queryset = queryset.filter(published=True)
-
-        return queryset.order_by('sort_order', 'id')
-
-    def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            return [IsAuthenticated()]
-        return [AllowAny()]
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        return Response({'item': serializer.data}, status=status.HTTP_201_CREATED)
-
-    def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        return Response({'item': serializer.data})
+    def retrieve(self, request, *args, **kwargs):
+        if 'slug' in kwargs:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance)
+            return Response({'expert': serializer.data})
+        return super().retrieve(request, *args, **kwargs)
 
 
 class ArticleCategoryViewSet(viewsets.ModelViewSet):
@@ -337,24 +276,10 @@ class ArticleCategoryViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
     ordering = ['sort_order', 'id']
 
-    def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            return [IsAuthenticated()]
-        return [AllowAny()]
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        return Response({'item': serializer.data}, status=status.HTTP_201_CREATED)
-
-    def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        return Response({'item': serializer.data})
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'items': serializer.data})
 
 
 class ArticleViewSet(viewsets.ModelViewSet):
@@ -362,47 +287,17 @@ class ArticleViewSet(viewsets.ModelViewSet):
     serializer_class = ArticleSerializer
     permission_classes = [AllowAny]
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        status_filter = self.request.query_params.get('status')
-        featured = self.request.query_params.get('featured')
-        search = self.request.query_params.get('search', '')
-        category = self.request.query_params.get('category')
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'items': serializer.data})
 
-        if status_filter:
-            queryset = queryset.filter(status=status_filter)
-        if featured == '1':
-            queryset = queryset.filter(featured=True)
-        if search:
-            queryset = queryset.filter(
-                Q(title_en__icontains=search) |
-                Q(title_fa__icontains=search) |
-                Q(excerpt_en__icontains=search) |
-                Q(excerpt_fa__icontains=search)
-            )
-        if category:
-            queryset = queryset.filter(category__slug=category)
-
-        return queryset.order_by('-published_at', '-id')
-
-    def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            return [IsAuthenticated()]
-        return [AllowAny()]
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        return Response({'item': serializer.data}, status=status.HTTP_201_CREATED)
-
-    def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        return Response({'item': serializer.data})
+    def retrieve(self, request, *args, **kwargs):
+        if 'slug' in kwargs:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance)
+            return Response({'article': serializer.data})
+        return super().retrieve(request, *args, **kwargs)
 
 
 class FAQViewSet(viewsets.ModelViewSet):
@@ -410,33 +305,10 @@ class FAQViewSet(viewsets.ModelViewSet):
     serializer_class = FAQSerializer
     permission_classes = [AllowAny]
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        published = self.request.query_params.get('published')
-
-        if published == '1':
-            queryset = queryset.filter(published=True)
-
-        return queryset.order_by('sort_order', 'id')
-
-    def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            return [IsAuthenticated()]
-        return [AllowAny()]
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        return Response({'item': serializer.data}, status=status.HTTP_201_CREATED)
-
-    def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        return Response({'item': serializer.data})
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'items': serializer.data})
 
 
 class TestimonialViewSet(viewsets.ModelViewSet):
@@ -444,33 +316,10 @@ class TestimonialViewSet(viewsets.ModelViewSet):
     serializer_class = TestimonialSerializer
     permission_classes = [AllowAny]
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        published = self.request.query_params.get('published')
-
-        if published == '1':
-            queryset = queryset.filter(published=True)
-
-        return queryset.order_by('sort_order', 'id')
-
-    def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            return [IsAuthenticated()]
-        return [AllowAny()]
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        return Response({'item': serializer.data}, status=status.HTTP_201_CREATED)
-
-    def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        return Response({'item': serializer.data})
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'items': serializer.data})
 
 
 class ConsultationViewSet(viewsets.ModelViewSet):
@@ -794,7 +643,7 @@ class ContactMessagePublicView(APIView):
 
 
 class StatsView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request):
         # Consultation stats

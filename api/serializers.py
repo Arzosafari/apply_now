@@ -50,9 +50,99 @@ class DestinationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Destination
         fields = '__all__'
+        extra_kwargs = {
+            'slug': {'required': True},
+            'country_code': {'required': True},
+            'flag': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'image': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'name_en': {'required': True},
+            'name_fa': {'required': True},
+            'tagline_en': {'required': False, 'allow_blank': True},
+            'tagline_fa': {'required': False, 'allow_blank': True},
+            'overview_en': {'required': False, 'allow_blank': True},
+            'overview_fa': {'required': False, 'allow_blank': True},
+            'education_en': {'required': False, 'allow_blank': True},
+            'education_fa': {'required': False, 'allow_blank': True},
+            'universities_en': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'universities_fa': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'study_pathways_en': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'study_pathways_fa': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'work_pathways_en': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'work_pathways_fa': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'pr_pathways_en': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'pr_pathways_fa': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'family_pathways_en': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'family_pathways_fa': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'investment_pathways_en': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'investment_pathways_fa': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'highlights_en': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'highlights_fa': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'eligibility_en': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'eligibility_fa': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'documents_en': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'documents_fa': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'process_en': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'process_fa': {'required': False, 'allow_null': True, 'allow_blank': True},
+        }
+
+    def to_internal_value(self, data):
+        # Convert JSON arrays to strings for JSON fields
+        json_fields = ['universities_en', 'universities_fa', 'study_pathways_en', 'study_pathways_fa',
+                       'work_pathways_en', 'work_pathways_fa', 'pr_pathways_en', 'pr_pathways_fa',
+                       'family_pathways_en', 'family_pathways_fa', 'investment_pathways_en', 'investment_pathways_fa',
+                       'highlights_en', 'highlights_fa', 'eligibility_en', 'eligibility_fa',
+                       'documents_en', 'documents_fa', 'process_en', 'process_fa']
+        for field in json_fields:
+            if field in data and isinstance(data[field], list):
+                import json
+                data[field] = json.dumps(data[field], ensure_ascii=False)
+        return super().to_internal_value(data)
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
+        # Add camelCase aliases
+        if 'country_code' in data:
+            data['countryCode'] = data['country_code']
+        if 'name_en' in data:
+            data['nameEn'] = data['name_en']
+        if 'name_fa' in data:
+            data['nameFa'] = data['name_fa']
+        if 'tagline_en' in data:
+            data['taglineEn'] = data['tagline_en']
+        if 'tagline_fa' in data:
+            data['taglineFa'] = data['tagline_fa']
+        if 'overview_en' in data:
+            data['overviewEn'] = data['overview_en']
+        if 'overview_fa' in data:
+            data['overviewFa'] = data['overview_fa']
+        # Parse JSON fields
+        json_fields = ['universities_en', 'universities_fa', 'study_pathways_en', 'study_pathways_fa',
+                       'work_pathways_en', 'work_pathways_fa', 'pr_pathways_en', 'pr_pathways_fa',
+                       'family_pathways_en', 'family_pathways_fa', 'investment_pathways_en', 'investment_pathways_fa',
+                       'highlights_en', 'highlights_fa', 'eligibility_en', 'eligibility_fa',
+                       'documents_en', 'documents_fa', 'process_en', 'process_fa']
+        for field in json_fields:
+            if field in data:
+                data[field] = parse_json_field(data[field])
+        return data
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        # Add camelCase aliases
+        if 'country_code' in data:
+            data['countryCode'] = data['country_code']
+        if 'name_en' in data:
+            data['nameEn'] = data['name_en']
+        if 'name_fa' in data:
+            data['nameFa'] = data['name_fa']
+        if 'tagline_en' in data:
+            data['taglineEn'] = data['tagline_en']
+        if 'tagline_fa' in data:
+            data['taglineFa'] = data['tagline_fa']
+        if 'overview_en' in data:
+            data['overviewEn'] = data['overview_en']
+        if 'overview_fa' in data:
+            data['overviewFa'] = data['overview_fa']
         # Parse JSON fields
         json_fields = ['universities_en', 'universities_fa', 'study_pathways_en', 'study_pathways_fa',
                        'work_pathways_en', 'work_pathways_fa', 'pr_pathways_en', 'pr_pathways_fa',

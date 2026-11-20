@@ -27,8 +27,17 @@ urlpatterns = [
     path('public/consultations', csrf_exempt(ConsultationPublicView.as_view()), name='consultation-public'),
     path('public/contact', csrf_exempt(ContactMessagePublicView.as_view()), name='contact-public'),
     path('public/legal/<slug:slug>', LegalDetailView.as_view(), name='public-legal-detail'),
+    path('public/services', ServiceViewSet.as_view({'get': 'list'}), name='public-services'),
     path('public/services/<slug:slug>', ServiceViewSet.as_view({'get': 'retrieve'}), name='public-service-detail'),
+    path('public/destinations', DestinationViewSet.as_view({'get': 'list'}), name='public-destinations'),
     path('public/destinations/<slug:slug>', DestinationViewSet.as_view({'get': 'retrieve'}), name='public-destination-detail'),
+    path('public/packages', PackageViewSet.as_view({'get': 'list'}), name='public-packages'),
+    path('public/experts', ExpertViewSet.as_view({'get': 'list'}), name='public-experts'),
+    path('public/experts/<slug:slug>', ExpertViewSet.as_view({'get': 'retrieve'}), name='public-expert-detail'),
+    path('public/articles', ArticleViewSet.as_view({'get': 'list'}), name='public-articles'),
+    path('public/articles/<slug:slug>', ArticleViewSet.as_view({'get': 'retrieve'}), name='public-article-detail'),
+    path('public/faqs', FAQViewSet.as_view({'get': 'list'}), name='public-faqs'),
+    path('public/testimonials', TestimonialViewSet.as_view({'get': 'list'}), name='public-testimonials'),
 
     # Admin endpoints
     path('admin/login', csrf_exempt(LoginView.as_view()), name='login'),

@@ -16,7 +16,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from django.http import JsonResponse
+from django.http import JsonResponse, FileResponse
+from django.conf import settings
+from django.conf.urls.static import static
+import os
 
 def api_root(request):
     return JsonResponse({
@@ -31,8 +34,26 @@ def api_root(request):
         }
     })
 
+def serve_upload(request, filename):
+    file_path = os.path.join(settings.BASE_DIR, 'public', 'uploads', filename)
+    print(f"Serving file: {file_path}, exists: {os.path.exists(file_path)}")
+    if os.path.exists(file_path):
+        import mimetypes
+        content_type, encoding = mimetypes.guess_type(file_path)
+        print(f"Content-Type: {content_type}, Encoding: {encoding}")
+        response = FileResponse(open(file_path, 'rb'), content_type=content_type or 'application/octet-stream')
+        response['Content-Disposition'] = f'inline; filename="{filename}"'
+        return response
+    from django.http import Http404
+    raise Http404
+
 urlpatterns = [
     path('', api_root),
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
+    path('uploads/<str:filename>', serve_upload, name='serve-upload'),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static('uploads/', document_root='public/uploads')
+    urlpatterns += static('images/', document_root='public/images')
