@@ -881,7 +881,8 @@ class PaymentsViewSet(viewsets.ModelViewSet):
 
 
 class UploadView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
+    authentication_classes = []
 
     def post(self, request):
         if 'image' not in request.FILES:
