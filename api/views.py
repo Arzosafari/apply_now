@@ -256,6 +256,7 @@ class ExpertViewSet(viewsets.ModelViewSet):
     queryset = Expert.objects.all()
     serializer_class = ExpertSerializer
     permission_classes = [AllowAny]
+    lookup_field = 'slug'
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -286,6 +287,7 @@ class ArticleViewSet(viewsets.ModelViewSet):
     queryset = Article.objects.all()
     serializer_class = ArticleSerializer
     permission_classes = [AllowAny]
+    lookup_field = 'slug'
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()

@@ -1,6 +1,5 @@
-from django.urls import path, include
+from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework.routers import DefaultRouter
 from .views import (
     LoginView, LogoutView, SessionView, MeView, ChangePasswordView,
     ServiceViewSet, DestinationViewSet, PackageViewSet, ExpertViewSet,
@@ -9,17 +8,6 @@ from .views import (
     ContactMessagePublicView, StatsView, SiteDataView, SettingsView,
     LegalDetailView, PaymentsViewSet, UploadView, ConsultationUpdateStatusView
 )
-
-router = DefaultRouter()
-router.register(r'services', ServiceViewSet, basename='service')
-router.register(r'destinations', DestinationViewSet, basename='destination')
-router.register(r'packages', PackageViewSet, basename='package')
-router.register(r'experts', ExpertViewSet, basename='expert')
-router.register(r'article-categories', ArticleCategoryViewSet, basename='articlecategory')
-router.register(r'articles', ArticleViewSet, basename='article')
-router.register(r'faqs', FAQViewSet, basename='faq')
-router.register(r'testimonials', TestimonialViewSet, basename='testimonial')
-router.register(r'payments', PaymentsViewSet, basename='payment')
 
 urlpatterns = [
     # Public endpoints
@@ -76,7 +64,4 @@ urlpatterns = [
     path('admin/faqs/<int:pk>', csrf_exempt(FAQViewSet.as_view({'get': 'retrieve', 'patch': 'partial_update', 'delete': 'destroy'})), name='admin-faq-detail'),
     path('admin/testimonials', csrf_exempt(TestimonialViewSet.as_view({'get': 'list', 'post': 'create'})), name='admin-testimonials'),
     path('admin/testimonials/<int:pk>', csrf_exempt(TestimonialViewSet.as_view({'get': 'retrieve', 'patch': 'partial_update', 'delete': 'destroy'})), name='admin-testimonial-detail'),
-
-    # Router URLs (public access)
-    path('', include(router.urls)),
 ]

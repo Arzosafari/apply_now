@@ -188,6 +188,25 @@ class PackageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Package
         fields = '__all__'
+        extra_kwargs = {
+            'slug': {'required': True},
+            'name_en': {'required': True},
+            'name_fa': {'required': True},
+            'description_en': {'required': False, 'allow_blank': True},
+            'description_fa': {'required': False, 'allow_blank': True},
+            'features_en': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'features_fa': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'exclusions_en': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'exclusions_fa': {'required': False, 'allow_null': True, 'allow_blank': True},
+        }
+
+    def to_internal_value(self, data):
+        # Convert JSON arrays to strings for JSON fields
+        json_fields = ['features_en', 'features_fa', 'exclusions_en', 'exclusions_fa']
+        for field in json_fields:
+            if field in data and isinstance(data[field], list):
+                data[field] = json.dumps(data[field], ensure_ascii=False)
+        return super().to_internal_value(data)
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -202,6 +221,24 @@ class ExpertSerializer(serializers.ModelSerializer):
     class Meta:
         model = Expert
         fields = '__all__'
+        extra_kwargs = {
+            'slug': {'required': True},
+            'name_en': {'required': True},
+            'name_fa': {'required': True},
+            'expertise_en': {'required': False, 'allow_blank': True},
+            'expertise_fa': {'required': False, 'allow_blank': True},
+            'bio_en': {'required': False, 'allow_blank': True},
+            'bio_fa': {'required': False, 'allow_blank': True},
+            'languages_en': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'languages_fa': {'required': False, 'allow_null': True, 'allow_blank': True},
+        }
+
+    def to_internal_value(self, data):
+        json_fields = ['languages_en', 'languages_fa']
+        for field in json_fields:
+            if field in data and isinstance(data[field], list):
+                data[field] = json.dumps(data[field], ensure_ascii=False)
+        return super().to_internal_value(data)
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -226,6 +263,15 @@ class ArticleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Article
         fields = '__all__'
+        extra_kwargs = {
+            'slug': {'required': True},
+            'title_en': {'required': True},
+            'title_fa': {'required': True},
+            'excerpt_en': {'required': False, 'allow_blank': True},
+            'excerpt_fa': {'required': False, 'allow_blank': True},
+            'content_en': {'required': False, 'allow_blank': True},
+            'content_fa': {'required': False, 'allow_blank': True},
+        }
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
