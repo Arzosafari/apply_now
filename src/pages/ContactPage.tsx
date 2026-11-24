@@ -227,7 +227,7 @@ export function ContactPage() {
                   <CheckCircle2 size={38} className="mx-auto text-[#1f8a55]" />
                   <h3 className="mt-4 text-lg">{t('contact.success')}</h3>
                   <button type="button" className="btn btn-outline btn-sm mt-5" onClick={() => setSuccess(false)}>
-                    {t('contact.send')}
+                    {t('contact.sendAnother')}
                   </button>
                 </div>
               ) : (
