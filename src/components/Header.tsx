@@ -25,7 +25,7 @@ interface HeaderProps {
   destinations: Destination[];
 }
 
-type NavDropdown = 'services' | 'destinations';
+type NavDropdown = 'services' | 'destinations' | 'study-programs';
 
 export function Header({ settings, services, destinations }: HeaderProps) {
   const { t, locale, switchLocale } = useLocale();
@@ -182,7 +182,7 @@ export function Header({ settings, services, destinations }: HeaderProps) {
     { to: '/destinations', label: t('nav.destinations'), dropdown: 'destinations' },
     { to: '/pricing', label: t('nav.pricing') },
     { to: '/experts', label: t('nav.experts') },
-    { to: '/study-programs', label: t('nav.studyPrograms') },
+    { to: '/study-programs', label: t('nav.studyPrograms'), dropdown: 'study-programs' },
     { to: '/blog', label: t('nav.blog') },
     { to: '/about', label: t('nav.about') },
     { to: '/contact', label: t('nav.contact') },
@@ -296,6 +296,28 @@ export function Header({ settings, services, destinations }: HeaderProps) {
                     </LocalLink>
                   </div>
                 )}
+                {item.dropdown === 'study-programs' && (
+                  <div id="nav-dropdown-study-programs" className="dropdown-panel" data-open={activeDropdown === 'study-programs' ? 'true' : undefined} role="group" aria-label={t('nav.studyPrograms')}>
+                    <LocalLink to="/study-programs" className="dropdown-item">
+                      <span className="dropdown-icon bg-orange-50 text-orange-600">
+                        <Globe2 size={16} />
+                      </span>
+                      <span>{t('nav.studyProgramsAll')}</span>
+                    </LocalLink>
+                    <LocalLink to="/study-programs?country=germany" className="dropdown-item">
+                      <span className="dropdown-icon bg-sky-50 text-sky-600">
+                        <GraduationCap size={16} />
+                      </span>
+                      <span>{t('nav.germanyPrograms')}</span>
+                    </LocalLink>
+                    <LocalLink to="/study-programs?country=finland" className="dropdown-item">
+                      <span className="dropdown-icon bg-emerald-50 text-emerald-600">
+                        <GraduationCap size={16} />
+                      </span>
+                      <span>{t('nav.finlandPrograms')}</span>
+                    </LocalLink>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -401,6 +423,57 @@ export function Header({ settings, services, destinations }: HeaderProps) {
 
               <nav className="mt-5" aria-label={locale === 'fa' ? 'منوی اصلی موبایل' : 'Mobile primary'}>
                 {nav.map((item) => {
+                  if (item.to === '/study-programs') {
+                    return (
+                      <div key={item.to}>
+                        <button
+                          type="button"
+                          onClick={() => setMobileDropdown(mobileDropdown === 'study-programs' ? null : 'study-programs')}
+                          className={cn(
+                            'flex w-full items-center justify-between border-b border-line py-3.5 text-[0.95rem] font-medium text-[#3f536a]',
+                            barePath.startsWith('/study-programs') && 'text-navy font-bold',
+                          )}
+                        >
+                          {item.label}
+                          <ChevronRight size={16} className={cn('transition-transform', mobileDropdown === 'study-programs' && 'rotate-90')} />
+                        </button>
+                        {mobileDropdown === 'study-programs' && (
+                          <div className="border-b border-line bg-gray-50">
+                            <LocalLink
+                              to="/study-programs"
+                              onClick={() => setOpen(false)}
+                              className="flex items-center gap-3 border-b border-gray-200 py-3 px-4 text-sm text-gray-700"
+                            >
+                              <span className="flex h-4 w-6 items-center justify-center rounded bg-orange-50">
+                                <Globe2 size={14} className="text-orange-600" />
+                              </span>
+                              <span>{t('nav.studyProgramsAll')}</span>
+                            </LocalLink>
+                            <LocalLink
+                              to="/study-programs?country=germany"
+                              onClick={() => setOpen(false)}
+                              className="flex items-center gap-3 border-b border-gray-200 py-3 px-4 text-sm text-gray-700"
+                            >
+                              <span className="flex h-4 w-6 items-center justify-center rounded bg-sky-50">
+                                <GraduationCap size={14} className="text-sky-600" />
+                              </span>
+                              <span>{t('nav.germanyPrograms')}</span>
+                            </LocalLink>
+                            <LocalLink
+                              to="/study-programs?country=finland"
+                              onClick={() => setOpen(false)}
+                              className="flex items-center gap-3 py-3 px-4 text-sm text-gray-700"
+                            >
+                              <span className="flex h-4 w-6 items-center justify-center rounded bg-emerald-50">
+                                <GraduationCap size={14} className="text-emerald-600" />
+                              </span>
+                              <span>{t('nav.finlandPrograms')}</span>
+                            </LocalLink>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
                   if (item.to === '/destinations') {
                     return (
                       <div key={item.to}>

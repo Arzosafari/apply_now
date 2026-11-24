@@ -7,6 +7,15 @@ from api.models import DAADProgram
 class Command(BaseCommand):
     help = 'Fetch programs from DAAD API and save to database'
 
+    DAAD_BASE = 'https://www2.daad.de'
+
+    def _full_image_url(self, image):
+        if not image:
+            return ''
+        if image.startswith('http'):
+            return image
+        return f"{self.DAAD_BASE}{image}"
+
     def add_arguments(self, parser):
         parser.add_argument(
             '--limit',
@@ -112,7 +121,7 @@ class Command(BaseCommand):
                         'structured_research': course.get('structuredResearch', False),
                         'support_international_students': course.get('supportInternationalStudents', []),
                         'link': f"https://www2.daad.de{course.get('link', '')}" if course.get('link') else '',
-                        'image': course.get('image', ''),
+                        'image': self._full_image_url(course.get('image', '')),
                         'request_language': course.get('requestLanguage', 'en'),
                     }
                 )
@@ -140,7 +149,7 @@ class Command(BaseCommand):
                     program.structured_research = course.get('structuredResearch', False)
                     program.support_international_students = course.get('supportInternationalStudents', [])
                     program.link = f"https://www2.daad.de{course.get('link', '')}" if course.get('link') else ''
-                    program.image = course.get('image', '')
+                    program.image = self._full_image_url(course.get('image', ''))
                     program.request_language = course.get('requestLanguage', 'en')
                     program.save()
                     updated_count += 1

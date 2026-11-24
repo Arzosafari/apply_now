@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { LocalLink } from '@/lib/i18n';
-import { Search, GraduationCap, MapPin, Languages, DollarSign, Clock, Globe } from 'lucide-react';
+import { Search, GraduationCap, MapPin, Languages, DollarSign, Clock, Globe, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLocale } from '@/lib/i18n';
 import { usePageMeta } from '@/lib/seo';
 import { PageHero } from '@/components/PageHero';
@@ -51,13 +52,54 @@ const COUNTRIES = [
   { value: 'south_korea', label: 'South Korea' },
 ];
 
+const PER_PAGE = 10;
+
 export function StudyProgramsPage() {
   const { t, locale } = useLocale();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const countryParam = searchParams.get('country') || 'all';
+  const pageParam = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
   const [programs, setPrograms] = useState<StudyProgram[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [countryFilter, setCountryFilter] = useState('all');
+  const [countryFilter, setCountryFilter] = useState(countryParam);
   const [typeFilter, setTypeFilter] = useState('all');
+  const [page, setPage] = useState(pageParam);
+
+  // Keep filters in sync when the URL changes (e.g. header dropdown links)
+  useEffect(() => {
+    setCountryFilter(countryParam);
+    setPage(pageParam);
+  }, [countryParam, pageParam]);
+
+  const updateParams = (updates: { country?: string; page?: number }) => {
+    const next = new URLSearchParams(searchParams);
+    if (updates.country !== undefined) {
+      if (updates.country === 'all') next.delete('country');
+      else next.set('country', updates.country);
+    }
+    if (updates.page !== undefined) {
+      if (updates.page <= 1) next.delete('page');
+      else next.set('page', String(updates.page));
+    }
+    setSearchParams(next, { replace: true });
+  };
+
+  const handleCountryChange = (value: string) => {
+    setCountryFilter(value);
+    setPage(1);
+    updateParams({ country: value, page: 1 });
+  };
+
+  const handleTypeChange = (value: string) => {
+    setTypeFilter(value);
+    setPage(1);
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    setPage(1);
+  };
 
   usePageMeta({
     title: locale === 'fa' ? 'برنامه‌های تحصیلی بین‌المللی' : 'International Study Programs',
@@ -107,6 +149,33 @@ export function StudyProgramsPage() {
     return matchesSearch && matchesType;
   });
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+  const safePage = Math.min(page, totalPages);
+  const pagedPrograms = filtered.slice((safePage - 1) * PER_PAGE, safePage * PER_PAGE);
+
+  const goToPage = (next: number) => {
+    const clamped = Math.max(1, Math.min(next, totalPages));
+    setPage(clamped);
+    updateParams({ page: clamped });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const pageNumbers = useMemo(() => {
+    const pages: (number | '...')[] = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (safePage > 3) pages.push('...');
+      const start = Math.max(2, safePage - 1);
+      const end = Math.min(totalPages - 1, safePage + 1);
+      for (let i = start; i <= end; i++) pages.push(i);
+      if (safePage < totalPages - 2) pages.push('...');
+      pages.push(totalPages);
+    }
+    return pages;
+  }, [totalPages, safePage]);
+
   return (
     <>
       <PageHero
@@ -125,7 +194,7 @@ export function StudyProgramsPage() {
             <div className="flex flex-wrap gap-2">
               <select
                 value={countryFilter}
-                onChange={(e) => setCountryFilter(e.target.value)}
+                onChange={(e) => handleCountryChange(e.target.value)}
                 className="input !w-auto"
               >
                 {COUNTRIES.map(country => (
@@ -134,7 +203,7 @@ export function StudyProgramsPage() {
               </select>
               <select
                 value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
+                onChange={(e) => handleTypeChange(e.target.value)}
                 className="input !w-auto"
               >
                 <option value="all">{locale === 'fa' ? 'همه انواع' : 'All Types'}</option>
@@ -150,7 +219,7 @@ export function StudyProgramsPage() {
                 className="input !ps-9"
                 placeholder={locale === 'fa' ? 'جستجو در برنامه‌ها...' : 'Search programs...'}
                 value={search}
-                onChange={(event) => setSearch(event.target.value)}
+                onChange={(event) => handleSearchChange(event.target.value)}
               />
             </label>
           </div>
@@ -160,14 +229,15 @@ export function StudyProgramsPage() {
               <div className="text-center text-muted">{locale === 'fa' ? 'در حال بارگذاری...' : 'Loading...'}</div>
             </div>
           ) : filtered.length > 0 ? (
+            <>
             <div className="grid gap-6">
-              {filtered.map((program) => (
+              {pagedPrograms.map((program) => (
                 <div key={program.id} className="card p-6">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
                     {program.image && (
                       <div className="hidden h-32 w-32 shrink-0 overflow-hidden rounded-lg bg-gray-100 sm:block">
                         <img
-                          src={program.image.startsWith('http') ? program.image : program.image}
+                          src={program.image}
                           alt={program.course_name}
                           className="h-full w-full object-cover"
                         />
@@ -233,6 +303,46 @@ export function StudyProgramsPage() {
                 </div>
               ))}
             </div>
+            {totalPages > 1 && (
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => goToPage(safePage - 1)}
+                  disabled={safePage <= 1}
+                  className="btn btn-outline btn-sm inline-flex items-center gap-1 disabled:opacity-40"
+                  aria-label={locale === 'fa' ? 'قبلی' : 'Previous'}
+                >
+                  <ChevronLeft size={14} className="rtl:-scale-x-100" />
+                  {locale === 'fa' ? 'قبلی' : 'Previous'}
+                </button>
+                {pageNumbers.map((num, idx) =>
+                  num === '...' ? (
+                    <span key={`ellipsis-${idx}`} className="px-2 text-muted">…</span>
+                  ) : (
+                    <button
+                      key={num}
+                      type="button"
+                      onClick={() => goToPage(num)}
+                      className={`btn btn-sm min-w-[2.25rem] ${num === safePage ? 'btn-primary' : 'btn-outline'}`}
+                      aria-current={num === safePage ? 'page' : undefined}
+                    >
+                      {num}
+                    </button>
+                  ),
+                )}
+                <button
+                  type="button"
+                  onClick={() => goToPage(safePage + 1)}
+                  disabled={safePage >= totalPages}
+                  className="btn btn-outline btn-sm inline-flex items-center gap-1 disabled:opacity-40"
+                  aria-label={locale === 'fa' ? 'بعدی' : 'Next'}
+                >
+                  {locale === 'fa' ? 'بعدی' : 'Next'}
+                  <ChevronRight size={14} className="rtl:-scale-x-100" />
+                </button>
+              </div>
+            )}
+            </>
           ) : (
             <EmptyState />
           )}

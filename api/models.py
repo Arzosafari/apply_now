@@ -529,6 +529,7 @@ class StudyProgram(models.Model):
         ('DAAD', 'DAAD'),
         ('manual', 'Manual Entry'),
         ('canada_official', 'Canada Official'),
+        ('konfo', 'Opintopolku (Konfo)'),
         ('qs_rankings', 'QS Rankings'),
         ('other', 'Other'),
     ]

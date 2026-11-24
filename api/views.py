@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import authenticate, login, logout
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.db.models import Q, Count, Sum
 from datetime import datetime, timedelta
@@ -26,6 +27,19 @@ from .serializers import (
     LegalPageSerializer, ActivityLogSerializer, ConsultationCreateSerializer,
     ContactMessageCreateSerializer, LoginSerializer, DAADProgramSerializer, StudyProgramSerializer
 )
+
+
+class SlugOrPkViewSet(viewsets.ModelViewSet):
+    """ViewSet that supports both slug (public) and pk (admin) lookups."""
+    lookup_field = 'slug'
+
+    def get_object(self):
+        if 'pk' in self.kwargs:
+            queryset = self.filter_queryset(self.get_queryset())
+            obj = get_object_or_404(queryset, pk=self.kwargs['pk'])
+            self.check_object_permissions(self.request, obj)
+            return obj
+        return super().get_object()
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -173,11 +187,10 @@ class ChangePasswordView(APIView):
         return Response({'ok': True})
 
 
-class ServiceViewSet(viewsets.ModelViewSet):
+class ServiceViewSet(SlugOrPkViewSet):
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer
     permission_classes = [AllowAny]
-    lookup_field = 'slug'
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -213,11 +226,10 @@ class ServiceViewSet(viewsets.ModelViewSet):
         return Response({'item': serializer.data})
 
 
-class DestinationViewSet(viewsets.ModelViewSet):
+class DestinationViewSet(SlugOrPkViewSet):
     queryset = Destination.objects.all()
     serializer_class = DestinationSerializer
     permission_classes = [AllowAny]
-    lookup_field = 'slug'
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -252,11 +264,10 @@ class PackageViewSet(viewsets.ModelViewSet):
         return super().retrieve(request, *args, **kwargs)
 
 
-class ExpertViewSet(viewsets.ModelViewSet):
+class ExpertViewSet(SlugOrPkViewSet):
     queryset = Expert.objects.all()
     serializer_class = ExpertSerializer
     permission_classes = [AllowAny]
-    lookup_field = 'slug'
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -283,11 +294,10 @@ class ArticleCategoryViewSet(viewsets.ModelViewSet):
         return Response({'items': serializer.data})
 
 
-class ArticleViewSet(viewsets.ModelViewSet):
+class ArticleViewSet(SlugOrPkViewSet):
     queryset = Article.objects.all()
     serializer_class = ArticleSerializer
     permission_classes = [AllowAny]
-    lookup_field = 'slug'
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -913,11 +923,10 @@ class UploadView(APIView):
         return Response({'url': url})
 
 
-class DAADProgramViewSet(viewsets.ModelViewSet):
+class DAADProgramViewSet(SlugOrPkViewSet):
     queryset = DAADProgram.objects.all()
     serializer_class = DAADProgramSerializer
     permission_classes = [AllowAny]
-    lookup_field = 'slug'
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -930,11 +939,10 @@ class DAADProgramViewSet(viewsets.ModelViewSet):
         return Response({'item': serializer.data})
 
 
-class StudyProgramViewSet(viewsets.ModelViewSet):
+class StudyProgramViewSet(SlugOrPkViewSet):
     queryset = StudyProgram.objects.all()
     serializer_class = StudyProgramSerializer
     permission_classes = [AllowAny]
-    lookup_field = 'slug'
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()

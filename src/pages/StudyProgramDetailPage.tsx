@@ -79,7 +79,7 @@ export function StudyProgramDetailPage() {
         eyebrow={`${program.country_display} - ${program.course_type_display}`}
         title={program.course_name}
         intro={program.academy}
-        image={program.image?.startsWith('http') ? program.image : program.image}
+        image={program.image}
         breadcrumbs={[
           { label: locale === 'fa' ? 'برنامه‌ها' : 'Programs', to: '/study-programs' },
           { label: program.course_name_short || program.course_name },

@@ -239,7 +239,8 @@ export type ResourceName =
   | 'articles'
   | 'categories'
   | 'faqs'
-  | 'testimonials';
+  | 'testimonials'
+  | 'study-programs';
 
 export type ResourceItem =
   | Service
