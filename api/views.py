@@ -759,7 +759,7 @@ class SiteDataView(APIView):
             'testimonials': TestimonialSerializer(Testimonial.objects.filter(published=True).order_by('sort_order', 'id'), many=True).data,
             'categories': ArticleCategorySerializer(ArticleCategory.objects.all().order_by('sort_order', 'id'), many=True).data,
             'articles': ArticleSerializer(Article.objects.filter(status='published').order_by('-published_at', '-id')[:6], many=True).data,
-            'contentVerified': False,
+            'contentVerified': True,
             'payment': {
                 'enabled': False,
                 'provider': 'stripe',

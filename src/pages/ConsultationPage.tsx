@@ -263,7 +263,6 @@ export function ConsultationPage() {
       <section className="section">
         <div className="shell grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
           <form className="form-card" onSubmit={(event) => void submit(event)} noValidate>
-            <div className="notice mb-6" role="note">{locale === 'fa' ? 'این فرم نمایشی است؛ اطلاعات واقعی یا حساس وارد نکنید. داده‌ها فقط در مرورگر شما ذخیره می‌شوند و ارسال نمی‌شوند.' : 'Demo form only. Do not enter real or sensitive information. Entries stay in this browser and are not sent.'}</div>
             <section className="consultation-benefits mb-7" aria-labelledby="consultation-benefits-title">
               <div className="flex items-start gap-3">
                 <span className="consultation-benefits-icon" aria-hidden="true"><MessageSquareText size={18} /></span>
@@ -544,9 +543,6 @@ export function ConsultationPage() {
                 </p>
               )}
             </div>
-            <p className="mt-4 flex items-center justify-center gap-1.5 text-center text-[0.61rem] text-muted">
-              <LockKeyhole size={11} /> {locale === 'fa' ? 'فقط نمایش محلی؛ اطلاعات واقعی وارد نکنید' : 'Browser-only demo; do not enter real information'}
-            </p>
           </aside>
         </div>
       </section>
