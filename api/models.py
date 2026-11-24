@@ -489,4 +489,171 @@ class ActivityLog(models.Model):
             models.Index(fields=['-created_at']),
             models.Index(fields=['entity_type', 'entity_id']),
         ]
+
+
+class StudyProgram(models.Model):
+    COURSE_TYPE_CHOICES = [
+        (1, "Bachelor's degree"),
+        (2, "Master's degree"),
+        (3, "PhD/Doctorate"),
+        (4, "Cross-faculty graduate and research school"),
+        (5, "Prep course"),
+        (6, "Language course"),
+        (7, "Short course"),
+        (8, "Study online"),
+        (56, "Summer/Winter School"),
+    ]
+
+    COUNTRY_CHOICES = [
+        ('germany', 'Germany'),
+        ('canada', 'Canada'),
+        ('australia', 'Australia'),
+        ('uk', 'United Kingdom'),
+        ('usa', 'United States'),
+        ('netherlands', 'Netherlands'),
+        ('france', 'France'),
+        ('sweden', 'Sweden'),
+        ('norway', 'Norway'),
+        ('finland', 'Finland'),
+        ('denmark', 'Denmark'),
+        ('switzerland', 'Switzerland'),
+        ('ireland', 'Ireland'),
+        ('new_zealand', 'New Zealand'),
+        ('singapore', 'Singapore'),
+        ('japan', 'Japan'),
+        ('south_korea', 'South Korea'),
+        ('other', 'Other'),
+    ]
+
+    DATA_SOURCE_CHOICES = [
+        ('DAAD', 'DAAD'),
+        ('manual', 'Manual Entry'),
+        ('canada_official', 'Canada Official'),
+        ('konfo', 'Opintopolku (Konfo)'),
+        ('qs_rankings', 'QS Rankings'),
+        ('other', 'Other'),
+    ]
+
+    external_id = models.CharField(max_length=100, blank=True, null=True, unique=True)
+    slug = models.SlugField(max_length=255, unique=True, blank=True, null=True)
+    country = models.CharField(max_length=50, choices=COUNTRY_CHOICES, default='germany')
+    data_source = models.CharField(max_length=50, choices=DATA_SOURCE_CHOICES, default='manual')
+    
+    course_name = models.CharField(max_length=500)
+    course_name_short = models.CharField(max_length=500, blank=True, null=True)
+    academy = models.CharField(max_length=500, blank=True, null=True)
+    city = models.CharField(max_length=255, blank=True, null=True)
+    languages = models.JSONField(default=list, blank=True, null=True)
+    language_level_german = models.JSONField(default=list, null=True, blank=True)
+    language_level_english = models.JSONField(default=list, null=True, blank=True)
+    subject = models.CharField(max_length=500, blank=True, null=True)
+    tuition_fees = models.TextField(blank=True, null=True)
+    programme_duration = models.CharField(max_length=255, blank=True, null=True)
+    beginning = models.CharField(max_length=255, blank=True, null=True)
+    application_deadline = models.TextField(blank=True, null=True)
+    cost_string = models.TextField(blank=True, null=True)
+    course_type = models.IntegerField(choices=COURSE_TYPE_CHOICES, null=True, blank=True)
+    is_elearning = models.BooleanField(default=False)
+    is_complete_online_possible = models.BooleanField(default=False)
+    financial_support = models.TextField(blank=True, null=True)
+    structured_research = models.BooleanField(default=False, null=True, blank=True)
+    support_international_students = models.JSONField(default=list, null=True, blank=True)
+    link = models.URLField(max_length=1000, blank=True, null=True)
+    image = models.URLField(max_length=1000, blank=True, null=True)
+    request_language = models.CharField(max_length=10, default='en')
+    
+    description = models.TextField(blank=True, null=True)
+    admission_requirements = models.TextField(blank=True, null=True)
+    language_requirements = models.TextField(blank=True, null=True)
+    application_documents = models.TextField(blank=True, null=True)
+    living_costs = models.TextField(blank=True, null=True)
+    scholarship_info = models.TextField(blank=True, null=True)
+    contact_info = models.TextField(blank=True, null=True)
+    
+    published = models.BooleanField(default=True)
+    featured = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'study_programs'
+        verbose_name = 'Study Program'
+        verbose_name_plural = 'Study Programs'
+        indexes = [
+            models.Index(fields=['country']),
+            models.Index(fields=['course_type']),
+            models.Index(fields=['city']),
+            models.Index(fields=['subject']),
+            models.Index(fields=['-created_at']),
+            models.Index(fields=['published', 'featured']),
+        ]
+
+    def __str__(self):
+        return f"{self.course_name} - {self.academy}"
+
+
+class DAADProgram(models.Model):
+    COURSE_TYPE_CHOICES = [
+        (1, "Bachelor's degree"),
+        (2, "Master's degree"),
+        (3, "PhD/Doctorate"),
+        (4, "Cross-faculty graduate and research school"),
+        (5, "Prep course"),
+        (6, "Language course"),
+        (7, "Short course"),
+        (8, "Study online"),
+        (56, "Summer/Winter School"),
+    ]
+
+    daad_id = models.IntegerField(unique=True)
+    slug = models.SlugField(max_length=255, unique=True, blank=True, null=True)
+    course_name = models.CharField(max_length=500)
+    course_name_short = models.CharField(max_length=500, blank=True, null=True)
+    academy = models.CharField(max_length=500, blank=True, null=True)
+    city = models.CharField(max_length=255, blank=True, null=True)
+    country = models.CharField(max_length=255, default='Germany')
+    languages = models.JSONField(default=list, blank=True, null=True)
+    language_level_german = models.JSONField(default=list, null=True, blank=True)
+    language_level_english = models.JSONField(default=list, null=True, blank=True)
+    subject = models.CharField(max_length=500, blank=True, null=True)
+    tuition_fees = models.TextField(blank=True, null=True)
+    programme_duration = models.CharField(max_length=255, blank=True, null=True)
+    beginning = models.CharField(max_length=255, blank=True, null=True)
+    application_deadline = models.TextField(blank=True, null=True)
+    cost_string = models.TextField(blank=True, null=True)
+    course_type = models.IntegerField(choices=COURSE_TYPE_CHOICES, null=True, blank=True)
+    is_elearning = models.BooleanField(default=False)
+    is_complete_online_possible = models.BooleanField(default=False)
+    financial_support = models.TextField(blank=True, null=True)
+    structured_research = models.BooleanField(default=False, null=True, blank=True)
+    support_international_students = models.JSONField(default=list, null=True, blank=True)
+    link = models.URLField(max_length=1000, blank=True, null=True)
+    image = models.URLField(max_length=1000, blank=True, null=True)
+    request_language = models.CharField(max_length=10, default='en')
+    data_source = models.CharField(max_length=50, default='DAAD')
+    published = models.BooleanField(default=True)
+    # Additional detail fields
+    description = models.TextField(blank=True, null=True)
+    admission_requirements = models.TextField(blank=True, null=True)
+    language_requirements = models.TextField(blank=True, null=True)
+    application_documents = models.TextField(blank=True, null=True)
+    living_costs = models.TextField(blank=True, null=True)
+    scholarship_info = models.TextField(blank=True, null=True)
+    contact_info = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'daad_programs'
+        verbose_name = 'DAAD Program'
+        verbose_name_plural = 'DAAD Programs'
+        indexes = [
+            models.Index(fields=['course_type']),
+            models.Index(fields=['city']),
+            models.Index(fields=['subject']),
+            models.Index(fields=['-created_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.course_name} - {self.academy}"
         ordering = ['-created_at']

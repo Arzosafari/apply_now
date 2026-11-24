@@ -22,6 +22,10 @@ import { FaqPage } from '@/pages/FaqPage';
 import { LegalPage } from '@/pages/LegalPage';
 import { PaymentCancelledPage, PaymentSuccessPage } from '@/pages/PaymentPages';
 import { NotFoundPage } from '@/pages/NotFoundPage';
+import { DAADProgramsPage } from '@/pages/DAADProgramsPage';
+import { DAADProgramDetailPage } from '@/pages/DAADProgramDetailPage';
+import { StudyProgramsPage } from '@/pages/StudyProgramsPage';
+import { StudyProgramDetailPage } from '@/pages/StudyProgramDetailPage';
 
 const AdminApp = lazy(() => import('./admin/AdminApp').then((module) => ({ default: module.AdminApp })));
 
@@ -50,6 +54,10 @@ const publicPages = [
   { path: 'consultation', element: <ConsultationPage /> },
   { path: 'contact', element: <ContactPage /> },
   { path: 'faq', element: <FaqPage /> },
+  { path: 'daad-programs', element: <DAADProgramsPage /> },
+  { path: 'daad-programs/:slug', element: <DAADProgramDetailPage /> },
+  { path: 'study-programs', element: <StudyProgramsPage /> },
+  { path: 'study-programs/:slug', element: <StudyProgramDetailPage /> },
   { path: 'privacy-policy', element: <LegalPage slug="privacy-policy" /> },
   { path: 'terms-and-conditions', element: <LegalPage slug="terms-and-conditions" /> },
   { path: 'payment/success', element: <PaymentSuccessPage /> },

@@ -62,6 +62,7 @@ export function AdminApp() {
               <Route path="categories" element={<ResourceManager config={resourceConfigs.categories} />} />
               <Route path="faqs" element={<ResourceManager config={resourceConfigs.faqs} />} />
               <Route path="testimonials" element={<ResourceManager config={resourceConfigs.testimonials} />} />
+              <Route path="study-programs" element={<ResourceManager config={resourceConfigs['study-programs']} />} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="legal" element={<LegalAdminPage />} />
               <Route path="account" element={<AccountPage />} />

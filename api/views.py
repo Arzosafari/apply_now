@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import authenticate, login, logout
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.db.models import Q, Count, Sum
 from datetime import datetime, timedelta
@@ -16,7 +17,7 @@ import json
 from .models import (
     Admin, AdminSession, Service, Destination, Package, Expert, ArticleCategory, Article,
     FAQ, Testimonial, Consultation, ConsultationNote, ContactMessage,
-    Payment, SiteSetting, LegalPage, ActivityLog
+    Payment, SiteSetting, LegalPage, ActivityLog, DAADProgram, StudyProgram
 )
 from .serializers import (
     AdminSerializer, ServiceSerializer, DestinationSerializer, PackageSerializer,
@@ -24,8 +25,21 @@ from .serializers import (
     TestimonialSerializer, ConsultationSerializer, ConsultationNoteSerializer,
     ContactMessageSerializer, PaymentSerializer, SiteSettingSerializer,
     LegalPageSerializer, ActivityLogSerializer, ConsultationCreateSerializer,
-    ContactMessageCreateSerializer, LoginSerializer
+    ContactMessageCreateSerializer, LoginSerializer, DAADProgramSerializer, StudyProgramSerializer
 )
+
+
+class SlugOrPkViewSet(viewsets.ModelViewSet):
+    """ViewSet that supports both slug (public) and pk (admin) lookups."""
+    lookup_field = 'slug'
+
+    def get_object(self):
+        if 'pk' in self.kwargs:
+            queryset = self.filter_queryset(self.get_queryset())
+            obj = get_object_or_404(queryset, pk=self.kwargs['pk'])
+            self.check_object_permissions(self.request, obj)
+            return obj
+        return super().get_object()
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -173,11 +187,10 @@ class ChangePasswordView(APIView):
         return Response({'ok': True})
 
 
-class ServiceViewSet(viewsets.ModelViewSet):
+class ServiceViewSet(SlugOrPkViewSet):
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer
     permission_classes = [AllowAny]
-    lookup_field = 'slug'
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -213,11 +226,10 @@ class ServiceViewSet(viewsets.ModelViewSet):
         return Response({'item': serializer.data})
 
 
-class DestinationViewSet(viewsets.ModelViewSet):
+class DestinationViewSet(SlugOrPkViewSet):
     queryset = Destination.objects.all()
     serializer_class = DestinationSerializer
     permission_classes = [AllowAny]
-    lookup_field = 'slug'
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -252,7 +264,7 @@ class PackageViewSet(viewsets.ModelViewSet):
         return super().retrieve(request, *args, **kwargs)
 
 
-class ExpertViewSet(viewsets.ModelViewSet):
+class ExpertViewSet(SlugOrPkViewSet):
     queryset = Expert.objects.all()
     serializer_class = ExpertSerializer
     permission_classes = [AllowAny]
@@ -283,7 +295,7 @@ class ArticleCategoryViewSet(viewsets.ModelViewSet):
         return Response({'items': serializer.data})
 
 
-class ArticleViewSet(viewsets.ModelViewSet):
+class ArticleViewSet(SlugOrPkViewSet):
     queryset = Article.objects.all()
     serializer_class = ArticleSerializer
     permission_classes = [AllowAny]
@@ -911,3 +923,45 @@ class UploadView(APIView):
         
         url = f"/uploads/{filename}"
         return Response({'url': url})
+
+
+class DAADProgramViewSet(SlugOrPkViewSet):
+    queryset = DAADProgram.objects.all()
+    serializer_class = DAADProgramSerializer
+    permission_classes = [AllowAny]
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'items': serializer.data})
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response({'item': serializer.data})
+
+
+class StudyProgramViewSet(SlugOrPkViewSet):
+    queryset = StudyProgram.objects.all()
+    serializer_class = StudyProgramSerializer
+    permission_classes = [AllowAny]
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        # Filter by country if provided
+        country = request.query_params.get('country')
+        if country:
+            queryset = queryset.filter(country=country)
+        
+        # Filter by featured if requested
+        featured = request.query_params.get('featured')
+        if featured == 'true':
+            queryset = queryset.filter(featured=True)
+        
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'items': serializer.data})
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response({'item': serializer.data})
