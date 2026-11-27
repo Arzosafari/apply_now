@@ -530,6 +530,7 @@ class StudyProgram(models.Model):
         ('manual', 'Manual Entry'),
         ('canada_official', 'Canada Official'),
         ('konfo', 'Opintopolku (Konfo)'),
+        ('doctum', 'Doctum (UK PhDs)'),
         ('qs_rankings', 'QS Rankings'),
         ('other', 'Other'),
     ]

@@ -316,6 +316,12 @@ export function Header({ settings, services, destinations }: HeaderProps) {
                       </span>
                       <span>{t('nav.finlandPrograms')}</span>
                     </LocalLink>
+                    <LocalLink to="/study-programs?country=uk" className="dropdown-item">
+                      <span className="dropdown-icon bg-rose-50 text-rose-600">
+                        <GraduationCap size={16} />
+                      </span>
+                      <span>{t('nav.ukPrograms')}</span>
+                    </LocalLink>
                   </div>
                 )}
               </div>
@@ -468,6 +474,16 @@ export function Header({ settings, services, destinations }: HeaderProps) {
                                 <GraduationCap size={14} className="text-emerald-600" />
                               </span>
                               <span>{t('nav.finlandPrograms')}</span>
+                            </LocalLink>
+                            <LocalLink
+                              to="/study-programs?country=uk"
+                              onClick={() => setOpen(false)}
+                              className="flex items-center gap-3 py-3 px-4 text-sm text-gray-700"
+                            >
+                              <span className="flex h-4 w-6 items-center justify-center rounded bg-rose-50">
+                                <GraduationCap size={14} className="text-rose-600" />
+                              </span>
+                              <span>{t('nav.ukPrograms')}</span>
                             </LocalLink>
                           </div>
                         )}
