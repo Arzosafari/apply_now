@@ -12,6 +12,7 @@ const dictionary = {
   'nav.studyProgramsAll': { en: 'All Programs', fa: 'همه برنامه‌ها' },
   'nav.germanyPrograms': { en: 'Germany Programs', fa: 'برنامه‌های آلمان' },
   'nav.finlandPrograms': { en: 'Finland Programs', fa: 'برنامه‌های فنلاند' },
+  'nav.ukPrograms': { en: 'UK PhD Programs', fa: 'برنامه‌های دکتری بریتانیا' },
   'nav.daadPrograms': { en: 'Germany Programs', fa: 'برنامه‌های آلمان' },
   'nav.blog': { en: 'Blog', fa: 'وبلاگ' },
   'nav.about': { en: 'About Us', fa: 'درباره ما' },
